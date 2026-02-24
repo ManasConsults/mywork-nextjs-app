@@ -10,7 +10,7 @@ import type { RegisterInput } from '@/lib/schemas/auth.schema';
 
 type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
 
-export function RegisterForm(): JSX.Element {
+export function RegisterForm(): React.JSX.Element {
   const router = useRouter();
 
   const [values, setValues] = useState<RegisterInput>({

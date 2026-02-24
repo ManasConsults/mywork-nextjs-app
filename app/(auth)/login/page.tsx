@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   title: 'MyWork — Sign in',
 };
 
-export default function LoginPage(): JSX.Element {
+export default function LoginPage(): React.JSX.Element {
   return <LoginForm />;
 }

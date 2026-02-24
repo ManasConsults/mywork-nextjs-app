@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,8 +8,8 @@ export const metadata: Metadata = {
 export default function AuthLayout({
   children,
 }: {
-  children: React.ReactNode;
-}): JSX.Element {
+  children: ReactNode;
+}): React.JSX.Element {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md">

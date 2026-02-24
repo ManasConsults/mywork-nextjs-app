@@ -46,7 +46,7 @@ const OAUTH_PROVIDERS = [
   },
 ] as const;
 
-export function LoginForm(): JSX.Element {
+export function LoginForm(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';

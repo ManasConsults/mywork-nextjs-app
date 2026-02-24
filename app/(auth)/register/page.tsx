@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   title: 'MyWork — Create account',
 };
 
-export default function RegisterPage(): JSX.Element {
+export default function RegisterPage(): React.JSX.Element {
   return <RegisterForm />;
 }

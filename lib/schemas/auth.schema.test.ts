@@ -14,11 +14,12 @@ describe('loginSchema', () => {
     ['invalid email format', { ...valid, email: 'not-an-email' }, 'email'],
     ['missing @', { ...valid, email: 'userexample.com' }, 'email'],
     ['empty password', { ...valid, password: '' }, 'password'],
-  ])('rejects %s', (_label, input, expectedField) => {
+  ])('rejects %s', (_label: string, input: typeof valid, expectedField: string) => {
     const result = loginSchema.safeParse(input);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.flatten().fieldErrors[expectedField]).toBeDefined();
+      const fields = result.error.flatten().fieldErrors as Record<string, string[] | undefined>;
+      expect(fields[expectedField]).toBeDefined();
     }
   });
 });
@@ -46,11 +47,12 @@ describe('registerSchema', () => {
     ['password over 128 chars', { ...valid, password: 'Aa1' + 'x'.repeat(126), confirmPassword: 'Aa1' + 'x'.repeat(126) }, 'password'],
     ['no uppercase letter', { ...valid, password: 'password1', confirmPassword: 'password1' }, 'password'],
     ['no digit', { ...valid, password: 'Password', confirmPassword: 'Password' }, 'password'],
-  ])('rejects %s', (_label, input, expectedField) => {
+  ])('rejects %s', (_label: string, input: typeof valid, expectedField: string) => {
     const result = registerSchema.safeParse(input);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.flatten().fieldErrors[expectedField]).toBeDefined();
+      const fields = result.error.flatten().fieldErrors as Record<string, string[] | undefined>;
+      expect(fields[expectedField]).toBeDefined();
     }
   });
 
