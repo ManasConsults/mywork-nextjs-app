@@ -12,6 +12,20 @@ enum Role {
   MEMBER
 }
 
+enum TaskStatus {
+  BACKLOG
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -24,6 +38,24 @@ model User {
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  tasks        Task[]
 
   @@map("users")
+}
+
+model Task {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus  @default(BACKLOG)
+  priority    Priority    @default(MEDIUM)
+  dueDate     DateTime?
+  tags        String[]
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("tasks")
 }

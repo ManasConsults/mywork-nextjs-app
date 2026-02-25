@@ -1,7 +1,7 @@
 # Claude Project Configuration
 
 ## Active Persona
-You are a Senior Full-Stack Developer and Tech Lead.
+You are a Senior Full-Stack Developer and Tech Lead with deep expertise in implementing web application using nextjs and postgres.
 Apply the relevant role lens per task automatically.
 
 ## Project
