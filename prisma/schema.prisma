@@ -38,26 +38,29 @@ model User {
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  tasks        Task[]
-  workLogs     WorkLog[]
+  tasks                Task[]
+  workLogs             WorkLog[]
+  achievements         Achievement[]
+  fiscalYearStartMonth Int           @default(4)
 
   @@map("users")
 }
 
 model Task {
-  id          String      @id @default(uuid())
-  title       String
-  description String?
-  status      TaskStatus  @default(BACKLOG)
-  priority    Priority    @default(MEDIUM)
-  dueDate     DateTime?
-  tags        String[]
-  userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  deletedAt   DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  workLogs    WorkLog[]
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  status       TaskStatus    @default(BACKLOG)
+  priority     Priority      @default(MEDIUM)
+  dueDate      DateTime?
+  tags         String[]
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  workLogs     WorkLog[]
+  achievements Achievement[]
 
   @@map("tasks")
 }
@@ -76,4 +79,22 @@ model WorkLog {
   updatedAt   DateTime @updatedAt
 
   @@map("work_logs")
+}
+
+model Achievement {
+  id           String    @id @default(uuid())
+  title        String
+  description  String
+  category     String?
+  dateAchieved DateTime?
+  impactRating Int?
+  taskId       String?
+  task         Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("achievements")
 }
