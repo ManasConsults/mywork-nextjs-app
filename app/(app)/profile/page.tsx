@@ -25,11 +25,11 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
     .toUpperCase();
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Profile &amp; Settings</h1>
 
       {/* Avatar + identity summary */}
-      <div className="flex items-center gap-4 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      <div style={{ marginTop: '1.5rem' }} className="flex items-center gap-4 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
         {user.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -54,16 +54,18 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
       </div>
 
       {/* Tabbed settings card */}
-      <ProfileTabs
-        name={user.name}
-        image={user.image}
-        email={user.email}
-        role={user.role}
-        isActive={user.isActive}
-        fiscalYearStartMonth={user.fiscalYearStartMonth}
-        hasPassword={!!user.passwordHash}
-        createdAt={user.createdAt.toISOString()}
-      />
+      <div style={{ marginTop: '1.5rem' }}>
+        <ProfileTabs
+          name={user.name}
+          image={user.image}
+          email={user.email}
+          role={user.role}
+          isActive={user.isActive}
+          fiscalYearStartMonth={user.fiscalYearStartMonth}
+          hasPassword={!!user.passwordHash}
+          createdAt={user.createdAt.toISOString()}
+        />
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
+import { GlobalSearch } from './_components/GlobalSearch';
 
 export const metadata: Metadata = { title: 'MyWork — Dashboard' };
 
@@ -61,6 +62,10 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Dashboard</h1>
+
+      <div style={{ marginTop: '1.5rem' }}>
+        <GlobalSearch />
+      </div>
 
       <section style={{ marginTop: '2.5rem' }}>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">

@@ -106,7 +106,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2 py-2">
       {optimisticTodos.map((todo) => {
         const status = getDueStatus(todo.dueDate, todo.isDone);
         const edit = editState?.id === todo.id ? editState : null;
