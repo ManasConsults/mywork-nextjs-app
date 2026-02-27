@@ -42,6 +42,7 @@ model User {
   workLogs             WorkLog[]
   achievements         Achievement[]
   notes                Note[]
+  todoItems            TodoItem[]
   fiscalYearStartMonth Int           @default(4)
 
   @@map("users")
@@ -63,6 +64,7 @@ model Task {
   workLogs     WorkLog[]
   achievements Achievement[]
   notes        Note[]
+  todoItems    TodoItem[]
 
   @@map("tasks")
 }
@@ -117,4 +119,21 @@ model Note {
   @@index([userId, deletedAt])
   @@index([taskId])
   @@map("notes")
+}
+
+model TodoItem {
+  id        String    @id @default(uuid())
+  title     String    @db.VarChar(500)
+  dueDate   DateTime?
+  isDone    Boolean   @default(false)
+  taskId    String?
+  task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, isDone])
+  @@index([taskId])
+  @@map("todo_items")
 }
