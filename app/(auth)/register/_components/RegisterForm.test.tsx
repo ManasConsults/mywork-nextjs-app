@@ -5,11 +5,6 @@ import { RegisterForm } from './RegisterForm';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-const mockPush = jest.fn();
-
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
 
 const mockRegisterUser = jest.fn();
 
@@ -54,11 +49,6 @@ async function fillAndSubmit(
 
 beforeEach(() => {
   jest.clearAllMocks();
-  jest.useFakeTimers();
-});
-
-afterEach(() => {
-  jest.useRealTimers();
 });
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
@@ -172,25 +162,30 @@ describe('RegisterForm successful registration', () => {
     });
   });
 
-  it('shows a success state after successful registration', async () => {
+  it('shows "Registration submitted!" heading after successful registration', async () => {
     mockRegisterUser.mockResolvedValue({ success: true });
     const helpers = setup();
     await fillAndSubmit(helpers);
 
-    expect(await screen.findByRole('status')).toHaveTextContent(/account created/i);
+    expect(await screen.findByRole('status')).toHaveTextContent(/registration submitted/i);
   });
 
-  it('redirects to /login after success', async () => {
+  it('shows pending-approval message after successful registration', async () => {
     mockRegisterUser.mockResolvedValue({ success: true });
     const helpers = setup();
     await fillAndSubmit(helpers);
 
     await screen.findByRole('status');
-    jest.runAllTimers();
+    expect(screen.getByText(/pending approval/i)).toBeInTheDocument();
+  });
 
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login?registered=1');
-    });
+  it('does not redirect after successful registration', async () => {
+    mockRegisterUser.mockResolvedValue({ success: true });
+    const helpers = setup();
+    await fillAndSubmit(helpers);
+
+    await screen.findByRole('status');
+    // No router import — the form stays on /register after success
   });
 });
 
@@ -208,7 +203,6 @@ describe('RegisterForm failed registration', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       /already exists/i,
     );
-    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('shows server-side field errors when returned', async () => {

@@ -424,12 +424,12 @@ As an employee, I want to filter search results by module so that I can narrow d
 As an Admin, I want to create, edit, and deactivate user accounts so that I can control who has access to the system.
 
 **Acceptance Criteria:**
-- AC-UG-01-1: Admin can create a user with: Email (unique), Full Name, Role (`Admin`, `Manager`, `Member`).
-- AC-UG-01-2: New users receive an email invitation with a secure setup link (expires after 72 hours).
-- AC-UG-01-3: Admin can edit a user's Name and Role.
-- AC-UG-01-4: Deactivating a user immediately revokes all active sessions and prevents future login.
+- AC-UG-01-1: Admin can view all users and their Role and Status (Active / Pending) in the admin panel.
+- AC-UG-01-2: Users self-register via the `/register` page; new accounts are created as inactive (`isActive = false`) and require Admin activation before the user can sign in.
+- AC-UG-01-3: Admin can change a user's Role (`Admin`, `Manager`, `Member`) from the admin panel.
+- AC-UG-01-4: Admin can activate or deactivate any user account except their own; deactivated users cannot log in.
 - AC-UG-01-5: Deactivated users' data is retained and remains searchable by Admins.
-- AC-UG-01-6: The user list is paginated (25 per page) and filterable by Role and Status (Active / Inactive).
+- AC-UG-01-6: The user list is filterable by Status (All / Pending / Active) in the admin panel.
 
 ---
 
@@ -467,11 +467,11 @@ As a system designer, I want roles to enforce data visibility rules so that empl
 As a user, I want to sign in securely so that my data is protected.
 
 **Acceptance Criteria:**
-- AC-UG-04-1: Authentication via email + password with secure password hashing (bcrypt, min 12 rounds).
-- AC-UG-04-2: "Forgot password" flow sends a reset link valid for 1 hour.
-- AC-UG-04-3: Sessions expire after 8 hours of inactivity.
-- AC-UG-04-4: Failed login attempts are rate-limited: lockout after 5 consecutive failures for 15 minutes.
-- AC-UG-04-5: All authentication events are logged with timestamp and IP address.
+- AC-UG-04-1: Authentication via email + password with secure password hashing (bcrypt, min 12 rounds). OAuth sign-in via GitHub, Google, and Facebook is also supported.
+- AC-UG-04-2: "Forgot password" flow — planned for a future milestone; not implemented in v1.0.
+- AC-UG-04-3: Sessions expire after 8 hours; managed via NextAuth.js JWT strategy.
+- AC-UG-04-4: Failed login rate-limiting — planned for a future milestone; not implemented in v1.0.
+- AC-UG-04-5: All authentication events are logged with timestamp and IP address — planned for a future milestone.
 
 ---
 
@@ -541,13 +541,13 @@ As a user, I want to sign in securely so that my data is protected.
 |------|--------------------------------------------------------------------------------------------------------|
 | A-1  | The application serves a single organisation (single-tenant) in v1.0.                                 |
 | A-2  | All users have access to a modern browser and a stable internet connection.                            |
-| A-3  | Authentication in v1.0 is email + password only; SSO/OAuth integration is deferred to v2.             |
-| A-4  | Users are provisioned by an Admin; self-registration is not available in v1.0.                        |
+| A-3  | Authentication in v1.0 supports email + password and OAuth providers (GitHub, Google, Facebook); all new accounts (credentials or OAuth) are inactive until an Admin activates them. |
+| A-4  | Users self-register via the registration form; self-registered accounts require Admin approval before first login.                                                                  |
 | A-5  | The application is English-only in v1.0; internationalisation is deferred.                            |
 | A-6  | Each user's data is private by default; sharing outside group visibility rules is not required in v1.0. |
 | A-7  | Achievement categories are configurable by an Admin via the admin panel.                               |
 | A-8  | Fiscal / review year windows are configurable by an Admin.                                             |
-| A-9  | Email delivery for invitations and password resets is handled via a third-party transactional email service (e.g., Resend). |
+| A-9  | Email delivery for future features (password reset, notifications) will use a third-party transactional email service (e.g., Resend); not required for v1.0 auth flow. |
 
 ---
 
@@ -569,7 +569,7 @@ As a user, I want to sign in securely so that my data is protected.
 | ID   | Dependency                          | Type     | Notes                                                                 |
 |------|-------------------------------------|----------|-----------------------------------------------------------------------|
 | D-1  | Managed PostgreSQL instance          | External | Must be provisioned before development of data-layer begins.          |
-| D-2  | Transactional email service (Resend) | External | Required for auth invitation and password reset flows.                |
+| D-2  | Transactional email service (Resend) | External | Planned for password reset and future notification flows; not active in v1.0. |
 | D-3  | Vercel account and project setup     | Platform | CI/CD pipeline and preview deployments depend on this.                |
 | D-4  | Design system / component library    | Internal | UI component decisions must be finalised before front-end development. |
 
