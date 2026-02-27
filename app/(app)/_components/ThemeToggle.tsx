@@ -1,7 +1,7 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 const THEMES = [
   {
@@ -37,9 +37,12 @@ const THEMES = [
 
 export function ThemeToggle(): React.JSX.Element {
   const { theme, setTheme } = useTheme();
-  // Avoid hydration mismatch — render after mount
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // Avoid hydration mismatch — server renders false, client renders true
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   if (!mounted) {
     return <div className="h-8 w-[104px] rounded-md bg-zinc-100 dark:bg-zinc-800" />;

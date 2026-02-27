@@ -5,7 +5,6 @@ import type { Metadata } from 'next';
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
 import { getAchievementsByUser } from '@/lib/services/achievement.service';
-import { getTasksByUser } from '@/lib/services/task.service';
 import { currentFiscalYear, fiscalYearLabel } from '@/lib/utils/fiscal-year';
 import type { AchievementFilters as AchievementFiltersType } from '@/lib/schemas/achievement.schema';
 import { ACHIEVEMENT_CATEGORIES } from '@/lib/schemas/achievement.schema';
@@ -43,10 +42,7 @@ export default async function AchievementsPage({ searchParams }: AchievementsPag
     ...(reviewYear ? { reviewYear } : {}),
   };
 
-  const [achievements, tasks] = await Promise.all([
-    getAchievementsByUser(userId, filters, fiscalYearStartMonth),
-    getTasksByUser(userId),
-  ]);
+  const achievements = await getAchievementsByUser(userId, filters, fiscalYearStartMonth);
 
   const fyLabel = reviewYear
     ? fiscalYearLabel(reviewYear, fiscalYearStartMonth)
