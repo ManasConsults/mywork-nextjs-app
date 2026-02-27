@@ -137,24 +137,55 @@ export function Sidebar({ user }: { user: SidebarUser }): React.JSX.Element {
       {/* Footer */}
       <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
         {collapsed ? (
-          <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            title="Sign out"
-            className="flex w-full items-center justify-center rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
-          >
-            <NavIcon paths={SIGN_OUT_ICON} />
-          </button>
-        ) : (
-          <>
-            <p className="truncate px-1 text-xs font-medium text-zinc-900 dark:text-zinc-50">
-              {user.name ?? user.email}
-            </p>
-            {user.name && (
-              <p className="truncate px-1 text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
-            )}
+          <div className="flex flex-col items-center gap-1">
+            <Link
+              href="/profile"
+              title="Profile"
+              className="flex w-full items-center justify-center rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            >
+              {user.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.image} alt="Avatar" className="h-5 w-5 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-semibold text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
+                  {(user.name ?? user.email ?? '?')[0]?.toUpperCase()}
+                </span>
+              )}
+            </Link>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="mt-2 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+              title="Sign out"
+              className="flex w-full items-center justify-center rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            >
+              <NavIcon paths={SIGN_OUT_ICON} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <Link
+              href="/profile"
+              className="flex items-center gap-2 rounded-md px-1 py-1.5 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            >
+              {user.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.image} alt="Avatar" className="h-6 w-6 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-semibold text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
+                  {(user.name ?? user.email ?? '?')[0]?.toUpperCase()}
+                </span>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-50">
+                  {user.name ?? user.email}
+                </p>
+                {user.name && (
+                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
+                )}
+              </div>
+            </Link>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
             >
               <NavIcon paths={SIGN_OUT_ICON} />
               Sign out
