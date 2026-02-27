@@ -31,7 +31,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterResult
   const passwordHash = await hashPassword(password);
 
   await prisma.user.create({
-    data: { name, email, passwordHash, role: 'MEMBER' },
+    data: { name, email, passwordHash, role: 'MEMBER', isActive: false },
   });
 
   return { success: true };

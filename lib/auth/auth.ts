@@ -81,7 +81,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       // For OAuth providers: upsert the user in the DB on first sign-in
       if (account?.provider !== 'credentials' && user.email) {
-        await prisma.user.upsert({
+        const dbUser = await prisma.user.upsert({
           where: { email: user.email },
           update: { name: user.name ?? undefined, image: user.image ?? undefined },
           create: {
@@ -89,8 +89,10 @@ export const authOptions: NextAuthOptions = {
             name: user.name ?? null,
             image: user.image ?? null,
             role: 'MEMBER',
+            isActive: false,
           },
         });
+        if (!dbUser.isActive) return false;
       }
       return true;
     },

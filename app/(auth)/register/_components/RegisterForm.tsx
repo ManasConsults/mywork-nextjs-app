@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
 import { registerSchema } from '@/lib/schemas/auth.schema';
@@ -11,8 +10,6 @@ import type { RegisterInput } from '@/lib/schemas/auth.schema';
 type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
 
 export function RegisterForm(): React.JSX.Element {
-  const router = useRouter();
-
   const [values, setValues] = useState<RegisterInput>({
     name: '',
     email: '',
@@ -65,7 +62,6 @@ export function RegisterForm(): React.JSX.Element {
       }
 
       setIsSuccess(true);
-      setTimeout(() => router.push('/login?registered=1'), 1500);
     });
   }
 
@@ -77,8 +73,8 @@ export function RegisterForm(): React.JSX.Element {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Account created!</h3>
-        <p className="text-sm text-gray-500">Redirecting you to sign in…</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Registration submitted!</h3>
+        <p className="text-sm text-gray-500">Your account is pending approval by an administrator. You will be able to sign in once activated.</p>
       </div>
     );
   }
