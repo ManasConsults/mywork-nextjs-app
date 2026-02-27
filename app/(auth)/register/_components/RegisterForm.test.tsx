@@ -22,7 +22,7 @@ const VALID = {
 };
 
 function setup() {
-  const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+  const user = userEvent.setup();
   render(<RegisterForm />);
   return {
     user,
