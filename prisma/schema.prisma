@@ -41,6 +41,7 @@ model User {
   tasks                Task[]
   workLogs             WorkLog[]
   achievements         Achievement[]
+  notes                Note[]
   fiscalYearStartMonth Int           @default(4)
 
   @@map("users")
@@ -61,6 +62,7 @@ model Task {
   updatedAt    DateTime      @updatedAt
   workLogs     WorkLog[]
   achievements Achievement[]
+  notes        Note[]
 
   @@map("tasks")
 }
@@ -97,4 +99,22 @@ model Achievement {
   updatedAt    DateTime  @updatedAt
 
   @@map("achievements")
+}
+
+model Note {
+  id        String    @id @default(uuid())
+  title     String?   @db.VarChar(200)
+  body      Json
+  tags      String[]
+  taskId    String?
+  task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, deletedAt])
+  @@index([taskId])
+  @@map("notes")
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Explicit source paths — required because Tailwind v4's auto-scan
    does not match directories with parentheses like (app) and (auth) */
