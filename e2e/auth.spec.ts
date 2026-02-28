@@ -112,8 +112,9 @@ test.describe('Login page', () => {
 
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    await expect(page.getByRole('alert')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByRole('alert')).toContainText('Invalid email or password');
+    const errorAlert = page.getByRole('alert').filter({ hasText: /invalid email or password/i });
+    await expect(errorAlert).toBeVisible({ timeout: 10_000 });
+    await expect(errorAlert).toContainText('Invalid email or password');
   });
 
   test('shows error for a pending (inactive) user', async ({ page }) => {
@@ -122,8 +123,9 @@ test.describe('Login page', () => {
 
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    await expect(page.getByRole('alert')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByRole('alert')).toContainText('Invalid email or password');
+    const errorAlert = page.getByRole('alert').filter({ hasText: /invalid email or password/i });
+    await expect(errorAlert).toBeVisible({ timeout: 10_000 });
+    await expect(errorAlert).toContainText('Invalid email or password');
   });
 
   test('redirects to /dashboard on successful login', async ({ page }) => {

@@ -50,6 +50,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - run: npx prisma generate
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
 

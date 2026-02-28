@@ -1,8 +1,14 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcryptjs';
 import { config } from 'dotenv';
 
 config({ path: '.env.local' });
+
+function createPrisma(): PrismaClient {
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  return new PrismaClient({ adapter });
+}
 
 export const TEST_USERS = {
   active: {
@@ -18,7 +24,7 @@ export const TEST_USERS = {
 } as const;
 
 async function globalSetup(): Promise<void> {
-  const prisma = new PrismaClient();
+  const prisma = createPrisma();
 
   try {
     const activeHash = await bcrypt.hash(TEST_USERS.active.password, 10);
