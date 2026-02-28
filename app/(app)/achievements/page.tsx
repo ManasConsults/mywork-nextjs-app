@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
@@ -75,12 +76,14 @@ export default async function AchievementsPage({ searchParams }: AchievementsPag
         </div>
       </div>
 
-      <AchievementFilters
-        currentCategory={category}
-        currentReviewYear={reviewYear}
-        currentFiscalYear={fyNow}
-        fiscalYearStartMonth={fiscalYearStartMonth}
-      />
+      <Suspense>
+        <AchievementFilters
+          currentCategory={category}
+          currentReviewYear={reviewYear}
+          currentFiscalYear={fyNow}
+          fiscalYearStartMonth={fiscalYearStartMonth}
+        />
+      </Suspense>
 
       <AchievementList achievements={achievements} />
     </div>

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
@@ -48,11 +49,13 @@ export default async function NotesPage({ searchParams }: NotesPageProps): Promi
         </Link>
       </div>
 
-      <NoteFiltersBar
-        tasks={tasks.map((t) => ({ id: t.id, title: t.title }))}
-        currentTag={tag}
-        currentTaskId={taskId}
-      />
+      <Suspense>
+        <NoteFiltersBar
+          tasks={tasks.map((t) => ({ id: t.id, title: t.title }))}
+          currentTag={tag}
+          currentTaskId={taskId}
+        />
+      </Suspense>
 
       <NoteList notes={notes} />
     </div>

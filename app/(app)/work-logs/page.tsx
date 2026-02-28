@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
@@ -64,12 +65,14 @@ export default async function WorkLogsPage({ searchParams }: WorkLogsPageProps):
         </Link>
       </div>
 
-      <WorkLogFilters
-        tasks={tasks}
-        currentTaskId={taskId}
-        currentDateFrom={dateFrom}
-        currentDateTo={dateTo}
-      />
+      <Suspense>
+        <WorkLogFilters
+          tasks={tasks}
+          currentTaskId={taskId}
+          currentDateFrom={dateFrom}
+          currentDateTo={dateTo}
+        />
+      </Suspense>
 
       <WorkLogList logs={logs} />
     </div>

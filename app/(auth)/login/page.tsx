@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 
 import { LoginForm } from './_components/LoginForm';
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage(): React.JSX.Element {
-  return <LoginForm />;
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
 }

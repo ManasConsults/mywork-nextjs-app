@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
@@ -46,7 +47,9 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
         </div>
       </div>
 
-      <TaskFilters currentStatus={filters.status} currentPriority={filters.priority} />
+      <Suspense>
+        <TaskFilters currentStatus={filters.status} currentPriority={filters.priority} />
+      </Suspense>
       <TaskList tasks={tasks} />
     </div>
   );
