@@ -10,7 +10,8 @@ jest.mock('./resend', () => ({
 
 import { resend } from './resend';
 
-const mockSend = (resend.emails as jest.Mocked<typeof resend.emails>).send;
+// resend is mocked as non-null above — assert to bypass the Resend | null type
+const mockSend = resend!.emails.send as jest.Mock;
 
 const TO = 'user@example.com';
 const NAME = 'Jane Doe';

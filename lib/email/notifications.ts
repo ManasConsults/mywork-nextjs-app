@@ -11,6 +11,7 @@ export async function sendRegistrationPendingEmail(
   to: string,
   name: string | null,
 ): Promise<void> {
+  if (!resend) return;
   try {
     await resend.emails.send({
       from: FROM,
@@ -32,6 +33,7 @@ export async function sendAccountApprovedEmail(
   to: string,
   name: string | null,
 ): Promise<void> {
+  if (!resend) return;
   try {
     await resend.emails.send({
       from: FROM,
@@ -53,6 +55,7 @@ export async function sendAccountRejectedEmail(
   to: string,
   name: string | null,
 ): Promise<void> {
+  if (!resend) return;
   try {
     await resend.emails.send({
       from: FROM,
