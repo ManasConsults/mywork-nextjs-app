@@ -36,6 +36,7 @@ model User {
   image        String?
   role         Role      @default(MEMBER)
   isActive     Boolean   @default(true)
+  rejectedAt   DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   tasks                Task[]

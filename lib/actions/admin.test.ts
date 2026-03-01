@@ -1,28 +1,40 @@
-import { setUserActiveAction, setUserRoleAction } from './admin';
+import { setUserActiveAction, setUserRoleAction, rejectUserAction } from './admin';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('@/lib/db/prisma', () => ({
-  prisma: { user: { update: jest.fn() } },
+  prisma: { user: { update: jest.fn(), findUnique: jest.fn() } },
+}));
+jest.mock('@/lib/email/notifications', () => ({
+  sendAccountApprovedEmail: jest.fn(),
+  sendAccountRejectedEmail: jest.fn(),
 }));
 
 import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/prisma';
+import { sendAccountApprovedEmail, sendAccountRejectedEmail } from '@/lib/email/notifications';
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockUserUpdate = (prisma.user as jest.Mocked<typeof prisma.user>).update;
+const mockUserFindUnique = (prisma.user as jest.Mocked<typeof prisma.user>).findUnique;
 const mockRevalidatePath = revalidatePath as jest.MockedFunction<typeof revalidatePath>;
+const mockSendApproved = sendAccountApprovedEmail as jest.MockedFunction<typeof sendAccountApprovedEmail>;
+const mockSendRejected = sendAccountRejectedEmail as jest.MockedFunction<typeof sendAccountRejectedEmail>;
 
 const adminId = 'admin-1';
 const targetId = 'user-2';
 const adminSession = { user: { id: adminId, role: 'ADMIN' }, expires: '' };
 const memberSession = { user: { id: 'member-1', role: 'MEMBER' }, expires: '' };
+const targetUser = { email: 'target@example.com', name: 'Target User' };
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockUserUpdate.mockResolvedValue({} as never);
+  mockUserFindUnique.mockResolvedValue(targetUser as never);
+  mockSendApproved.mockResolvedValue(undefined);
+  mockSendRejected.mockResolvedValue(undefined);
 });
 
 // ─── setUserActiveAction ──────────────────────────────────────────────────────
@@ -49,24 +61,77 @@ describe('setUserActiveAction', () => {
     expect(mockUserUpdate).not.toHaveBeenCalled();
   });
 
-  it('activates a user and revalidates the path', async () => {
+  it('activates a user, clears rejectedAt, sends approval email, and revalidates', async () => {
     mockGetServerSession.mockResolvedValue(adminSession as never);
     const result = await setUserActiveAction(targetId, true);
     expect(mockUserUpdate).toHaveBeenCalledWith({
       where: { id: targetId },
-      data: { isActive: true },
+      data: { isActive: true, rejectedAt: null },
     });
+    expect(mockSendApproved).toHaveBeenCalledWith(targetUser.email, targetUser.name);
     expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
     expect(result).toEqual({ success: true });
   });
 
-  it('deactivates a user and revalidates the path', async () => {
+  it('deactivates a user without sending email', async () => {
     mockGetServerSession.mockResolvedValue(adminSession as never);
     const result = await setUserActiveAction(targetId, false);
     expect(mockUserUpdate).toHaveBeenCalledWith({
       where: { id: targetId },
       data: { isActive: false },
     });
+    expect(mockSendApproved).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true });
+  });
+
+  it('still returns success if approval email fails', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    mockSendApproved.mockRejectedValue(new Error('SMTP error'));
+    const result = await setUserActiveAction(targetId, true);
+    expect(result).toEqual({ success: true });
+  });
+});
+
+// ─── rejectUserAction ─────────────────────────────────────────────────────────
+
+describe('rejectUserAction', () => {
+  it('returns Unauthorized when no session', async () => {
+    mockGetServerSession.mockResolvedValue(null);
+    const result = await rejectUserAction(targetId);
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns Unauthorized when session role is not ADMIN', async () => {
+    mockGetServerSession.mockResolvedValue(memberSession as never);
+    const result = await rejectUserAction(targetId);
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns error when admin tries to reject their own account', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    const result = await rejectUserAction(adminId);
+    expect(result).toEqual({ success: false, error: 'Cannot reject your own account.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('sets rejectedAt, sends rejection email, and revalidates', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    const result = await rejectUserAction(targetId);
+    expect(mockUserUpdate).toHaveBeenCalledWith({
+      where: { id: targetId },
+      data: { isActive: false, rejectedAt: expect.any(Date) },
+    });
+    expect(mockSendRejected).toHaveBeenCalledWith(targetUser.email, targetUser.name);
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
+    expect(result).toEqual({ success: true });
+  });
+
+  it('still returns success if rejection email fails', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    mockSendRejected.mockRejectedValue(new Error('SMTP error'));
+    const result = await rejectUserAction(targetId);
     expect(result).toEqual({ success: true });
   });
 });

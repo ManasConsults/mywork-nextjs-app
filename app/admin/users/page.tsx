@@ -19,12 +19,18 @@ export default async function AdminUsersPage(): Promise<React.JSX.Element> {
       email: true,
       role: true,
       isActive: true,
+      rejectedAt: true,
       createdAt: true,
     },
   });
 
-  const serialized = users.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() }));
-  const pendingCount = serialized.filter((u) => !u.isActive).length;
+  const serialized = users.map((u) => ({
+    ...u,
+    rejectedAt: u.rejectedAt?.toISOString() ?? null,
+    createdAt: u.createdAt.toISOString(),
+  }));
+
+  const pendingCount = serialized.filter((u) => !u.isActive && !u.rejectedAt).length;
 
   return (
     <div>

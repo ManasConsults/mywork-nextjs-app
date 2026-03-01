@@ -13,10 +13,16 @@ jest.mock('@/lib/auth/passwords', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed-password'),
 }));
 
+jest.mock('@/lib/email/notifications', () => ({
+  sendRegistrationPendingEmail: jest.fn(),
+}));
+
 import { prisma } from '@/lib/db/prisma';
+import { sendRegistrationPendingEmail } from '@/lib/email/notifications';
 
 const mockFindUnique = (prisma.user as jest.Mocked<typeof prisma.user>).findUnique;
 const mockCreate = (prisma.user as jest.Mocked<typeof prisma.user>).create;
+const mockSendPending = sendRegistrationPendingEmail as jest.MockedFunction<typeof sendRegistrationPendingEmail>;
 
 const VALID_INPUT = {
   name: 'Jane Doe',
@@ -28,6 +34,7 @@ const VALID_INPUT = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockCreate.mockResolvedValue({} as never);
+  mockSendPending.mockResolvedValue(undefined);
 });
 
 describe('registerUser', () => {
@@ -63,6 +70,19 @@ describe('registerUser', () => {
         isActive: false,
       },
     });
+    expect(result).toEqual({ success: true });
+  });
+
+  it('sends a pending email after successful registration', async () => {
+    mockFindUnique.mockResolvedValue(null);
+    await registerUser(VALID_INPUT);
+    expect(mockSendPending).toHaveBeenCalledWith(VALID_INPUT.email, VALID_INPUT.name);
+  });
+
+  it('returns success even if the pending email fails', async () => {
+    mockFindUnique.mockResolvedValue(null);
+    mockSendPending.mockRejectedValue(new Error('SMTP error'));
+    const result = await registerUser(VALID_INPUT);
     expect(result).toEqual({ success: true });
   });
 

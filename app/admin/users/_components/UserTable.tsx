@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { setUserActiveAction, setUserRoleAction } from '@/lib/actions/admin';
+import { setUserActiveAction, setUserRoleAction, rejectUserAction } from '@/lib/actions/admin';
 
 type UserRow = {
   id: string;
@@ -11,12 +11,19 @@ type UserRow = {
   email: string;
   role: string;
   isActive: boolean;
+  rejectedAt: string | null;
   createdAt: string;
 };
 
 const ROLES = ['ADMIN', 'MANAGER', 'MEMBER'] as const;
 type Role = (typeof ROLES)[number];
-type Filter = 'all' | 'pending' | 'active';
+type Filter = 'all' | 'pending' | 'active' | 'rejected';
+
+function userStatus(u: UserRow): 'ACTIVE' | 'PENDING' | 'REJECTED' {
+  if (u.isActive) return 'ACTIVE';
+  if (u.rejectedAt) return 'REJECTED';
+  return 'PENDING';
+}
 
 const th: React.CSSProperties = {
   padding: '0.75rem 1rem',
@@ -27,6 +34,18 @@ const th: React.CSSProperties = {
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
   whiteSpace: 'nowrap',
+};
+
+const STATUS_BADGE: Record<'ACTIVE' | 'PENDING' | 'REJECTED', React.CSSProperties> = {
+  ACTIVE:   { backgroundColor: '#dcfce7', color: '#166534' },
+  PENDING:  { backgroundColor: '#fef9c3', color: '#854d0e' },
+  REJECTED: { backgroundColor: '#fee2e2', color: '#991b1b' },
+};
+
+const ROW_BG: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
+  ACTIVE:   'transparent',
+  PENDING:  '#fffbeb',
+  REJECTED: '#fff1f2',
 };
 
 export function UserTable({
@@ -41,15 +60,17 @@ export function UserTable({
   const [filter, setFilter] = useState<Filter>('all');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const pendingCount = users.filter((u) => !u.isActive).length;
-  const activeCount = users.length - pendingCount;
+  const pendingCount  = users.filter((u) => !u.isActive && !u.rejectedAt).length;
+  const activeCount   = users.filter((u) => u.isActive).length;
+  const rejectedCount = users.filter((u) => !!u.rejectedAt).length;
 
-  const filtered =
-    filter === 'pending'
-      ? users.filter((u) => !u.isActive)
-      : filter === 'active'
-        ? users.filter((u) => u.isActive)
-        : users;
+  const filtered = users.filter((u) => {
+    const s = userStatus(u);
+    if (filter === 'pending')  return s === 'PENDING';
+    if (filter === 'active')   return s === 'ACTIVE';
+    if (filter === 'rejected') return s === 'REJECTED';
+    return true;
+  });
 
   function handleError(userId: string, msg: string): void {
     setErrors((prev) => ({ ...prev, [userId]: msg }));
@@ -66,31 +87,32 @@ export function UserTable({
   function toggleActive(userId: string, current: boolean): void {
     startTransition(async () => {
       const res = await setUserActiveAction(userId, !current);
-      if (res.success) {
-        clearError(userId);
-        router.refresh();
-      } else {
-        handleError(userId, res.error);
-      }
+      if (res.success) { clearError(userId); router.refresh(); }
+      else handleError(userId, res.error);
+    });
+  }
+
+  function rejectUser(userId: string): void {
+    startTransition(async () => {
+      const res = await rejectUserAction(userId);
+      if (res.success) { clearError(userId); router.refresh(); }
+      else handleError(userId, res.error);
     });
   }
 
   function changeRole(userId: string, role: Role): void {
     startTransition(async () => {
       const res = await setUserRoleAction(userId, role);
-      if (res.success) {
-        clearError(userId);
-        router.refresh();
-      } else {
-        handleError(userId, res.error);
-      }
+      if (res.success) { clearError(userId); router.refresh(); }
+      else handleError(userId, res.error);
     });
   }
 
   const tabs: { id: Filter; label: string }[] = [
-    { id: 'all', label: `All (${users.length})` },
-    { id: 'pending', label: `Pending (${pendingCount})` },
-    { id: 'active', label: `Active (${activeCount})` },
+    { id: 'all',      label: `All (${users.length})` },
+    { id: 'pending',  label: `Pending (${pendingCount})` },
+    { id: 'active',   label: `Active (${activeCount})` },
+    { id: 'rejected', label: `Rejected (${rejectedCount})` },
   ];
 
   return (
@@ -150,12 +172,13 @@ export function UserTable({
             )}
             {filtered.map((user, i) => {
               const isSelf = user.id === currentUserId;
+              const status = userStatus(user);
               return (
                 <tr
                   key={user.id}
                   style={{
                     borderBottom: i < filtered.length - 1 ? '1px solid #f3f4f6' : 'none',
-                    backgroundColor: !user.isActive ? '#fffbeb' : 'transparent',
+                    backgroundColor: ROW_BG[status],
                   }}
                 >
                   {/* User info */}
@@ -193,9 +216,7 @@ export function UserTable({
                       }}
                     >
                       {ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
+                        <option key={r} value={r}>{r}</option>
                       ))}
                     </select>
                   </td>
@@ -209,11 +230,10 @@ export function UserTable({
                         borderRadius: '9999px',
                         fontSize: '0.75rem',
                         fontWeight: 500,
-                        backgroundColor: user.isActive ? '#dcfce7' : '#fef9c3',
-                        color: user.isActive ? '#166534' : '#854d0e',
+                        ...STATUS_BADGE[status],
                       }}
                     >
-                      {user.isActive ? 'Active' : 'Pending'}
+                      {status === 'ACTIVE' ? 'Active' : status === 'PENDING' ? 'Pending' : 'Rejected'}
                     </span>
                   </td>
 
@@ -229,23 +249,80 @@ export function UserTable({
                   {/* Actions */}
                   <td style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>
                     {!isSelf && (
-                      <button
-                        onClick={() => toggleActive(user.id, user.isActive)}
-                        disabled={isPending}
-                        style={{
-                          fontSize: '0.8125rem',
-                          fontWeight: 500,
-                          padding: '0.375rem 0.875rem',
-                          borderRadius: '0.375rem',
-                          border: '1px solid',
-                          cursor: isPending ? 'not-allowed' : 'pointer',
-                          backgroundColor: user.isActive ? '#ffffff' : '#0d9488',
-                          borderColor: user.isActive ? '#fca5a5' : '#0d9488',
-                          color: user.isActive ? '#dc2626' : '#ffffff',
-                        }}
-                      >
-                        {user.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        {status === 'PENDING' && (
+                          <>
+                            <button
+                              onClick={() => toggleActive(user.id, false)}
+                              disabled={isPending}
+                              style={{
+                                fontSize: '0.8125rem',
+                                fontWeight: 500,
+                                padding: '0.375rem 0.875rem',
+                                borderRadius: '0.375rem',
+                                border: '1px solid #0d9488',
+                                cursor: isPending ? 'not-allowed' : 'pointer',
+                                backgroundColor: '#0d9488',
+                                color: '#ffffff',
+                              }}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => rejectUser(user.id)}
+                              disabled={isPending}
+                              style={{
+                                fontSize: '0.8125rem',
+                                fontWeight: 500,
+                                padding: '0.375rem 0.875rem',
+                                borderRadius: '0.375rem',
+                                border: '1px solid #fca5a5',
+                                cursor: isPending ? 'not-allowed' : 'pointer',
+                                backgroundColor: '#ffffff',
+                                color: '#dc2626',
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        {status === 'ACTIVE' && (
+                          <button
+                            onClick={() => toggleActive(user.id, true)}
+                            disabled={isPending}
+                            style={{
+                              fontSize: '0.8125rem',
+                              fontWeight: 500,
+                              padding: '0.375rem 0.875rem',
+                              borderRadius: '0.375rem',
+                              border: '1px solid #fca5a5',
+                              cursor: isPending ? 'not-allowed' : 'pointer',
+                              backgroundColor: '#ffffff',
+                              color: '#dc2626',
+                            }}
+                          >
+                            Deactivate
+                          </button>
+                        )}
+                        {status === 'REJECTED' && (
+                          <button
+                            onClick={() => toggleActive(user.id, false)}
+                            disabled={isPending}
+                            style={{
+                              fontSize: '0.8125rem',
+                              fontWeight: 500,
+                              padding: '0.375rem 0.875rem',
+                              borderRadius: '0.375rem',
+                              border: '1px solid #0d9488',
+                              cursor: isPending ? 'not-allowed' : 'pointer',
+                              backgroundColor: '#0d9488',
+                              color: '#ffffff',
+                            }}
+                          >
+                            Approve
+                          </button>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db/prisma';
 import { hashPassword } from '@/lib/auth/passwords';
 import { registerSchema } from '@/lib/schemas/auth.schema';
 import type { RegisterInput } from '@/lib/schemas/auth.schema';
+import { sendRegistrationPendingEmail } from '@/lib/email/notifications';
 
 export type RegisterResult =
   | { success: true }
@@ -33,6 +34,8 @@ export async function registerUser(input: RegisterInput): Promise<RegisterResult
   await prisma.user.create({
     data: { name, email, passwordHash, role: 'MEMBER', isActive: false },
   });
+
+  try { await sendRegistrationPendingEmail(email, name ?? null); } catch { /* email failure is non-fatal */ }
 
   return { success: true };
 }
