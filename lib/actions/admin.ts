@@ -83,3 +83,13 @@ export async function setUserRoleAction(
   revalidatePath('/admin/users');
   return { success: true };
 }
+
+export async function deleteUserAction(userId: string): Promise<AdminActionResult> {
+  const adminId = await requireAdmin();
+  if (!adminId) return { success: false, error: 'Unauthorized.' };
+  if (userId === adminId) return { success: false, error: 'Cannot delete your own account.' };
+
+  await prisma.user.delete({ where: { id: userId } });
+  revalidatePath('/admin/users');
+  return { success: true };
+}

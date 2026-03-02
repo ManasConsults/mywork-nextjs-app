@@ -1,10 +1,10 @@
-import { setUserActiveAction, setUserRoleAction, rejectUserAction } from './admin';
+import { setUserActiveAction, setUserRoleAction, rejectUserAction, deleteUserAction } from './admin';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('@/lib/db/prisma', () => ({
-  prisma: { user: { update: jest.fn(), findUnique: jest.fn() } },
+  prisma: { user: { update: jest.fn(), findUnique: jest.fn(), delete: jest.fn() } },
 }));
 jest.mock('@/lib/email/notifications', () => ({
   sendAccountApprovedEmail: jest.fn(),
@@ -19,6 +19,7 @@ import { sendAccountApprovedEmail, sendAccountRejectedEmail } from '@/lib/email/
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockUserUpdate = (prisma.user as jest.Mocked<typeof prisma.user>).update;
 const mockUserFindUnique = (prisma.user as jest.Mocked<typeof prisma.user>).findUnique;
+const mockUserDelete = (prisma.user as jest.Mocked<typeof prisma.user>).delete;
 const mockRevalidatePath = revalidatePath as jest.MockedFunction<typeof revalidatePath>;
 const mockSendApproved = sendAccountApprovedEmail as jest.MockedFunction<typeof sendAccountApprovedEmail>;
 const mockSendRejected = sendAccountRejectedEmail as jest.MockedFunction<typeof sendAccountRejectedEmail>;
@@ -33,6 +34,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockUserUpdate.mockResolvedValue({} as never);
   mockUserFindUnique.mockResolvedValue(targetUser as never);
+  mockUserDelete.mockResolvedValue({} as never);
   mockSendApproved.mockResolvedValue(undefined);
   mockSendRejected.mockResolvedValue(undefined);
 });
@@ -132,6 +134,39 @@ describe('rejectUserAction', () => {
     mockGetServerSession.mockResolvedValue(adminSession as never);
     mockSendRejected.mockRejectedValue(new Error('SMTP error'));
     const result = await rejectUserAction(targetId);
+    expect(result).toEqual({ success: true });
+  });
+});
+
+// ─── deleteUserAction ─────────────────────────────────────────────────────────
+
+describe('deleteUserAction', () => {
+  it('returns Unauthorized when no session', async () => {
+    mockGetServerSession.mockResolvedValue(null);
+    const result = await deleteUserAction(targetId);
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserDelete).not.toHaveBeenCalled();
+  });
+
+  it('returns Unauthorized when session role is not ADMIN', async () => {
+    mockGetServerSession.mockResolvedValue(memberSession as never);
+    const result = await deleteUserAction(targetId);
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserDelete).not.toHaveBeenCalled();
+  });
+
+  it('returns error when admin tries to delete their own account', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    const result = await deleteUserAction(adminId);
+    expect(result).toEqual({ success: false, error: 'Cannot delete your own account.' });
+    expect(mockUserDelete).not.toHaveBeenCalled();
+  });
+
+  it('deletes the user and revalidates the path', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    const result = await deleteUserAction(targetId);
+    expect(mockUserDelete).toHaveBeenCalledWith({ where: { id: targetId } });
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
     expect(result).toEqual({ success: true });
   });
 });

@@ -4,19 +4,8 @@ export function CloseButton(): React.JSX.Element {
   return (
     <button
       onClick={() => window.close()}
-      style={{
-        position: 'fixed',
-        top: 12,
-        right: 16,
-        background: '#333',
-        color: '#fff',
-        border: 'none',
-        padding: '4px 10px',
-        borderRadius: 4,
-        cursor: 'pointer',
-        fontSize: 12,
-      }}
-      className="no-print"
+      style={{ position: 'fixed', top: 12, right: 16 }}
+      className="no-print bg-zinc-700 hover:bg-zinc-900 text-white text-xs px-2.5 py-1 rounded cursor-pointer border-none transition-colors"
     >
       Close
     </button>

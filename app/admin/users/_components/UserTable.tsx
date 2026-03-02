@@ -3,7 +3,9 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { setUserActiveAction, setUserRoleAction, rejectUserAction } from '@/lib/actions/admin';
+import { Check, X, Ban, Trash2 } from 'lucide-react';
+
+import { setUserActiveAction, setUserRoleAction, rejectUserAction, deleteUserAction } from '@/lib/actions/admin';
 
 type UserRow = {
   id: string;
@@ -47,6 +49,7 @@ const ROW_BG: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
   PENDING:  '#fffbeb',
   REJECTED: '#fff1f2',
 };
+
 
 export function UserTable({
   users,
@@ -100,6 +103,16 @@ export function UserTable({
     });
   }
 
+  function deleteUser(userId: string, name: string | null): void {
+    const label = name ?? 'this user';
+    if (!window.confirm(`Delete ${label}? This action cannot be undone.`)) return;
+    startTransition(async () => {
+      const res = await deleteUserAction(userId);
+      if (res.success) { clearError(userId); router.refresh(); }
+      else handleError(userId, res.error);
+    });
+  }
+
   function changeRole(userId: string, role: Role): void {
     startTransition(async () => {
       const res = await setUserRoleAction(userId, role);
@@ -123,17 +136,11 @@ export function UserTable({
           <button
             key={id}
             onClick={() => setFilter(id)}
-            style={{
-              padding: '0.375rem 1rem',
-              borderRadius: '9999px',
-              border: '1px solid',
-              fontSize: '0.8125rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              backgroundColor: filter === id ? '#0d9488' : '#ffffff',
-              borderColor: filter === id ? '#0d9488' : '#d1d5db',
-              color: filter === id ? '#ffffff' : '#374151',
-            }}
+            className={`py-1.5 px-4 rounded-full border text-[13px] font-medium cursor-pointer transition-colors ${
+              filter === id
+                ? 'bg-teal-600 border-teal-600 text-white hover:bg-teal-700 hover:border-teal-700'
+                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
           >
             {label}
           </button>
@@ -249,40 +256,24 @@ export function UserTable({
                   {/* Actions */}
                   <td style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>
                     {!isSelf && (
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
                         {status === 'PENDING' && (
                           <>
                             <button
                               onClick={() => toggleActive(user.id, false)}
                               disabled={isPending}
-                              style={{
-                                fontSize: '0.8125rem',
-                                fontWeight: 500,
-                                padding: '0.375rem 0.875rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #0d9488',
-                                cursor: isPending ? 'not-allowed' : 'pointer',
-                                backgroundColor: '#0d9488',
-                                color: '#ffffff',
-                              }}
+                              title="Approve"
+                              className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
                             >
-                              Approve
+                              <Check size={18} aria-hidden="true" />
                             </button>
                             <button
                               onClick={() => rejectUser(user.id)}
                               disabled={isPending}
-                              style={{
-                                fontSize: '0.8125rem',
-                                fontWeight: 500,
-                                padding: '0.375rem 0.875rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #fca5a5',
-                                cursor: isPending ? 'not-allowed' : 'pointer',
-                                backgroundColor: '#ffffff',
-                                color: '#dc2626',
-                              }}
+                              title="Reject"
+                              className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-red-300 bg-white text-red-600 hover:bg-red-50 cursor-pointer disabled:cursor-not-allowed transition-colors"
                             >
-                              Reject
+                              <X size={18} aria-hidden="true" />
                             </button>
                           </>
                         )}
@@ -290,38 +281,30 @@ export function UserTable({
                           <button
                             onClick={() => toggleActive(user.id, true)}
                             disabled={isPending}
-                            style={{
-                              fontSize: '0.8125rem',
-                              fontWeight: 500,
-                              padding: '0.375rem 0.875rem',
-                              borderRadius: '0.375rem',
-                              border: '1px solid #fca5a5',
-                              cursor: isPending ? 'not-allowed' : 'pointer',
-                              backgroundColor: '#ffffff',
-                              color: '#dc2626',
-                            }}
+                            title="Deactivate"
+                            className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-red-300 bg-white text-red-600 hover:bg-red-50 cursor-pointer disabled:cursor-not-allowed transition-colors"
                           >
-                            Deactivate
+                            <Ban size={18} aria-hidden="true" />
                           </button>
                         )}
                         {status === 'REJECTED' && (
                           <button
                             onClick={() => toggleActive(user.id, false)}
                             disabled={isPending}
-                            style={{
-                              fontSize: '0.8125rem',
-                              fontWeight: 500,
-                              padding: '0.375rem 0.875rem',
-                              borderRadius: '0.375rem',
-                              border: '1px solid #0d9488',
-                              cursor: isPending ? 'not-allowed' : 'pointer',
-                              backgroundColor: '#0d9488',
-                              color: '#ffffff',
-                            }}
+                            title="Approve"
+                            className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
                           >
-                            Approve
+                            <Check size={18} aria-hidden="true" />
                           </button>
                         )}
+                        <button
+                          onClick={() => deleteUser(user.id, user.name)}
+                          disabled={isPending}
+                          title="Delete"
+                          className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-red-300 bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                        >
+                          <Trash2 size={18} aria-hidden="true" />
+                        </button>
                       </div>
                     )}
                   </td>
