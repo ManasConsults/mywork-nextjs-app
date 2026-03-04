@@ -141,20 +141,13 @@ app/
 │       └── _components/
 │           └── SearchResults.tsx
 │
-├── (admin)/                         # Route group: requires ADMIN role
-│   ├── layout.tsx                   # AdminLayout: role guard + admin nav
-│   ├── users/
-│   │   ├── page.tsx
-│   │   └── _components/
-│   │       ├── UserTable.tsx
-│   │       └── InviteUserForm.tsx
-│   ├── groups/
-│   │   ├── page.tsx
-│   │   └── _components/
-│   │       ├── GroupList.tsx
-│   │       └── GroupForm.tsx
-│   └── settings/
-│       └── page.tsx
+├── admin/                           # Admin-only routes (not a route group — maps to /admin)
+│   ├── layout.tsx                   # AdminLayout: session + ADMIN role guard + nav
+│   ├── page.tsx                     # Redirects to /admin/users
+│   └── users/
+│       ├── page.tsx
+│       └── _components/
+│           └── UserTable.tsx        # Filter tabs, role select, activate/deactivate
 │
 ├── api/                             # Route Handlers
 │   ├── auth/
@@ -1753,14 +1746,15 @@ enum Priority {
 // ── Models ─────────────────────────────────────────────────────────────────
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  role         Role     @default(MEMBER)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String?                    // Nullable — not always provided by OAuth
+  passwordHash String?                    // Null for OAuth-only accounts
+  image        String?                    // Profile image from OAuth provider
+  role         Role      @default(MEMBER)
+  isActive     Boolean   @default(true)  // Always set explicitly to false on create; admin activates
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   tasks        Task[]
   workLogs     WorkLog[]

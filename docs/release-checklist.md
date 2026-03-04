@@ -412,7 +412,7 @@ Expected: User list loads. Pagination visible. No 403 error.
 ```
 1. Sign out. Sign in with Member smoke test account.
 2. Navigate directly to /admin/users.
-Expected: 403 Forbidden page shown. Member cannot access admin panel.
+Expected: Redirected to /dashboard (role guard in AdminLayout; no 403 page).
 [ ] PASS  [ ] FAIL — Notes: _______
 ```
 
@@ -427,14 +427,26 @@ Actual LCP: _______ ms
 [ ] PASS  [ ] FAIL — Notes: _______
 ```
 
-#### EMAIL-01 — Email Delivery (Staging only for standard releases)
-
-> Skip for hotfix releases. On production, verify only the email template renders — do not send to real addresses.
+#### REG-01 — Self-Registration + Admin Activation
 
 ```
-1. (Staging) Admin: invite a new user with email smoketest+[timestamp]@mywork.test.
-Expected: Resend Dashboard shows email sent. Preview link valid.
-[ ] PASS  [ ] FAIL  [ ] SKIPPED (hotfix) — Notes: _______
+1. Navigate to /register. Fill in a unique email, name, and valid password. Submit.
+Expected: "Registration submitted!" message shown. No redirect.
+2. Sign in with Admin account. Navigate to /admin/users.
+Expected: New user appears with "Pending" status.
+3. Click "Activate" for the new user.
+Expected: Status changes to "Active" immediately (router.refresh).
+4. Sign out. Sign in as the newly activated user.
+Expected: Redirected to /dashboard successfully.
+[ ] PASS  [ ] FAIL — Notes: _______
+```
+
+#### EMAIL-01 — Email Delivery (Not active in v1.0)
+
+> Email invitation flow is not implemented in v1.0. Skip this test. Re-enable when password-reset / notification emails are added.
+
+```
+[ ] SKIPPED — Email flow not implemented in v1.0.
 ```
 
 ### 5.2 Smoke Test Result Summary

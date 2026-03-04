@@ -1,8 +1,21 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Explicit source paths — required because Tailwind v4's auto-scan
+   does not match directories with parentheses like (app) and (auth) */
+@source "../app";
+@source "../lib";
+
+
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --primary-fg: #ffffff;
 }
 
 @theme inline {
@@ -12,11 +25,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
