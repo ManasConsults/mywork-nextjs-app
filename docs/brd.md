@@ -5,10 +5,10 @@
 | Field         | Value                          |
 |---------------|-------------------------------|
 | Document ID   | BRD-001                        |
-| Version       | 1.0                            |
-| Status        | Draft                          |
+| Version       | 1.1                            |
+| Status        | Active                         |
 | Author        | Business Analysis Team         |
-| Date          | 2026-02-24                     |
+| Date          | 2026-03-04                     |
 | Reviewers     | Product Owner, Tech Lead, QA   |
 
 ---
@@ -424,12 +424,15 @@ As an employee, I want to filter search results by module so that I can narrow d
 As an Admin, I want to create, edit, and deactivate user accounts so that I can control who has access to the system.
 
 **Acceptance Criteria:**
-- AC-UG-01-1: Admin can view all users and their Role and Status (Active / Pending) in the admin panel.
-- AC-UG-01-2: Users self-register via the `/register` page; new accounts are created as inactive (`isActive = false`) and require Admin activation before the user can sign in.
-- AC-UG-01-3: Admin can change a user's Role (`Admin`, `Manager`, `Member`) from the admin panel.
+- AC-UG-01-1: Admin can view all users and their Role and Status (Active / Pending / Rejected) in the admin panel.
+- AC-UG-01-2: Users self-register via the `/register` page; new accounts are created as inactive (`isActive = false`, `rejectedAt = null`) and require Admin approval before the user can sign in.
+- AC-UG-01-3: Admin can change a user's Role (`Admin`, `Manager`, `Member`) from the admin panel (cannot change own role).
 - AC-UG-01-4: Admin can activate or deactivate any user account except their own; deactivated users cannot log in.
-- AC-UG-01-5: Deactivated users' data is retained and remains searchable by Admins.
-- AC-UG-01-6: The user list is filterable by Status (All / Pending / Active) in the admin panel.
+- AC-UG-01-5: Admin can reject a pending user registration; rejected users have `rejectedAt` set and cannot log in. A rejected user can later be approved (one-click un-reject + activate).
+- AC-UG-01-6: Deactivated and rejected users' data is retained; records are not physically deleted unless explicitly deleted.
+- AC-UG-01-7: Admin can permanently delete a user account except their own; deletion requires a confirmation dialog and is irreversible.
+- AC-UG-01-8: The user list is filterable by Status (All / Pending / Active / Rejected) in the admin panel.
+- AC-UG-01-9: Email notifications are sent automatically via Resend at three lifecycle events: (a) on successful self-registration — confirmation that the account is under review; (b) on admin approval — account approved and sign-in link; (c) on admin rejection — account not approved notification. Email delivery failure is non-fatal and does not affect the admin action result.
 
 ---
 
@@ -541,13 +544,13 @@ As a user, I want to sign in securely so that my data is protected.
 |------|--------------------------------------------------------------------------------------------------------|
 | A-1  | The application serves a single organisation (single-tenant) in v1.0.                                 |
 | A-2  | All users have access to a modern browser and a stable internet connection.                            |
-| A-3  | Authentication in v1.0 supports email + password and OAuth providers (GitHub, Google, Facebook); all new accounts (credentials or OAuth) are inactive until an Admin activates them. |
-| A-4  | Users self-register via the registration form; self-registered accounts require Admin approval before first login.                                                                  |
+| A-3  | Authentication in v1.0 supports email + password and OAuth providers (GitHub, Google, Facebook); all new accounts (credentials or OAuth) are inactive (`isActive = false`) until an Admin activates them. Accounts may also be Rejected (`rejectedAt` set), which permanently blocks sign-in until an Admin re-approves. |
+| A-4  | Users self-register via the registration form; self-registered accounts require Admin approval before first login. Registration triggers a confirmation email to the user. |
 | A-5  | The application is English-only in v1.0; internationalisation is deferred.                            |
 | A-6  | Each user's data is private by default; sharing outside group visibility rules is not required in v1.0. |
 | A-7  | Achievement categories are configurable by an Admin via the admin panel.                               |
 | A-8  | Fiscal / review year windows are configurable by an Admin.                                             |
-| A-9  | Email delivery for future features (password reset, notifications) will use a third-party transactional email service (e.g., Resend); not required for v1.0 auth flow. |
+| A-9  | Transactional email via Resend is active in v1.0 for registration, approval, and rejection lifecycle notifications. Email delivery is non-fatal — a Resend error will not fail an admin action or block registration. Password reset email is deferred to a future milestone. |
 
 ---
 
@@ -569,7 +572,7 @@ As a user, I want to sign in securely so that my data is protected.
 | ID   | Dependency                          | Type     | Notes                                                                 |
 |------|-------------------------------------|----------|-----------------------------------------------------------------------|
 | D-1  | Managed PostgreSQL instance          | External | Must be provisioned before development of data-layer begins.          |
-| D-2  | Transactional email service (Resend) | External | Planned for password reset and future notification flows; not active in v1.0. |
+| D-2  | Transactional email service (Resend) | External | Active in v1.0 for registration confirmation, account approval, and account rejection emails. Password reset is deferred. Requires `RESEND_API_KEY` and `RESEND_FROM` environment variables. |
 | D-3  | Vercel account and project setup     | Platform | CI/CD pipeline and preview deployments depend on this.                |
 | D-4  | Design system / component library    | Internal | UI component decisions must be finalised before front-end development. |
 
@@ -630,4 +633,15 @@ As a user, I want to sign in securely so that my data is protected.
 
 ---
 
-*End of Document — BRD-001 v1.0*
+---
+
+## 12. Change Log
+
+| Version | Date       | Author                 | Summary                                                                                         |
+|---------|------------|------------------------|-------------------------------------------------------------------------------------------------|
+| 1.0     | 2026-02-24 | Business Analysis Team | Initial release.                                                                                |
+| 1.1     | 2026-03-04 | Tech Lead              | Added user rejection (FR-UG-01), permanent delete (AC-UG-01-7), email lifecycle notifications (AC-UG-01-9), updated A-3/A-4/A-9 and D-2 to reflect Resend integration active in v1.0. |
+
+---
+
+*End of Document — BRD-001 v1.1*
