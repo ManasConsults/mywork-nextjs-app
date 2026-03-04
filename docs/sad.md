@@ -207,14 +207,13 @@ app/
 │   └── search/
 │       └── page.tsx                 # Search results page (RSC with ?q= param)
 │
-├── (admin)/                         # Admin-only routes
-│   ├── layout.tsx                   # Admin layout: role guard + admin nav
-│   ├── users/
-│   │   └── page.tsx
-│   ├── groups/
-│   │   └── page.tsx
-│   └── settings/
-│       └── page.tsx                 # Achievement categories, fiscal year config
+├── admin/                           # Admin-only routes (role guard in layout)
+│   ├── layout.tsx                   # AdminLayout: session + ADMIN role guard + nav
+│   ├── page.tsx                     # Redirects to /admin/users
+│   └── users/
+│       ├── page.tsx
+│       └── _components/
+│           └── UserTable.tsx        # Filter tabs, role select, activate/deactivate
 │
 └── api/                             # Route Handlers (REST API)
     ├── auth/
@@ -276,8 +275,8 @@ Server Actions are used for **form mutations** to avoid an explicit API round-tr
 | `carryOverTodos`        | To-Do         | Reschedule incomplete past items to today.       |
 | `convertTodoToTask`     | To-Do         | Create task from todo, link reference.           |
 | `recordAchievement`     | Achievements  | Insert achievement with optional task link.      |
-| `inviteUser`            | Admin         | Create user record + send invitation email.      |
-| `deactivateUser`        | Admin         | Set isActive=false, revoke all sessions.         |
+| `setUserActiveAction`   | Admin         | Toggle `isActive` for a user (activate / deactivate). Cannot target self. |
+| `setUserRoleAction`     | Admin         | Change a user's role (`ADMIN`, `MANAGER`, `MEMBER`). Cannot target self.  |
 
 ---
 
@@ -728,16 +727,16 @@ flowchart TD
 
 ---
 
-#### DR-03 — NextAuth.js v5 (Credentials Provider)
+#### DR-03 — NextAuth.js v4 (Credentials + OAuth Providers)
 
-**Decision:** Use NextAuth.js v5 with `CredentialsProvider` for email + password authentication.
+**Decision:** Use NextAuth.js v4 (`next-auth@^4`) with `CredentialsProvider` for email + password and OAuth providers (GitHub, Google, Facebook).
 
 **Rationale:**
-- BRD assumption A-3 defers SSO to v2. NextAuth v5 supports CredentialsProvider cleanly and provides a straightforward migration to OAuth providers later.
-- v5 natively supports the App Router with edge-compatible session handling.
-- Built-in CSRF protection, session management, and the `auth()` helper integrate directly with Server Components.
+- v4 is stable, widely adopted, and fully compatible with the Next.js App Router via `getServerSession`.
+- `CredentialsProvider` handles email + password; OAuth providers (GitHub, Google, Facebook) are included and new accounts are created with `isActive: false` requiring admin activation.
+- Built-in CSRF protection and JWT session management; `role` and `id` are persisted in the JWT and surfaced via the `session` callback.
 
-**Trade-off:** v5 is in release-candidate phase. Pin to a specific minor version; monitor release notes. Risk mitigated by abstraction behind an `auth/` module.
+**Trade-off:** v4 uses `getServerSession(authOptions)` in Server Components rather than the v5 `auth()` helper. Migration to v5 is deferred; the `lib/auth/auth.ts` abstraction isolates the change surface.
 
 ---
 

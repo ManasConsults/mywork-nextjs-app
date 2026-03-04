@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum TaskStatus {
+  BACKLOG
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String?
+  /// Null for OAuth-only accounts
+  passwordHash String?
+  /// Profile image URL from OAuth provider
+  image        String?
+  role         Role      @default(MEMBER)
+  isActive     Boolean   @default(true)
+  rejectedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  tasks                Task[]
+  workLogs             WorkLog[]
+  achievements         Achievement[]
+  notes                Note[]
+  todoItems            TodoItem[]
+  fiscalYearStartMonth Int           @default(4)
+
+  @@map("users")
+}
+
+model Task {
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  status       TaskStatus    @default(BACKLOG)
+  priority     Priority      @default(MEDIUM)
+  dueDate      DateTime?
+  tags         String[]
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  workLogs     WorkLog[]
+  achievements Achievement[]
+  notes        Note[]
+  todoItems    TodoItem[]
+
+  @@map("tasks")
+}
+
+model WorkLog {
+  id          String   @id @default(uuid())
+  date        DateTime
+  description String
+  timeSpent   Float?
+  outcome     String?
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("work_logs")
+}
+
+model Achievement {
+  id           String    @id @default(uuid())
+  title        String
+  description  String
+  category     String?
+  dateAchieved DateTime?
+  impactRating Int?
+  taskId       String?
+  task         Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("achievements")
+}
+
+model Note {
+  id        String    @id @default(uuid())
+  title     String?   @db.VarChar(200)
+  body      Json
+  tags      String[]
+  taskId    String?
+  task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, deletedAt])
+  @@index([taskId])
+  @@map("notes")
+}
+
+model TodoItem {
+  id        String    @id @default(uuid())
+  title     String    @db.VarChar(500)
+  dueDate   DateTime?
+  isDone    Boolean   @default(false)
+  taskId    String?
+  task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, isDone])
+  @@index([taskId])
+  @@map("todo_items")
+}

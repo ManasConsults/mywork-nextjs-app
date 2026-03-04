@@ -331,9 +331,9 @@ Integration tests verify that the Route Handler layer (HTTP), service layer (bus
 | `DELETE /api/tasks/:id`          | Admin-only hard delete; 403 for MEMBER; cascades verified.        |
 | `GET /api/search`                | Returns results across all modules; respects user scope.          |
 | `GET /api/achievements/:id/export` | PDF/Markdown generated; filter scope respected.                |
-| `POST /api/admin/users`          | Invitation email dispatched; user record created; ADMIN-only.     |
-| `PATCH /api/admin/users/:id`     | Deactivation revokes sessions; ADMIN-only.                        |
-| Auth flows                       | Login success/failure, rate limit, session expiry, password reset.|
+| `setUserActiveAction`            | Activate/deactivate user; cannot target self; ADMIN-only Server Action. |
+| `setUserRoleAction`              | Change user role; cannot target self; ADMIN-only Server Action.         |
+| Auth flows                       | Login success/failure (credentials + OAuth), inactive user blocked, session expiry. |
 
 ### 6.2 Test Database Setup
 
@@ -503,7 +503,7 @@ E2E tests exercise the full stack through a real browser. They are **expensive t
 | CUJ-06 | Create achievement → export as PDF (download triggered) | P1 |
 | CUJ-07 | Create note with rich text → navigate away → return → content preserved | P1 |
 | CUJ-08 | Cmd+K → search for term → navigate to result | P1 |
-| CUJ-09 | Admin invites user → user receives email → sets password → logs in | P1 |
+| CUJ-09 | User registers → sees "pending approval" message → Admin activates in /admin/users → user logs in | P1 |
 | CUJ-10 | Admin creates group → assigns manager → manager sees group member tasks | P1 |
 | CUJ-11 | Convert to-do item to full Task via one-click action | P2 |
 | CUJ-12 | Filter tasks by status + priority → URL reflects filters → reload preserves filters | P2 |
@@ -594,10 +594,10 @@ export class TasksPage {
 
 ### 7.5 E2E Test Data Management
 
-- Each test suite uses **isolated test users** created via API (`/api/admin/users`) in `beforeAll`.
-- All created users and their data are deleted in `afterAll`.
+- Each test suite uses **isolated test users** seeded directly via Prisma in `globalSetup` (see `e2e/global-setup.ts`).
+- All created users and their data are deleted in `globalTeardown`.
 - Tests never share users or tasks across `describe` blocks.
-- A dedicated `e2e` role is seeded to bypass the email invitation flow.
+- Test users are created with `isActive: true` directly in the DB to bypass the admin-activation flow.
 
 ```typescript
 // e2e/fixtures/auth.fixture.ts
@@ -1082,7 +1082,7 @@ Each test file that needs additional data creates it in `beforeEach` and cleans 
 
 E2E tests use the **API layer** to set up and tear down data (not direct DB access):
 
-- Create users via `POST /api/admin/users` with Admin credentials.
+- Create users directly via Prisma in `e2e/global-setup.ts` (with `isActive: true` to bypass admin-activation).
 - Create tasks/notes/etc. via their respective API endpoints.
 - Delete via `DELETE` endpoints or direct DB helper in `afterAll`.
 
