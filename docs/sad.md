@@ -5,11 +5,11 @@
 | Field         | Value                               |
 |---------------|-------------------------------------|
 | Document ID   | SAD-001                             |
-| Version       | 1.1                                 |
+| Version       | 1.2                                 |
 | Status        | Active                              |
 | Author        | Architecture Team                   |
-| Date          | 2026-03-04                          |
-| Related BRD   | BRD-001 v1.1                        |
+| Date          | 2026-03-05                          |
+| Related BRD   | BRD-001 v1.2                        |
 | Reviewers     | Tech Lead, Security, Platform, QA   |
 
 ---
@@ -182,7 +182,7 @@ app/
 │       └── page.tsx
 │
 ├── (app)/                           # Protected application shell
-│   ├── layout.tsx                   # Root protected layout: nav, sidebar, cmd-k search
+│   ├── layout.tsx                   # Root protected layout: session guard → AppShell RSC
 │   ├── dashboard/
 │   │   └── page.tsx                 # Today's summary: pending to-dos, recent tasks
 │   ├── tasks/
@@ -249,14 +249,16 @@ middleware.ts                        # Edge auth guard + security headers
 
 ### 5.2 Component Classification
 
-| Component Type        | Examples                                         | Rendering    |
-|-----------------------|--------------------------------------------------|--------------|
-| Page (RSC)            | TaskListPage, AchievementsPage, SearchPage       | Server       |
-| Layout (RSC)          | AppLayout (nav, sidebar), AdminLayout            | Server       |
-| Form (Client)         | TaskForm, WorkLogForm, NoteEditor, LoginForm     | Client       |
-| Interactive UI (Client)| TodoList (drag/drop), CarryOverPrompt, CmdK     | Client       |
-| Display (RSC)         | TaskCard, WorkLogEntry, AchievementCard          | Server       |
-| Route Handler         | /api/tasks, /api/search, /api/auth/[...nextauth] | Server (Edge)|
+| Component Type        | Examples                                                   | Rendering    |
+|-----------------------|------------------------------------------------------------|--------------|
+| Page (RSC)            | TaskListPage, AchievementsPage, SearchPage                 | Server       |
+| Layout (RSC)          | AppLayout (session guard), AdminLayout                     | Server       |
+| Shell (Client)        | AppShell (mobile state, hamburger, ThemeToggle)            | Client       |
+| Navigation (Client)   | Sidebar (desktop collapse + mobile drawer), NavContent     | Client       |
+| Form (Client)         | TaskForm, WorkLogForm, NoteEditor, LoginForm               | Client       |
+| Interactive UI (Client)| TodoList (drag/drop), CarryOverPrompt, CmdK               | Client       |
+| Display (RSC)         | TaskCard, WorkLogEntry, AchievementCard                    | Server       |
+| Route Handler         | /api/tasks, /api/search, /api/auth/[...nextauth]           | Server (Edge)|
 
 ### 5.3 Server Actions
 
@@ -730,12 +732,13 @@ flowchart TD
 
 #### DR-03 — NextAuth.js v4 (Credentials + OAuth Providers)
 
-**Decision:** Use NextAuth.js v4 (`next-auth@^4`) with `CredentialsProvider` for email + password and OAuth providers (GitHub, Google, Facebook).
+**Decision:** Use NextAuth.js v4 (`next-auth@^4`) with `CredentialsProvider` for email + password and `GitHubProvider` for OAuth (Google/Facebook providers configured but UI-disabled, "coming soon").
 
 **Rationale:**
 - v4 is stable, widely adopted, and fully compatible with the Next.js App Router via `getServerSession`.
-- `CredentialsProvider` handles email + password; OAuth providers (GitHub, Google, Facebook) are included and new accounts are created with `isActive: false` requiring admin activation.
+- `CredentialsProvider` handles email + password; `GitHubProvider` (and future OAuth providers) creates accounts with `isActive: false` requiring admin activation.
 - Built-in CSRF protection and JWT session management; `role` and `id` are persisted in the JWT and surfaced via the `session` callback.
+- **JWT callback DB lookup:** For OAuth sign-ins the provider returns an external numeric ID (e.g. GitHub user ID) rather than the Prisma UUID. The `jwt` callback detects `account?.provider !== 'credentials'` and queries `prisma.user.findUnique({ where: { email } })` to store the correct DB UUID in `token.id`.
 
 **Trade-off:** v4 uses `getServerSession(authOptions)` in Server Components rather than the v5 `auth()` helper. Migration to v5 is deferred; the `lib/auth/auth.ts` abstraction isolates the change surface.
 
@@ -1194,6 +1197,7 @@ Runtime configuration (fiscal year, achievement categories) is stored in the `Sy
 |---------|------------|-------------------|------------------------------------------------------------------------------------------------------------|
 | 1.0     | 2026-02-24 | Architecture Team | Initial release.                                                                                           |
 | 1.1     | 2026-03-04 | Tech Lead         | Added `rejectedAt` to User model; updated Resend responsibility to v1.0 email flows; corrected `EMAIL_FROM` → `RESEND_FROM`; removed `react-email` (not used); updated BRD reference to v1.1. |
+| 1.2     | 2026-03-05 | Tech Lead         | GitHub OAuth active (Google/Facebook UI-disabled, coming soon); JWT callback DB-UUID fix for OAuth users; AppShell client component (mobile hamburger + mobileOpen state); mobile sidebar drawer (`fixed` overlay, `translate-x` transition, `useEffect` auto-close on navigation); responsive Tailwind grid/header layouts; updated component classification table; updated BRD reference to v1.2. |
 
 ---
 

@@ -27,6 +27,7 @@ function userStatus(u: UserRow): 'ACTIVE' | 'PENDING' | 'REJECTED' {
   return 'PENDING';
 }
 
+// Desktop table styles (original inline styles)
 const th: React.CSSProperties = {
   padding: '0.75rem 1rem',
   textAlign: 'left',
@@ -50,6 +51,98 @@ const ROW_BG: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
   REJECTED: '#fff1f2',
 };
 
+// Mobile card styles (Tailwind classes)
+const CARD_STATUS_BADGE: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
+  ACTIVE:   'bg-green-100 text-green-800',
+  PENDING:  'bg-yellow-100 text-yellow-800',
+  REJECTED: 'bg-red-100 text-red-800',
+};
+
+const CARD_ROW_BG: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
+  ACTIVE:   '',
+  PENDING:  'bg-yellow-50',
+  REJECTED: 'bg-red-50',
+};
+
+const STATUS_LABEL: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
+  ACTIVE: 'Active', PENDING: 'Pending', REJECTED: 'Rejected',
+};
+
+function ActionButtons({
+  user,
+  status,
+  isPending,
+  size,
+  onToggleActive,
+  onReject,
+  onDelete,
+}: {
+  user: UserRow;
+  status: 'ACTIVE' | 'PENDING' | 'REJECTED';
+  isPending: boolean;
+  size: 'sm' | 'md';
+  onToggleActive: (id: string, current: boolean) => void;
+  onReject: (id: string) => void;
+  onDelete: (id: string, name: string | null) => void;
+}): React.JSX.Element {
+  const btn = size === 'md'
+    ? 'w-10 h-10 flex items-center justify-center rounded-md border-2 cursor-pointer disabled:cursor-not-allowed transition-colors'
+    : 'w-9 h-9 flex items-center justify-center rounded-md border-2 cursor-pointer disabled:cursor-not-allowed transition-colors';
+  const iconSize = size === 'md' ? 18 : 16;
+
+  return (
+    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      {status === 'PENDING' && (
+        <>
+          <button
+            onClick={() => onToggleActive(user.id, false)}
+            disabled={isPending}
+            title="Approve"
+            className={`${btn} border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700`}
+          >
+            <Check size={iconSize} aria-hidden="true" />
+          </button>
+          <button
+            onClick={() => onReject(user.id)}
+            disabled={isPending}
+            title="Reject"
+            className={`${btn} border-red-300 bg-white text-red-600 hover:bg-red-50`}
+          >
+            <X size={iconSize} aria-hidden="true" />
+          </button>
+        </>
+      )}
+      {status === 'ACTIVE' && (
+        <button
+          onClick={() => onToggleActive(user.id, true)}
+          disabled={isPending}
+          title="Deactivate"
+          className={`${btn} border-red-300 bg-white text-red-600 hover:bg-red-50`}
+        >
+          <Ban size={iconSize} aria-hidden="true" />
+        </button>
+      )}
+      {status === 'REJECTED' && (
+        <button
+          onClick={() => onToggleActive(user.id, false)}
+          disabled={isPending}
+          title="Approve"
+          className={`${btn} border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700`}
+        >
+          <Check size={iconSize} aria-hidden="true" />
+        </button>
+      )}
+      <button
+        onClick={() => onDelete(user.id, user.name)}
+        disabled={isPending}
+        title="Delete"
+        className={`${btn} border-red-300 bg-red-50 text-red-600 hover:bg-red-100`}
+      >
+        <Trash2 size={iconSize} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
 
 export function UserTable({
   users,
@@ -131,7 +224,7 @@ export function UserTable({
   return (
     <div style={{ opacity: isPending ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div className="mb-4 flex flex-wrap gap-2">
         {tabs.map(({ id, label }) => (
           <button
             key={id}
@@ -147,15 +240,70 @@ export function UserTable({
         ))}
       </div>
 
-      {/* Table */}
-      <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '0.75rem',
-          border: '1px solid #e5e7eb',
-          overflow: 'hidden',
-        }}
-      >
+      {/* Mobile card list */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {filtered.length === 0 && (
+          <p className="py-10 text-center text-sm text-gray-400">No users found.</p>
+        )}
+        {filtered.map((user) => {
+          const isSelf = user.id === currentUserId;
+          const status = userStatus(user);
+          return (
+            <div
+              key={user.id}
+              className={`rounded-xl border border-gray-200 bg-white p-4 ${CARD_ROW_BG[status]}`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {user.name ?? '—'}
+                    {isSelf && <span className="ml-1.5 text-xs text-gray-400">(you)</span>}
+                  </p>
+                  <p className="truncate text-xs text-gray-500">{user.email}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${CARD_STATUS_BADGE[status]}`}>
+                  {STATUS_LABEL[status]}
+                </span>
+              </div>
+
+              <div className="mt-3 flex items-center gap-4">
+                <select
+                  value={user.role}
+                  disabled={isSelf || isPending}
+                  onChange={(e) => changeRole(user.id, e.target.value as Role)}
+                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 disabled:cursor-not-allowed"
+                >
+                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+                <span className="text-xs text-gray-400">
+                  {new Date(user.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+
+              {errors[user.id] && (
+                <p className="mt-2 text-xs text-red-600">{errors[user.id]}</p>
+              )}
+
+              {!isSelf && (
+                <div className="mt-3 border-t border-gray-100 pt-3">
+                  <ActionButtons
+                    user={user}
+                    status={status}
+                    size="sm"
+                    isPending={isPending}
+                    onToggleActive={toggleActive}
+                    onReject={rejectUser}
+                    onDelete={deleteUser}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table — original styling restored */}
+      <div className="max-md:hidden overflow-x-auto rounded-xl border border-gray-200 bg-white">
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
@@ -240,7 +388,7 @@ export function UserTable({
                         ...STATUS_BADGE[status],
                       }}
                     >
-                      {status === 'ACTIVE' ? 'Active' : status === 'PENDING' ? 'Pending' : 'Rejected'}
+                      {STATUS_LABEL[status]}
                     </span>
                   </td>
 
@@ -256,56 +404,15 @@ export function UserTable({
                   {/* Actions */}
                   <td style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>
                     {!isSelf && (
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                        {status === 'PENDING' && (
-                          <>
-                            <button
-                              onClick={() => toggleActive(user.id, false)}
-                              disabled={isPending}
-                              title="Approve"
-                              className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                            >
-                              <Check size={18} aria-hidden="true" />
-                            </button>
-                            <button
-                              onClick={() => rejectUser(user.id)}
-                              disabled={isPending}
-                              title="Reject"
-                              className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-red-300 bg-white text-red-600 hover:bg-red-50 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                            >
-                              <X size={18} aria-hidden="true" />
-                            </button>
-                          </>
-                        )}
-                        {status === 'ACTIVE' && (
-                          <button
-                            onClick={() => toggleActive(user.id, true)}
-                            disabled={isPending}
-                            title="Deactivate"
-                            className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-red-300 bg-white text-red-600 hover:bg-red-50 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                          >
-                            <Ban size={18} aria-hidden="true" />
-                          </button>
-                        )}
-                        {status === 'REJECTED' && (
-                          <button
-                            onClick={() => toggleActive(user.id, false)}
-                            disabled={isPending}
-                            title="Approve"
-                            className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                          >
-                            <Check size={18} aria-hidden="true" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => deleteUser(user.id, user.name)}
-                          disabled={isPending}
-                          title="Delete"
-                          className="w-10 h-10 flex items-center justify-center rounded-md border-2 border-red-300 bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                        >
-                          <Trash2 size={18} aria-hidden="true" />
-                        </button>
-                      </div>
+                      <ActionButtons
+                        user={user}
+                        status={status}
+                        size="md"
+                        isPending={isPending}
+                        onToggleActive={toggleActive}
+                        onReject={rejectUser}
+                        onDelete={deleteUser}
+                      />
                     )}
                   </td>
                 </tr>

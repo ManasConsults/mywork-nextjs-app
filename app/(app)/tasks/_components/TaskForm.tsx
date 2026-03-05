@@ -111,7 +111,7 @@ export function TaskForm({ task }: TaskFormProps): React.JSX.Element {
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Status" error={fieldErrors.status?.[0]}>
           <select name="status" defaultValue={task?.status ?? 'BACKLOG'} className={inputCls(false)}>
             {TASK_STATUSES.map((s) => (

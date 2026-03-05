@@ -5,10 +5,10 @@
 | Field          | Value                                                         |
 |----------------|---------------------------------------------------------------|
 | Document ID    | RC-001                                                        |
-| Version        | 1.1                                                           |
+| Version        | 1.2                                                           |
 | Status         | Active                                                        |
 | Author         | Release Management                                            |
-| Date           | 2026-03-04                                                    |
+| Date           | 2026-03-05                                                    |
 | Related Docs   | BRD-001 v1.1 · SAD-001 v1.1 · TDD-001 v1.1 · TS-001 v1.1   |
 | Reviewers      | Tech Lead, QA Lead, Product Owner, Platform                   |
 
@@ -138,6 +138,8 @@ Complete this checklist **at least 24 hours before** the release window. Items m
   - [ ] `NEXTAUTH_URL` (set to production URL)
   - [ ] `RESEND_API_KEY`
   - [ ] `RESEND_FROM` (sender address, e.g., `MyWork <noreply@mywork.app>`)
+  - [ ] `GITHUB_ID` (GitHub OAuth App client ID)
+  - [ ] `GITHUB_SECRET` (GitHub OAuth App client secret)
   - [ ] Any **new** env vars introduced in this release: `________________`
 - [ ] `[PL]` New env vars have been validated against `env.ts` (`@t3-oss/env-nextjs`) to confirm the build will not fail.
 - [ ] `[TL]` `next.config.ts` — confirm no `typescript.ignoreBuildErrors` or `eslint.ignoreDuringBuilds` flags are set to `true`.
@@ -413,6 +415,33 @@ Expected: User list loads. Pagination visible. No 403 error.
 1. Sign out. Sign in with Member smoke test account.
 2. Navigate directly to /admin/users.
 Expected: Redirected to /dashboard (role guard in AdminLayout; no 403 page).
+[ ] PASS  [ ] FAIL — Notes: _______
+```
+
+#### OAUTH-01 — GitHub OAuth Sign-In
+
+```
+1. Sign out. On the /login page, click "Sign in with GitHub".
+Expected: Redirected to GitHub authorisation page.
+2. Authorise the app (or auto-approve if already authorised).
+Expected: Redirected to /dashboard without error.
+3. Navigate to /profile.
+Expected: Profile page loads (no 404). User name/avatar from GitHub displayed.
+[ ] PASS  [ ] FAIL — Notes: _______
+```
+
+#### MOBILE-01 — Mobile Navigation Drawer
+
+```
+1. Open the app on a mobile viewport (≤ 767 px) or Chrome DevTools mobile emulation.
+2. Verify the sidebar is hidden and a hamburger button is visible in the top bar.
+Expected: No sidebar shown; hamburger (☰) button visible.
+3. Click the hamburger button.
+Expected: Mobile drawer slides in from the left; backdrop overlay appears.
+4. Click any nav link (e.g., Tasks).
+Expected: Navigates to the page; drawer auto-closes without manual interaction.
+5. Open the drawer again. Click outside (on the backdrop).
+Expected: Drawer closes.
 [ ] PASS  [ ] FAIL — Notes: _______
 ```
 
@@ -1029,6 +1058,7 @@ Thank you for your patience. If you continue to experience issues, please contac
 |---------|------------|---------------------|----------------------------------------------------------------------------------------------------------------------|
 | 1.0     | 2026-02-24 | Release Management  | Initial release.                                                                                                     |
 | 1.1     | 2026-03-04 | Tech Lead           | Activated EMAIL-01 smoke test (Resend live in v1.0); corrected `EMAIL_FROM` → `RESEND_FROM`; updated REG-01 to cover reject + re-approve; updated all related doc references to v1.1. |
+| 1.2     | 2026-03-05 | Tech Lead           | Added `GITHUB_ID`/`GITHUB_SECRET` to env var checklist; added OAUTH-01 (GitHub OAuth sign-in + profile page no-404 check) and MOBILE-01 (mobile sidebar drawer) smoke tests; updated all related doc references to v1.2. |
 
 ---
 

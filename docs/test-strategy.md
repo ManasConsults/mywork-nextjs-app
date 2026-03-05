@@ -5,10 +5,10 @@
 | Field          | Value                                        |
 |----------------|----------------------------------------------|
 | Document ID    | TS-001                                       |
-| Version        | 1.1                                          |
+| Version        | 1.2                                          |
 | Status         | Active                                       |
 | Author         | QA Team                                      |
-| Date           | 2026-03-04                                   |
+| Date           | 2026-03-05                                   |
 | Related Docs   | BRD-001 v1.1 · SAD-001 v1.1 · TDD-001 v1.1  |
 | Reviewers      | QA Lead, Tech Lead, Product Owner            |
 
@@ -336,7 +336,7 @@ Integration tests verify that the Route Handler layer (HTTP), service layer (bus
 | `deleteUserAction`               | Permanently delete a user; cannot delete self; ADMIN-only.              |
 | `setUserRoleAction`              | Change user role; cannot target self; ADMIN-only Server Action.         |
 | `lib/email/notifications.ts`    | Each notification function sends correct `to`, `subject`, `from`. Email errors are caught silently (non-propagating). |
-| Auth flows                       | Login success/failure (credentials + OAuth), inactive user blocked, session expiry. |
+| Auth flows                       | Login success/failure (credentials + GitHub OAuth), inactive user blocked, session expiry. OAuth JWT callback DB-UUID lookup verified (non-credentials sign-in stores Prisma UUID, not provider ID). |
 
 ### 6.2 Test Database Setup
 
@@ -508,6 +508,8 @@ E2E tests exercise the full stack through a real browser. They are **expensive t
 | CUJ-08 | Cmd+K → search for term → navigate to result | P1 |
 | CUJ-09 | User registers → sees "pending approval" message → Admin activates in /admin/users → user logs in | P1 |
 | CUJ-09a | User registers → Admin rejects in /admin/users → user sees Rejected status → Admin can re-approve | P1 |
+| CUJ-09b | Sign in via GitHub OAuth → profile page loads without 404 (DB UUID resolved from JWT) | P0 |
+| CUJ-09c | Mobile: hamburger opens sidebar drawer → navigate to Tasks → drawer auto-closes | P1 |
 | CUJ-10 | Admin creates group → assigns manager → manager sees group member tasks | P1 |
 | CUJ-11 | Convert to-do item to full Task via one-click action | P2 |
 | CUJ-12 | Filter tasks by status + priority → URL reflects filters → reload preserves filters | P2 |
@@ -1310,6 +1312,7 @@ Outputs are a short QA Health Report shared with the Product Owner and Tech Lead
 |---------|------------|----------|-------------------------------------------------------------------------------------------------------------------------|
 | 1.0     | 2026-02-24 | QA Team  | Initial release.                                                                                                        |
 | 1.1     | 2026-03-04 | Tech Lead | Added `rejectUserAction`, `deleteUserAction`, `lib/email/notifications.ts` to integration test targets; added CUJ-09a (reject + re-approve flow); updated related doc references to v1.1. |
+| 1.2     | 2026-03-05 | Tech Lead | Added CUJ-09b (GitHub OAuth JWT DB-UUID fix) and CUJ-09c (mobile sidebar drawer); expanded auth flow integration notes to cover OAuth JWT callback; updated related doc references to v1.2. |
 
 ---
 
