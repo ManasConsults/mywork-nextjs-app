@@ -163,17 +163,25 @@ describe('LoginForm failed sign-in', () => {
 // ─── OAuth buttons ────────────────────────────────────────────────────────────
 
 describe('LoginForm OAuth providers', () => {
-  it.each([['github'], ['google'], ['facebook']] as const)(
-    'calls signIn with %s provider when button is clicked',
-    async (provider) => {
-      mockSignIn.mockResolvedValue({});
-      const { user } = setup();
-      const button = screen.getByRole('button', { name: new RegExp(provider, 'i') });
-      await user.click(button);
+  it('calls signIn with github provider when button is clicked', async () => {
+    mockSignIn.mockResolvedValue({});
+    const { user } = setup();
+    const button = screen.getByRole('button', { name: /github/i });
+    await user.click(button);
 
-      await waitFor(() => {
-        expect(mockSignIn).toHaveBeenCalledWith(provider, { callbackUrl: '/dashboard' });
-      });
+    await waitFor(() => {
+      expect(mockSignIn).toHaveBeenCalledWith('github', { callbackUrl: '/dashboard' });
+    });
+  });
+
+  it.each([['google'], ['facebook']] as const)(
+    '%s button is disabled (coming soon) and does not call signIn',
+    async (provider) => {
+      setup();
+      const button = screen.getByRole('button', { name: new RegExp(provider, 'i') });
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute('title', 'Coming soon');
+      expect(mockSignIn).not.toHaveBeenCalled();
     },
   );
 });

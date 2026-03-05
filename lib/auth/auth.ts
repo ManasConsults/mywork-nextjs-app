@@ -63,11 +63,19 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
-      // On first sign-in `user` is populated — persist role to token
+    async jwt({ token, user, account }) {
+      // On first sign-in `user` is populated — persist DB id + role to token
       if (user) {
-        token.id = user.id;
-        token.role = (user as User & { role?: string }).role ?? 'MEMBER';
+        if (account?.provider !== 'credentials' && user.email) {
+          // OAuth: user.id is the provider's external ID, not our DB UUID.
+          // Look up the DB record (guaranteed to exist — signIn callback already upserted it).
+          const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+          token.id = dbUser?.id ?? user.id;
+          token.role = dbUser?.role ?? 'MEMBER';
+        } else {
+          token.id = user.id;
+          token.role = (user as User & { role?: string }).role ?? 'MEMBER';
+        }
       }
       return token;
     },

@@ -5,11 +5,11 @@
 | Field          | Value                                                         |
 |----------------|---------------------------------------------------------------|
 | Document ID    | RC-001                                                        |
-| Version        | 1.0                                                           |
-| Status         | Draft                                                         |
+| Version        | 1.1                                                           |
+| Status         | Active                                                        |
 | Author         | Release Management                                            |
-| Date           | 2026-02-24                                                    |
-| Related Docs   | BRD-001 · SAD-001 · TDD-001 · TS-001                         |
+| Date           | 2026-03-04                                                    |
+| Related Docs   | BRD-001 v1.1 · SAD-001 v1.1 · TDD-001 v1.1 · TS-001 v1.1   |
 | Reviewers      | Tech Lead, QA Lead, Product Owner, Platform                   |
 
 ---
@@ -137,7 +137,7 @@ Complete this checklist **at least 24 hours before** the release window. Items m
   - [ ] `NEXTAUTH_SECRET` (32-byte random; unchanged unless explicitly rotating)
   - [ ] `NEXTAUTH_URL` (set to production URL)
   - [ ] `RESEND_API_KEY`
-  - [ ] `EMAIL_FROM`
+  - [ ] `RESEND_FROM` (sender address, e.g., `MyWork <noreply@mywork.app>`)
   - [ ] Any **new** env vars introduced in this release: `________________`
 - [ ] `[PL]` New env vars have been validated against `env.ts` (`@t3-oss/env-nextjs`) to confirm the build will not fail.
 - [ ] `[TL]` `next.config.ts` — confirm no `typescript.ignoreBuildErrors` or `eslint.ignoreDuringBuilds` flags are set to `true`.
@@ -427,26 +427,46 @@ Actual LCP: _______ ms
 [ ] PASS  [ ] FAIL — Notes: _______
 ```
 
-#### REG-01 — Self-Registration + Admin Activation
+#### REG-01 — Self-Registration + Admin Activation + Rejection
 
 ```
 1. Navigate to /register. Fill in a unique email, name, and valid password. Submit.
 Expected: "Registration submitted!" message shown. No redirect.
+         (Registration confirmation email sent — verified in EMAIL-01)
 2. Sign in with Admin account. Navigate to /admin/users.
-Expected: New user appears with "Pending" status.
-3. Click "Activate" for the new user.
+Expected: New user appears with "Pending" status badge (yellow).
+3. Click "Approve" (✓) for the new user.
 Expected: Status changes to "Active" immediately (router.refresh).
 4. Sign out. Sign in as the newly activated user.
 Expected: Redirected to /dashboard successfully.
 [ ] PASS  [ ] FAIL — Notes: _______
+
+5. Register another new user. Sign in as Admin. Click "Reject" (✗) for the new user.
+Expected: Status changes to "Rejected" (red badge). User cannot sign in.
+6. Click "Approve" (✓) on the rejected user to re-approve.
+Expected: Status changes to "Active". User can now sign in.
+[ ] PASS  [ ] FAIL — Notes: _______
 ```
 
-#### EMAIL-01 — Email Delivery (Not active in v1.0)
+#### EMAIL-01 — Email Delivery
 
-> Email invitation flow is not implemented in v1.0. Skip this test. Re-enable when password-reset / notification emails are added.
+> Transactional email is active in v1.0. Use a monitored test inbox (e.g., Mailtrap or a real email you control).
 
 ```
-[ ] SKIPPED — Email flow not implemented in v1.0.
+1. Register a new user with a real test email address via /register.
+Expected: Registration email arrives at the test inbox within 2 minutes.
+         Subject: "Your MyWork registration is under review"
+[ ] PASS  [ ] FAIL — Notes: _______
+
+2. Sign in with Admin account. Navigate to /admin/users. Approve the new user.
+Expected: Approval email arrives at the test inbox within 2 minutes.
+         Subject: "Your MyWork account has been approved"
+[ ] PASS  [ ] FAIL — Notes: _______
+
+3. Register another new test user. Sign in as Admin. Reject the new user.
+Expected: Rejection email arrives at the test inbox within 2 minutes.
+         Subject: "Your MyWork registration was not approved"
+[ ] PASS  [ ] FAIL — Notes: _______
 ```
 
 ### 5.2 Smoke Test Result Summary
@@ -465,7 +485,7 @@ Expected: Redirected to /dashboard successfully.
 | ADMIN-01 | PASS / FAIL   |             |
 | ADMIN-02 | PASS / FAIL   |             |
 | PERF-01  | PASS / FAIL   | LCP: ___ ms |
-| EMAIL-01 | PASS / FAIL / SKIPPED | |
+| EMAIL-01 | PASS / FAIL   |             |
 
 **Overall: `ALL PASS` → continue. Any `FAIL` → rollback (§6).**
 
@@ -1001,4 +1021,15 @@ Thank you for your patience. If you continue to experience issues, please contac
 
 ---
 
-*End of Document — RC-001 v1.0*
+---
+
+## Appendix B — Change Log
+
+| Version | Date       | Author              | Summary                                                                                                              |
+|---------|------------|---------------------|----------------------------------------------------------------------------------------------------------------------|
+| 1.0     | 2026-02-24 | Release Management  | Initial release.                                                                                                     |
+| 1.1     | 2026-03-04 | Tech Lead           | Activated EMAIL-01 smoke test (Resend live in v1.0); corrected `EMAIL_FROM` → `RESEND_FROM`; updated REG-01 to cover reject + re-approve; updated all related doc references to v1.1. |
+
+---
+
+*End of Document — RC-001 v1.1*
