@@ -5,11 +5,11 @@
 | Field         | Value                                       |
 |---------------|---------------------------------------------|
 | Document ID   | TDD-001                                     |
-| Version       | 1.0                                         |
-| Status        | Draft                                       |
+| Version       | 1.1                                         |
+| Status        | Active                                      |
 | Author        | Engineering Team                            |
-| Date          | 2026-02-24                                  |
-| Related Docs  | BRD-001 v1.0, SAD-001 v1.0                  |
+| Date          | 2026-03-04                                  |
+| Related Docs  | BRD-001 v1.1, SAD-001 v1.1                  |
 | Reviewers     | Tech Lead, Senior Engineers, QA Lead        |
 
 ---
@@ -253,10 +253,8 @@ lib/
 │       └── group.schema.ts
 │
 ├── email/
-│   ├── client.ts                    # Resend client initialisation
-│   └── templates/
-│       ├── InviteEmail.tsx          # react-email template
-│       └── PasswordResetEmail.tsx
+│   ├── resend.ts                    # Resend client singleton
+│   └── notifications.ts             # sendRegistrationPendingEmail(), sendAccountApprovedEmail(), sendAccountRejectedEmail()
 │
 ├── logger.ts                        # pino logger singleton
 ├── errors.ts                        # AppError, ForbiddenError, NotFoundError classes
@@ -1637,6 +1635,7 @@ NEXTAUTH_URL="http://localhost:3000"
 
 # Email
 RESEND_API_KEY="re_..."
+RESEND_FROM="MyWork <noreply@mywork.app>"
 EMAIL_FROM="MyWork <noreply@example.com>"
 
 # Observability
@@ -1660,8 +1659,8 @@ export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
     NEXTAUTH_SECRET: z.string().min(32),
-    RESEND_API_KEY: z.string().startsWith('re_'),
-    EMAIL_FROM: z.string().email(),
+    RESEND_API_KEY: z.string().startsWith('re_').optional(),
+    RESEND_FROM: z.string().optional(),
     LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
   },
   client: {},
@@ -1669,7 +1668,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
-    EMAIL_FROM: process.env.EMAIL_FROM,
+    RESEND_FROM: process.env.RESEND_FROM,
     LOG_LEVEL: process.env.LOG_LEVEL,
   },
 });
@@ -1983,4 +1982,15 @@ jobs:
 
 ---
 
-*End of Document — TDD-001 v1.0*
+---
+
+## 13. Change Log
+
+| Version | Date       | Author           | Summary                                                                                                            |
+|---------|------------|------------------|--------------------------------------------------------------------------------------------------------------------|
+| 1.0     | 2026-02-24 | Engineering Team | Initial release.                                                                                                   |
+| 1.1     | 2026-03-04 | Tech Lead        | Updated `lib/email/` structure to actual files (`resend.ts`, `notifications.ts`); removed `react-email`; corrected env var `EMAIL_FROM` → `RESEND_FROM`; updated related doc references to v1.1. |
+
+---
+
+*End of Document — TDD-001 v1.1*

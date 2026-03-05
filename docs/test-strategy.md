@@ -5,11 +5,11 @@
 | Field          | Value                                        |
 |----------------|----------------------------------------------|
 | Document ID    | TS-001                                       |
-| Version        | 1.0                                          |
-| Status         | Draft                                        |
+| Version        | 1.1                                          |
+| Status         | Active                                       |
 | Author         | QA Team                                      |
-| Date           | 2026-02-24                                   |
-| Related Docs   | BRD-001 v1.0 · SAD-001 v1.0 · TDD-001 v1.0  |
+| Date           | 2026-03-04                                   |
+| Related Docs   | BRD-001 v1.1 · SAD-001 v1.1 · TDD-001 v1.1  |
 | Reviewers      | QA Lead, Tech Lead, Product Owner            |
 
 ---
@@ -331,8 +331,11 @@ Integration tests verify that the Route Handler layer (HTTP), service layer (bus
 | `DELETE /api/tasks/:id`          | Admin-only hard delete; 403 for MEMBER; cascades verified.        |
 | `GET /api/search`                | Returns results across all modules; respects user scope.          |
 | `GET /api/achievements/:id/export` | PDF/Markdown generated; filter scope respected.                |
-| `setUserActiveAction`            | Activate/deactivate user; cannot target self; ADMIN-only Server Action. |
+| `setUserActiveAction`            | Activate/deactivate user; cannot target self; ADMIN-only. Activation sends approval email (email failure non-fatal). |
+| `rejectUserAction`               | Reject a pending user; cannot target self; ADMIN-only. Sets `rejectedAt`; sends rejection email (non-fatal). |
+| `deleteUserAction`               | Permanently delete a user; cannot delete self; ADMIN-only.              |
 | `setUserRoleAction`              | Change user role; cannot target self; ADMIN-only Server Action.         |
+| `lib/email/notifications.ts`    | Each notification function sends correct `to`, `subject`, `from`. Email errors are caught silently (non-propagating). |
 | Auth flows                       | Login success/failure (credentials + OAuth), inactive user blocked, session expiry. |
 
 ### 6.2 Test Database Setup
@@ -504,6 +507,7 @@ E2E tests exercise the full stack through a real browser. They are **expensive t
 | CUJ-07 | Create note with rich text → navigate away → return → content preserved | P1 |
 | CUJ-08 | Cmd+K → search for term → navigate to result | P1 |
 | CUJ-09 | User registers → sees "pending approval" message → Admin activates in /admin/users → user logs in | P1 |
+| CUJ-09a | User registers → Admin rejects in /admin/users → user sees Rejected status → Admin can re-approve | P1 |
 | CUJ-10 | Admin creates group → assigns manager → manager sees group member tasks | P1 |
 | CUJ-11 | Convert to-do item to full Task via one-click action | P2 |
 | CUJ-12 | Filter tasks by status + priority → URL reflects filters → reload preserves filters | P2 |
@@ -1298,4 +1302,15 @@ Outputs are a short QA Health Report shared with the Product Owner and Tech Lead
 
 ---
 
-*End of Document — TS-001 v1.0*
+---
+
+## 17. Change Log
+
+| Version | Date       | Author   | Summary                                                                                                                 |
+|---------|------------|----------|-------------------------------------------------------------------------------------------------------------------------|
+| 1.0     | 2026-02-24 | QA Team  | Initial release.                                                                                                        |
+| 1.1     | 2026-03-04 | Tech Lead | Added `rejectUserAction`, `deleteUserAction`, `lib/email/notifications.ts` to integration test targets; added CUJ-09a (reject + re-approve flow); updated related doc references to v1.1. |
+
+---
+
+*End of Document — TS-001 v1.1*

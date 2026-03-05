@@ -5,11 +5,11 @@
 | Field         | Value                               |
 |---------------|-------------------------------------|
 | Document ID   | SAD-001                             |
-| Version       | 1.0                                 |
-| Status        | Draft                               |
+| Version       | 1.1                                 |
+| Status        | Active                              |
 | Author        | Architecture Team                   |
-| Date          | 2026-02-24                          |
-| Related BRD   | BRD-001 v1.0                        |
+| Date          | 2026-03-04                          |
+| Related BRD   | BRD-001 v1.1                        |
 | Reviewers     | Tech Lead, Security, Platform, QA   |
 
 ---
@@ -114,7 +114,7 @@ graph TB
 | System                 | Provider Options              | Responsibility                                                    |
 |------------------------|-------------------------------|-------------------------------------------------------------------|
 | Managed PostgreSQL      | Neon, Supabase, AWS RDS       | Primary data store; full-text search; backups; HA failover.       |
-| Transactional Email     | Resend                        | User invitation emails; password reset; auth event notifications. |
+| Transactional Email     | Resend                        | Registration confirmation, account approval, and account rejection notification emails. Password reset deferred to v1.1. |
 | Vercel Edge Network     | Vercel (included)             | CDN, TLS termination, DDoS mitigation, preview deployments.       |
 | GitHub                  | GitHub                        | Source control, CI/CD trigger via GitHub Actions.                 |
 
@@ -165,7 +165,7 @@ graph TB
 | Connection Pool      | Prisma Accelerate / PgBouncer | Manage database connections; prevent connection exhaustion in serverless.      |
 | PostgreSQL           | Managed PostgreSQL 16+    | Relational data store, full-text search via tsvector, referential integrity.      |
 | NextAuth.js v5       | NextAuth.js               | Credential verification, JWT session issuance, CSRF protection.                  |
-| Resend               | Resend API                | Transactional email delivery (invitations, password resets).                      |
+| Resend               | Resend API                | Transactional email delivery: registration confirmation, approval, rejection. Email failure is non-fatal (caught and logged). |
 
 ---
 
@@ -293,6 +293,7 @@ erDiagram
         string passwordHash
         enum role "ADMIN|MANAGER|MEMBER"
         boolean isActive
+        timestamp rejectedAt "nullable - set on rejection"
         timestamp createdAt
         timestamp updatedAt
     }
@@ -690,7 +691,7 @@ flowchart TD
 | Rich Text Editor    | Tiptap                | 2.x      |
 | Drag & Drop         | @dnd-kit/core         | 6.x      |
 | PDF Export          | @react-pdf/renderer   | 3.x      |
-| Email               | Resend + react-email  | latest   |
+| Email               | Resend                | ^6.x     |
 | Testing (Unit)      | Jest + RTL            | 29.x     |
 | Testing (E2E)       | Playwright            | 1.x      |
 | CI/CD               | GitHub Actions        | —        |
@@ -1064,7 +1065,7 @@ flowchart LR
 | `NEXTAUTH_SECRET`               | All               | 32-byte random secret for JWT signing.              |
 | `NEXTAUTH_URL`                  | Staging + Prod    | Canonical URL for NextAuth redirects.               |
 | `RESEND_API_KEY`                | All               | Resend transactional email API key.                 |
-| `EMAIL_FROM`                    | All               | Sender address for system emails.                   |
+| `RESEND_FROM`                   | All               | Sender address for system emails (e.g., `MyWork <noreply@mywork.app>`). |
 | `PRISMA_ACCELERATE_URL`         | Staging + Prod    | Prisma Accelerate connection pool endpoint.         |
 
 All secrets are stored in Vercel Environment Variables, never committed to source.
@@ -1185,4 +1186,15 @@ Runtime configuration (fiscal year, achievement categories) is stored in the `Sy
 
 ---
 
-*End of Document — SAD-001 v1.0*
+---
+
+## 16. Change Log
+
+| Version | Date       | Author            | Summary                                                                                                    |
+|---------|------------|-------------------|------------------------------------------------------------------------------------------------------------|
+| 1.0     | 2026-02-24 | Architecture Team | Initial release.                                                                                           |
+| 1.1     | 2026-03-04 | Tech Lead         | Added `rejectedAt` to User model; updated Resend responsibility to v1.0 email flows; corrected `EMAIL_FROM` → `RESEND_FROM`; removed `react-email` (not used); updated BRD reference to v1.1. |
+
+---
+
+*End of Document — SAD-001 v1.1*
