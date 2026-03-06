@@ -41,9 +41,13 @@ Apply the relevant role lens per task automatically.
 - PRs target develop, never main directly
 
 ## Docs Reference
-- /docs/brd.md — Business Requirements
-- /docs/sad.md — Solution Architecture
-- /docs/tdd.md — Technical Design
+- /docs/brd/brd-001.md — BRD-001: Work Management Business Requirements
+- /docs/brd/brd-002.md — BRD-002: Finance Module Business Requirements
+- /docs/sad/sad-001.md — SAD-001: Work Management Solution Architecture
+- /docs/sad/sad-002.md — SAD-002: Finance Module Solution Architecture
+- /docs/tdd/tdd-001.md — TDD-001: Technical Design
+- /docs/test-strategy.md — Test Strategy
+- /docs/release-checklist.md — Release Checklist
 
 ## Always
 - Ask clarifying questions if a task is ambiguous
