@@ -9,6 +9,8 @@ interface SidebarUser {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  moduleWork?: boolean;
+  moduleFinance?: boolean;
 }
 
 interface SidebarProps {
@@ -26,29 +28,34 @@ const NAV_LINKS = [
   {
     href: '/tasks',
     label: 'Tasks',
+    module: 'work' as const,
     icon: ['M9 11l3 3L22 4', 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
   },
   {
     href: '/work-logs',
     label: 'Work Logs',
+    module: 'work' as const,
     icon: ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20', 'M12 6v6l4 2'],
   },
   {
     href: '/achievements',
     label: 'Achievements',
+    module: 'work' as const,
     icon: ['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'],
   },
   {
     href: '/notes',
     label: 'Notes',
+    module: 'work' as const,
     icon: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
   },
   {
     href: '/todo',
     label: 'To-do',
+    module: 'work' as const,
     icon: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
   },
-] as const;
+];
 
 const SIGN_OUT_ICON = ['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9'];
 
@@ -107,10 +114,18 @@ function NavContent({
 }): React.JSX.Element {
   const pathname = usePathname();
 
+  const visibleLinks = NAV_LINKS.filter((link) => {
+    if ('module' in link) {
+      if (link.module === 'work') return user.moduleWork !== false;
+      if (link.module === 'finance') return user.moduleFinance !== false;
+    }
+    return true;
+  });
+
   return (
     <>
       <nav className="flex flex-1 flex-col gap-1 p-2">
-        {NAV_LINKS.map(({ href, label, icon }) => {
+        {visibleLinks.map(({ href, label, icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/');
           return (
             <Link

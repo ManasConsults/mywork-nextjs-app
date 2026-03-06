@@ -1,4 +1,4 @@
-import type { User } from '@prisma/client';
+import type { User, EmploymentType } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
 import { hashPassword, verifyPassword } from '@/lib/auth/passwords';
@@ -53,4 +53,11 @@ export async function changePassword(
   });
 
   return { success: true };
+}
+
+export async function updateEmploymentType(
+  userId: string,
+  employmentType: EmploymentType,
+): Promise<User> {
+  return prisma.user.update({ where: { id: userId }, data: { employmentType } });
 }

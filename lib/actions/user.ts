@@ -2,16 +2,17 @@
 
 import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
-import type { User } from '@prisma/client';
+import type { User, EmploymentType } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
 import {
   updateProfileSchema,
   updateSettingsSchema,
   changePasswordSchema,
+  updateEmploymentTypeSchema,
 } from '@/lib/schemas/profile.schema';
-import type { UpdateProfileInput, UpdateSettingsInput, ChangePasswordInput } from '@/lib/schemas/profile.schema';
-import { updateProfile, updateSettings, changePassword } from '@/lib/services/user.service';
+import type { UpdateProfileInput, UpdateSettingsInput, ChangePasswordInput, UpdateEmploymentTypeInput } from '@/lib/schemas/profile.schema';
+import { updateProfile, updateSettings, changePassword, updateEmploymentType } from '@/lib/services/user.service';
 
 type UserActionResult<T> =
   | { success: true; data: T }
@@ -99,4 +100,31 @@ export async function changePasswordAction(
   }
 
   return { success: true, data: undefined };
+}
+
+export async function updateEmploymentTypeAction(
+  input: UpdateEmploymentTypeInput,
+): Promise<UserActionResult<void>> {
+  const userId = await getAuthUserId();
+  if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
+
+  const parsed = updateEmploymentTypeSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: {
+        message: 'Validation failed.',
+        fields: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      },
+    };
+  }
+
+  try {
+    await updateEmploymentType(userId, parsed.data.employmentType as EmploymentType);
+    revalidatePath('/profile');
+    return { success: true, data: undefined };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to update employment type.';
+    return { success: false, error: { message } };
+  }
 }

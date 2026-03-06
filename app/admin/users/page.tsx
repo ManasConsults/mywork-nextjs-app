@@ -20,6 +20,9 @@ export default async function AdminUsersPage(): Promise<React.JSX.Element> {
       role: true,
       isActive: true,
       rejectedAt: true,
+      moduleWork: true,
+      moduleFinance: true,
+      employmentType: true,
       createdAt: true,
     },
   });

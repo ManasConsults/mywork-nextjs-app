@@ -2,7 +2,7 @@
 
 import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
-import type { Role } from '@prisma/client';
+import type { Role, EmploymentType } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
@@ -90,6 +90,32 @@ export async function deleteUserAction(userId: string): Promise<AdminActionResul
   if (userId === adminId) return { success: false, error: 'Cannot delete your own account.' };
 
   await prisma.user.delete({ where: { id: userId } });
+  revalidatePath('/admin/users');
+  return { success: true };
+}
+
+export async function setUserModulesAction(
+  userId: string,
+  moduleWork: boolean,
+  moduleFinance: boolean,
+): Promise<AdminActionResult> {
+  const adminId = await requireAdmin();
+  if (!adminId) return { success: false, error: 'Unauthorized.' };
+  if (userId === adminId) return { success: false, error: 'Cannot remove your own module access.' };
+
+  await prisma.user.update({ where: { id: userId }, data: { moduleWork, moduleFinance } });
+  revalidatePath('/admin/users');
+  return { success: true };
+}
+
+export async function setUserEmploymentTypeAction(
+  userId: string,
+  employmentType: EmploymentType,
+): Promise<AdminActionResult> {
+  const adminId = await requireAdmin();
+  if (!adminId) return { success: false, error: 'Unauthorized.' };
+
+  await prisma.user.update({ where: { id: userId }, data: { employmentType } });
   revalidatePath('/admin/users');
   return { success: true };
 }

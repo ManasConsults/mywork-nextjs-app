@@ -31,6 +31,11 @@ export const changePasswordSchema = z
     path: ['confirmPassword'],
   });
 
+export const updateEmploymentTypeSchema = z.object({
+  employmentType: z.enum(['EMPLOYED', 'SOLE_TRADER', 'BOTH']),
+});
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type UpdateEmploymentTypeInput = z.infer<typeof updateEmploymentTypeSchema>;

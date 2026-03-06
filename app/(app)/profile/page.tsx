@@ -64,6 +64,7 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
           fiscalYearStartMonth={user.fiscalYearStartMonth}
           hasPassword={!!user.passwordHash}
           createdAt={user.createdAt.toISOString()}
+          employmentType={user.employmentType}
         />
       </div>
     </div>

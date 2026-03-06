@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ProfileForm } from './ProfileForm';
 import { SettingsForm } from './SettingsForm';
 import { ChangePasswordForm } from './ChangePasswordForm';
+import { EmploymentTypeForm } from './EmploymentTypeForm';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -26,9 +27,10 @@ interface ProfileTabsProps {
   fiscalYearStartMonth: number;
   hasPassword: boolean;
   createdAt: string; // ISO string (serialisable from RSC)
+  employmentType: string;
 }
 
-type TabId = 'profile' | 'settings' | 'security' | 'account';
+type TabId = 'profile' | 'settings' | 'security' | 'account' | 'employment';
 
 interface Tab {
   id: TabId;
@@ -44,10 +46,12 @@ export function ProfileTabs({
   fiscalYearStartMonth,
   hasPassword,
   createdAt,
+  employmentType,
 }: ProfileTabsProps): React.JSX.Element {
   const tabs: Tab[] = [
     { id: 'profile', label: 'Profile' },
     { id: 'settings', label: 'Settings' },
+    { id: 'employment', label: 'Employment' },
     ...(hasPassword ? [{ id: 'security' as TabId, label: 'Security' }] : []),
     { id: 'account', label: 'Account' },
   ];
@@ -82,6 +86,10 @@ export function ProfileTabs({
 
         {activeTab === 'settings' && (
           <SettingsForm initialFiscalYearStartMonth={fiscalYearStartMonth} />
+        )}
+
+        {activeTab === 'employment' && (
+          <EmploymentTypeForm initialEmploymentType={employmentType} />
         )}
 
         {activeTab === 'security' && hasPassword && (
