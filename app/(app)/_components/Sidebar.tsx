@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -9,6 +9,12 @@ interface SidebarUser {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+}
+
+interface SidebarProps {
+  user: SidebarUser;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
 const NAV_LINKS = [
@@ -82,35 +88,27 @@ function ChevronRight(): React.JSX.Element {
   );
 }
 
-export function Sidebar({ user }: { user: SidebarUser }): React.JSX.Element {
+function CloseIcon(): React.JSX.Element {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+function NavContent({
+  user,
+  collapsed,
+  onLinkClick,
+}: {
+  user: SidebarUser;
+  collapsed: boolean;
+  onLinkClick?: () => void;
+}): React.JSX.Element {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside
-      className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white transition-all duration-200 dark:border-zinc-800 dark:bg-zinc-900 ${
-        collapsed ? 'w-12' : 'w-56'
-      }`}
-    >
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center border-b border-zinc-200 px-3 dark:border-zinc-800">
-        {!collapsed && (
-          <span className="flex-1 text-lg font-semibold tracking-tight text-teal-600 dark:text-teal-400">
-            MyWork
-          </span>
-        )}
-        <button
-          onClick={() => setCollapsed((c) => !c)}
-          className={`rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 ${
-            collapsed ? 'mx-auto' : ''
-          }`}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <ChevronRight /> : <ChevronLeft />}
-        </button>
-      </div>
-
-      {/* Nav */}
+    <>
       <nav className="flex flex-1 flex-col gap-1 p-2">
         {NAV_LINKS.map(({ href, label, icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/');
@@ -118,6 +116,7 @@ export function Sidebar({ user }: { user: SidebarUser }): React.JSX.Element {
             <Link
               key={href}
               href={href}
+              onClick={onLinkClick}
               title={collapsed ? label : undefined}
               className={`flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${
                 collapsed ? 'justify-center' : 'gap-3'
@@ -134,13 +133,13 @@ export function Sidebar({ user }: { user: SidebarUser }): React.JSX.Element {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
         {collapsed ? (
           <div className="flex flex-col items-center gap-1">
             <Link
               href="/profile"
               title="Profile"
+              onClick={onLinkClick}
               className="flex w-full items-center justify-center rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
             >
               {user.image ? (
@@ -164,6 +163,7 @@ export function Sidebar({ user }: { user: SidebarUser }): React.JSX.Element {
           <>
             <Link
               href="/profile"
+              onClick={onLinkClick}
               className="flex items-center gap-2 rounded-md px-1 py-1.5 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
             >
               {user.image ? (
@@ -193,6 +193,78 @@ export function Sidebar({ user }: { user: SidebarUser }): React.JSX.Element {
           </>
         )}
       </div>
-    </aside>
+    </>
+  );
+}
+
+export function Sidebar({ user, mobileOpen, onMobileClose }: SidebarProps): React.JSX.Element {
+  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+
+  // Close mobile drawer on navigation
+  useEffect(() => {
+    onMobileClose();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  return (
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          aria-hidden="true"
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-zinc-200 bg-white transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-900 md:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-label="Mobile navigation"
+      >
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 px-3 dark:border-zinc-800">
+          <span className="text-lg font-semibold tracking-tight text-teal-600 dark:text-teal-400">
+            MyWork
+          </span>
+          <button
+            onClick={onMobileClose}
+            className="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            aria-label="Close navigation"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+        <NavContent user={user} collapsed={false} onLinkClick={onMobileClose} />
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside
+        className={`hidden shrink-0 flex-col border-r border-zinc-200 bg-white transition-all duration-200 dark:border-zinc-800 dark:bg-zinc-900 md:flex ${
+          collapsed ? 'w-12' : 'w-56'
+        }`}
+        aria-label="Sidebar navigation"
+      >
+        <div className="flex h-14 shrink-0 items-center border-b border-zinc-200 px-3 dark:border-zinc-800">
+          {!collapsed && (
+            <span className="flex-1 text-lg font-semibold tracking-tight text-teal-600 dark:text-teal-400">
+              MyWork
+            </span>
+          )}
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className={`rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 ${
+              collapsed ? 'mx-auto' : ''
+            }`}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <ChevronRight /> : <ChevronLeft />}
+          </button>
+        </div>
+        <NavContent user={user} collapsed={collapsed} />
+      </aside>
+    </>
   );
 }

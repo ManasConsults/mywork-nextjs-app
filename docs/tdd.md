@@ -5,10 +5,10 @@
 | Field         | Value                                       |
 |---------------|---------------------------------------------|
 | Document ID   | TDD-001                                     |
-| Version       | 1.1                                         |
+| Version       | 1.2                                         |
 | Status        | Active                                      |
 | Author        | Engineering Team                            |
-| Date          | 2026-03-04                                  |
+| Date          | 2026-03-05                                  |
 | Related Docs  | BRD-001 v1.1, SAD-001 v1.1                  |
 | Reviewers     | Tech Lead, Senior Engineers, QA Lead        |
 
@@ -84,7 +84,10 @@ app/
 │           └── ForgotPasswordForm.tsx
 │
 ├── (app)/                           # Route group: requires valid session
-│   ├── layout.tsx                   # AppLayout: nav, sidebar, CmdK provider
+│   ├── layout.tsx                   # AppLayout RSC: session guard → <AppShell>
+│   ├── _components/
+│   │   ├── AppShell.tsx             # 'use client': mobileOpen state, hamburger, ThemeToggle
+│   │   └── Sidebar.tsx              # 'use client': desktop collapse + mobile drawer
 │   ├── dashboard/
 │   │   └── page.tsx
 │   │
@@ -200,7 +203,8 @@ components/
 │   ├── Skeleton.tsx
 │   └── Toast.tsx
 ├── layout/                          # Structural layout components
-│   ├── Sidebar.tsx
+│   ├── AppShell.tsx                 # Client shell: mobile hamburger + mobileOpen state
+│   ├── Sidebar.tsx                  # Desktop collapse + mobile drawer variant
 │   ├── Topbar.tsx
 │   └── PageHeader.tsx
 ├── search/                          # Global CmdK search palette
@@ -1990,7 +1994,8 @@ jobs:
 |---------|------------|------------------|--------------------------------------------------------------------------------------------------------------------|
 | 1.0     | 2026-02-24 | Engineering Team | Initial release.                                                                                                   |
 | 1.1     | 2026-03-04 | Tech Lead        | Updated `lib/email/` structure to actual files (`resend.ts`, `notifications.ts`); removed `react-email`; corrected env var `EMAIL_FROM` → `RESEND_FROM`; updated related doc references to v1.1. |
+| 1.2     | 2026-03-05 | Tech Lead        | Added `AppShell.tsx` to `(app)/_components/` and `components/layout/`; documented mobile sidebar drawer pattern (`translate-x` overlay, `useEffect` auto-close); noted JWT callback DB-UUID lookup for OAuth; GitHub OAuth active, Google/Facebook UI-disabled; responsive Tailwind grid/header patterns (`grid-cols-1 sm:grid-cols-2/3`, `flex-col sm:flex-row`); updated related doc references to v1.2. |
 
 ---
 
-*End of Document — TDD-001 v1.1*
+*End of Document — TDD-001 v1.2*

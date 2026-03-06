@@ -29,7 +29,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Tasks</h1>
         <div className="flex items-center gap-3">
           <Link

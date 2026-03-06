@@ -115,7 +115,7 @@ export function WorkLogSection({ taskId, initialLogs }: WorkLogSectionProps): Re
               {rootError}
             </p>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
                 Date
