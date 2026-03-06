@@ -12,37 +12,29 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (user.role !== 'ADMIN') redirect('/dashboard');
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      <header
-        style={{
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '0 1.5rem',
-          height: '3.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <span style={{ fontWeight: 700, fontSize: '0.9375rem', color: '#0d9488' }}>
-            MyWork Admin
-          </span>
+    <div className="min-h-screen bg-gray-50">
+      <header className="border-b border-gray-200 bg-white px-4 sm:px-6">
+        <div className="flex h-14 items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <span className="shrink-0 font-bold text-[0.9375rem] text-teal-600">
+              MyWork Admin
+            </span>
+            <Link
+              href="/admin/users"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
+              Users
+            </Link>
+          </div>
           <Link
-            href="/admin/users"
-            style={{ fontSize: '0.875rem', color: '#374151', textDecoration: 'none', fontWeight: 500 }}
+            href="/dashboard"
+            className="shrink-0 text-sm text-gray-500 hover:text-gray-700"
           >
-            Users
+            ← Back to app
           </Link>
         </div>
-        <Link
-          href="/dashboard"
-          style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none' }}
-        >
-          ← Back to app
-        </Link>
       </header>
-      <main style={{ maxWidth: '72rem', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
         {children}
       </main>
     </div>

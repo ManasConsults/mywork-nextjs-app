@@ -34,25 +34,14 @@ export default async function AdminUsersPage(): Promise<React.JSX.Element> {
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          marginBottom: '1.5rem',
-        }}
-      >
+      <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111827', margin: 0 }}>
-            Users
-          </h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
           {pendingCount > 0 && (
-            <p style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '0.25rem', marginBottom: 0 }}>
-              {pendingCount} pending approval
-            </p>
+            <p className="mt-1 text-sm text-red-600">{pendingCount} pending approval</p>
           )}
         </div>
-        <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{users.length} total</span>
+        <span className="shrink-0 text-sm text-gray-500">{users.length} total</span>
       </div>
 
       <UserTable users={serialized} currentUserId={currentUserId} />

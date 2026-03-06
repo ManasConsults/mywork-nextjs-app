@@ -5,10 +5,10 @@
 | Field         | Value                          |
 |---------------|-------------------------------|
 | Document ID   | BRD-001                        |
-| Version       | 1.1                            |
+| Version       | 1.2                            |
 | Status        | Active                         |
 | Author        | Business Analysis Team         |
-| Date          | 2026-03-04                     |
+| Date          | 2026-03-05                     |
 | Reviewers     | Product Owner, Tech Lead, QA   |
 
 ---
@@ -470,7 +470,7 @@ As a system designer, I want roles to enforce data visibility rules so that empl
 As a user, I want to sign in securely so that my data is protected.
 
 **Acceptance Criteria:**
-- AC-UG-04-1: Authentication via email + password with secure password hashing (bcrypt, min 12 rounds). OAuth sign-in via GitHub, Google, and Facebook is also supported.
+- AC-UG-04-1: Authentication via email + password with secure password hashing (bcrypt, min 12 rounds). OAuth sign-in via **GitHub** is active in v1.2; Google and Facebook OAuth are planned and display a "coming soon" indicator in the UI.
 - AC-UG-04-2: "Forgot password" flow — planned for a future milestone; not implemented in v1.0.
 - AC-UG-04-3: Sessions expire after 8 hours; managed via NextAuth.js JWT strategy.
 - AC-UG-04-4: Failed login rate-limiting — planned for a future milestone; not implemented in v1.0.
@@ -544,7 +544,7 @@ As a user, I want to sign in securely so that my data is protected.
 |------|--------------------------------------------------------------------------------------------------------|
 | A-1  | The application serves a single organisation (single-tenant) in v1.0.                                 |
 | A-2  | All users have access to a modern browser and a stable internet connection.                            |
-| A-3  | Authentication in v1.0 supports email + password and OAuth providers (GitHub, Google, Facebook); all new accounts (credentials or OAuth) are inactive (`isActive = false`) until an Admin activates them. Accounts may also be Rejected (`rejectedAt` set), which permanently blocks sign-in until an Admin re-approves. |
+| A-3  | Authentication supports email + password and OAuth providers; GitHub OAuth is active in v1.2 (Google/Facebook planned); all new accounts (credentials or OAuth) are inactive (`isActive = false`) until an Admin activates them. Accounts may also be Rejected (`rejectedAt` set), which permanently blocks sign-in until an Admin re-approves. |
 | A-4  | Users self-register via the registration form; self-registered accounts require Admin approval before first login. Registration triggers a confirmation email to the user. |
 | A-5  | The application is English-only in v1.0; internationalisation is deferred.                            |
 | A-6  | Each user's data is private by default; sharing outside group visibility rules is not required in v1.0. |
