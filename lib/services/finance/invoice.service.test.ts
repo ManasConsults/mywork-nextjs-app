@@ -7,6 +7,7 @@ import {
   markInvoicePaid,
   cancelInvoice,
   revertToDraft,
+  deleteInvoice,
   resolveInvoiceStatus,
 } from './invoice.service';
 
@@ -17,6 +18,10 @@ jest.mock('@/lib/db/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
+    },
+    invoiceLineItem: {
+      deleteMany: jest.fn(),
     },
     workLog: {
       updateMany: jest.fn(),
@@ -546,6 +551,71 @@ describe('revertToDraft', () => {
 
     await expect(revertToDraft(userId, invoiceId)).rejects.toThrow(
       'Cannot transition invoice from PAID to DRAFT',
+    );
+  });
+});
+
+// ─── deleteInvoice ────────────────────────────────────────────────────────────
+
+describe('deleteInvoice', () => {
+  it('throws when invoice not found', async () => {
+    mockInvoiceFindFirst.mockResolvedValue(null);
+
+    await expect(deleteInvoice(userId, invoiceId)).rejects.toThrow('Invoice not found');
+  });
+
+  it('throws when invoice is not CANCELLED', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({ ...baseInvoice, status: 'DRAFT' as const } as never);
+
+    await expect(deleteInvoice(userId, invoiceId)).rejects.toThrow(
+      'Only cancelled invoices can be deleted',
+    );
+  });
+
+  it('throws when invoice is SENT', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({ ...baseInvoice, status: 'SENT' as const } as never);
+
+    await expect(deleteInvoice(userId, invoiceId)).rejects.toThrow(
+      'Only cancelled invoices can be deleted',
+    );
+  });
+
+  it('throws when invoice is PAID', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({ ...baseInvoice, status: 'PAID' as const } as never);
+
+    await expect(deleteInvoice(userId, invoiceId)).rejects.toThrow(
+      'Only cancelled invoices can be deleted',
+    );
+  });
+
+  it('deletes line items and invoice in a transaction', async () => {
+    const cancelledInvoice = { ...baseInvoice, status: 'CANCELLED' as const };
+    mockInvoiceFindFirst.mockResolvedValue(cancelledInvoice as never);
+
+    const mockLineItemDeleteMany = jest.fn().mockResolvedValue({ count: 2 });
+    const mockInvoiceDelete = jest.fn().mockResolvedValue(cancelledInvoice);
+
+    mockPrismaTransaction.mockImplementation(async (fn) => {
+      const tx = {
+        invoiceLineItem: { deleteMany: mockLineItemDeleteMany },
+        invoice: { delete: mockInvoiceDelete },
+      };
+      return fn(tx as never);
+    });
+
+    await deleteInvoice(userId, invoiceId);
+
+    expect(mockLineItemDeleteMany).toHaveBeenCalledWith({ where: { invoiceId } });
+    expect(mockInvoiceDelete).toHaveBeenCalledWith({ where: { id: invoiceId } });
+  });
+
+  it('scopes the lookup to the current user', async () => {
+    mockInvoiceFindFirst.mockResolvedValue(null);
+
+    await expect(deleteInvoice(userId, invoiceId)).rejects.toThrow('Invoice not found');
+
+    expect(mockInvoiceFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ userId }) }),
     );
   });
 });

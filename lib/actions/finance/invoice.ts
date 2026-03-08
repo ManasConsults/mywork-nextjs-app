@@ -19,6 +19,7 @@ import {
   cancelInvoice,
   revertToDraft,
   sendPaymentReminder,
+  deleteInvoice,
   getInvoiceById,
 } from '@/lib/services/finance/invoice.service';
 import { fetchAndGeneratePdfBuffer } from '@/lib/pdf/generateInvoicePdf';
@@ -221,6 +222,22 @@ export async function revertToDraftAction(id: string): Promise<ActionResult<Invo
     return { success: true, data: invoice };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to revert invoice to draft.';
+    return { success: false, error: { message } };
+  }
+}
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+
+export async function deleteInvoiceAction(id: string): Promise<ActionResult<void>> {
+  const userId = await getAuthUserId();
+  if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
+
+  try {
+    await deleteInvoice(userId, id);
+    revalidateInvoicePaths();
+    return { success: true, data: undefined };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to delete invoice.';
     return { success: false, error: { message } };
   }
 }

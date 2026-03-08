@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth/auth';
 import { getInvoices, resolveInvoiceStatus } from '@/lib/services/finance/invoice.service';
 import { fromMinorUnit } from '@/lib/utils/money';
 import type { InvoiceStatus } from '@prisma/client';
+import { DeleteInvoiceButton } from './_components/DeleteInvoiceButton';
 
 export const metadata: Metadata = { title: 'MyWork — Invoices' };
 
@@ -173,12 +174,17 @@ export default async function InvoicesPage({
                       {fromMinorUnit(invoice.total, invoice.currency)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/finance/invoices/${invoice.id}`}
-                        className="rounded-lg border border-zinc-200 px-3 py-1 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                      >
-                        View
-                      </Link>
+                      <span className="inline-flex items-center justify-end gap-2">
+                        <Link
+                          href={`/finance/invoices/${invoice.id}`}
+                          className="rounded-lg border border-zinc-200 px-3 py-1 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        >
+                          View
+                        </Link>
+                        {resolved === 'CANCELLED' && (
+                          <DeleteInvoiceButton id={invoice.id} />
+                        )}
+                      </span>
                     </td>
                   </tr>
                 );

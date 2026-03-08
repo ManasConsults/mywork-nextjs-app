@@ -319,6 +319,21 @@ export async function revertToDraft(userId: string, id: string): Promise<Invoice
   });
 }
 
+// ─── Delete ───────────────────────────────────────────────────────────────────
+
+export async function deleteInvoice(userId: string, id: string): Promise<void> {
+  const existing = await prisma.invoice.findFirst({ where: { id, userId } });
+  if (!existing) throw new Error('Invoice not found');
+  if (existing.status !== 'CANCELLED') {
+    throw new Error('Only cancelled invoices can be deleted');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
+    await tx.invoice.delete({ where: { id } });
+  });
+}
+
 // ─── Send Payment Reminder ────────────────────────────────────────────────────
 
 export async function sendPaymentReminder(

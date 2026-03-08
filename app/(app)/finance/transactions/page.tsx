@@ -9,6 +9,7 @@ import { getCategories } from '@/lib/services/finance/category.service';
 import { getTransactions } from '@/lib/services/finance/transaction.service';
 import { fromMinorUnit } from '@/lib/utils/money';
 import { TransactionFilters } from './_components/TransactionFilters';
+import { DeleteTransactionButton } from './_components/DeleteTransactionButton';
 
 export const metadata: Metadata = { title: 'MyWork — Transactions' };
 
@@ -191,12 +192,15 @@ export default async function TransactionsPage({
                       {fromMinorUnit(tx.amount, currency)}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
-                      <Link
-                        href={`/finance/transactions/${tx.id}/edit`}
-                        className="text-teal-600 underline underline-offset-2 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
-                      >
-                        Edit
-                      </Link>
+                      <span className="inline-flex items-center gap-3">
+                        <Link
+                          href={`/finance/transactions/${tx.id}/edit`}
+                          className="text-teal-600 underline underline-offset-2 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteTransactionButton id={tx.id} />
+                      </span>
                     </td>
                   </tr>
                 );

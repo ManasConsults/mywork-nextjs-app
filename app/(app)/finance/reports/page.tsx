@@ -101,7 +101,7 @@ function SummaryCard({
     <div
       className={`rounded-xl border p-4 ${
         highlight
-          ? 'border-teal-200 bg-teal-50 dark:border-teal-800/60 dark:bg-teal-900/20'
+          ? 'border-zinc-200 bg-teal-50 dark:border-zinc-800 dark:bg-teal-900/20'
           : 'border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900'
       }`}
     >
@@ -168,10 +168,10 @@ function ExpenseTable({
 }): React.JSX.Element {
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+      <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{title}</h3>
       </div>
-      <table className="min-w-full divide-y divide-zinc-100 dark:divide-zinc-800">
+      <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
         <thead>
           <tr>
             <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -182,7 +182,7 @@ function ExpenseTable({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
           {rows.map((row) => (
             <tr key={row.categoryName} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
               <td className="px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300">
@@ -195,7 +195,7 @@ function ExpenseTable({
           ))}
         </tbody>
         <tfoot>
-          <tr className="bg-zinc-50 dark:bg-zinc-800/40">
+          <tr className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/40">
             <td className="px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Total
             </td>
@@ -264,12 +264,12 @@ async function ProfitAndLossReport({
 
       {data.byCategory.length > 0 ? (
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+          <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
             <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Breakdown by Category
             </h2>
           </div>
-          <table className="min-w-full divide-y divide-zinc-100 dark:divide-zinc-800">
+          <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
             <thead>
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -289,7 +289,7 @@ async function ProfitAndLossReport({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {data.byCategory.map((row) => (
                 <tr key={row.categoryId} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                   <td className="px-4 py-2.5 text-sm text-zinc-800 dark:text-zinc-200">
@@ -340,7 +340,7 @@ async function CashFlowReport({
 
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+      <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
           Monthly Cash Flow
         </h2>
@@ -350,7 +350,7 @@ async function CashFlowReport({
           No data available.
         </div>
       ) : (
-        <table className="min-w-full divide-y divide-zinc-100 dark:divide-zinc-800">
+        <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
           <thead>
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -367,7 +367,7 @@ async function CashFlowReport({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {data.months.map((m) => (
               <tr
                 key={`${m.year}-${m.month}`}
@@ -488,7 +488,7 @@ async function UnbilledHoursReport({
           key={client.clientId}
           className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
         >
-          <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+          <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
             <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               {client.clientName}
             </h2>
@@ -496,7 +496,7 @@ async function UnbilledHoursReport({
               {client.totalHours.toFixed(2)} hrs &middot; {fromMinorUnit(client.totalValue, currency)}
             </span>
           </div>
-          <table className="min-w-full divide-y divide-zinc-100 dark:divide-zinc-800">
+          <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
             <thead>
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -516,7 +516,7 @@ async function UnbilledHoursReport({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {client.entries.map((entry) => (
                 <tr key={entry.workLogId} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                   <td className="whitespace-nowrap px-4 py-2.5 text-sm text-zinc-500 dark:text-zinc-400">
@@ -542,7 +542,7 @@ async function UnbilledHoursReport({
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-zinc-50 dark:bg-zinc-800/40">
+              <tr className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/40">
                 <td
                   colSpan={2}
                   className="px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300"

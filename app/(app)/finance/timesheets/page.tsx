@@ -189,7 +189,7 @@ export default async function TimesheetsPage({
           ))}
 
           {/* Grand total row */}
-          <div className="flex items-center justify-between rounded-xl border border-teal-200 bg-teal-50 px-5 py-4 dark:border-teal-800/60 dark:bg-teal-900/20">
+          <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-teal-50 px-5 py-4 dark:border-zinc-800 dark:bg-teal-900/20">
             <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Grand Total
             </span>
@@ -220,7 +220,7 @@ function ClientTimesheetGroup({
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
       {/* Client header */}
-      <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
           {group.clientName}
         </h2>
@@ -250,7 +250,7 @@ function ClientTimesheetGroup({
       </div>
 
       {/* Work log rows */}
-      <table className="min-w-full divide-y divide-zinc-100 dark:divide-zinc-800">
+      <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
         <thead>
           <tr>
             <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -276,7 +276,7 @@ function ClientTimesheetGroup({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
           {group.rows.map((log) => {
             const hours = hoursFromMinutes(log.timeSpent);
             const rate = log.client?.defaultRate ?? 0;
@@ -307,7 +307,7 @@ function ClientTimesheetGroup({
         </tbody>
         {/* Subtotal row */}
         <tfoot>
-          <tr className="bg-zinc-50 dark:bg-zinc-800/40">
+          <tr className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/40">
             <td
               colSpan={2}
               className="px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300"
