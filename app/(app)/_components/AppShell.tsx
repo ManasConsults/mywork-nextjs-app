@@ -12,6 +12,7 @@ interface SidebarUser {
   image?: string | null;
   moduleWork?: boolean;
   moduleFinance?: boolean;
+  employmentType?: string | null;
 }
 
 export function AppShell({

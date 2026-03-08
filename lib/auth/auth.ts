@@ -46,6 +46,7 @@ export const authOptions: NextAuthOptions = {
           moduleWork: user.moduleWork,
           moduleFinance: user.moduleFinance,
           employmentType: user.employmentType,
+          currency: user.currency,
         };
       },
     }),
@@ -67,7 +68,7 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       // On first sign-in `user` is populated — persist extra fields to token.
       if (user) {
         if (account?.provider !== 'credentials' && user.email) {
@@ -78,14 +79,29 @@ export const authOptions: NextAuthOptions = {
           token.moduleWork = dbUser?.moduleWork ?? true;
           token.moduleFinance = dbUser?.moduleFinance ?? true;
           token.employmentType = dbUser?.employmentType ?? 'EMPLOYED';
+          token.currency = dbUser?.currency ?? 'GBP';
         } else {
           token.id = user.id;
           token.role = (user as User & { role?: string }).role ?? 'MEMBER';
           token.moduleWork = (user as User & { moduleWork?: boolean }).moduleWork ?? true;
           token.moduleFinance = (user as User & { moduleFinance?: boolean }).moduleFinance ?? true;
           token.employmentType = (user as User & { employmentType?: string }).employmentType ?? 'EMPLOYED';
+          token.currency = (user as User & { currency?: string }).currency ?? 'GBP';
         }
       }
+
+      // Re-read mutable profile fields from DB when the client triggers a session update.
+      if (trigger === 'update' && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { currency: true, fiscalYearStartMonth: true, employmentType: true },
+        });
+        if (dbUser) {
+          token.currency = dbUser.currency;
+          token.employmentType = dbUser.employmentType;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -95,6 +111,7 @@ export const authOptions: NextAuthOptions = {
         session.user.moduleWork = token.moduleWork as boolean;
         session.user.moduleFinance = token.moduleFinance as boolean;
         session.user.employmentType = token.employmentType as string;
+        session.user.currency = token.currency as string;
       }
       return session;
     },

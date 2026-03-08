@@ -10,9 +10,10 @@ import {
   updateSettingsSchema,
   changePasswordSchema,
   updateEmploymentTypeSchema,
+  updateBusinessDetailsSchema,
 } from '@/lib/schemas/profile.schema';
-import type { UpdateProfileInput, UpdateSettingsInput, ChangePasswordInput, UpdateEmploymentTypeInput } from '@/lib/schemas/profile.schema';
-import { updateProfile, updateSettings, changePassword, updateEmploymentType } from '@/lib/services/user.service';
+import type { UpdateProfileInput, UpdateSettingsInput, ChangePasswordInput, UpdateEmploymentTypeInput, UpdateBusinessDetailsInput } from '@/lib/schemas/profile.schema';
+import { updateProfile, updateSettings, changePassword, updateEmploymentType, updateBusinessDetails } from '@/lib/services/user.service';
 
 type UserActionResult<T> =
   | { success: true; data: T }
@@ -125,6 +126,33 @@ export async function updateEmploymentTypeAction(
     return { success: true, data: undefined };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to update employment type.';
+    return { success: false, error: { message } };
+  }
+}
+
+export async function updateBusinessDetailsAction(
+  input: UpdateBusinessDetailsInput,
+): Promise<UserActionResult<void>> {
+  const userId = await getAuthUserId();
+  if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
+
+  const parsed = updateBusinessDetailsSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: {
+        message: 'Validation failed.',
+        fields: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      },
+    };
+  }
+
+  try {
+    await updateBusinessDetails(userId, parsed.data);
+    revalidatePath('/profile');
+    return { success: true, data: undefined };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to update business details.';
     return { success: false, error: { message } };
   }
 }

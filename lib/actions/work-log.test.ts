@@ -34,6 +34,10 @@ const baseWorkLog = {
   outcome: 'Login flow complete',
   taskId,
   userId,
+  billable: false,
+  clientId: null,
+  billedAt: null,
+  workContext: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

@@ -9,6 +9,7 @@ declare module 'next-auth' {
       moduleWork: boolean;
       moduleFinance: boolean;
       employmentType: string;
+      currency: string;
     } & DefaultSession['user'];
   }
 
@@ -17,6 +18,7 @@ declare module 'next-auth' {
     moduleWork: boolean;
     moduleFinance: boolean;
     employmentType: string;
+    currency?: string;
   }
 }
 
@@ -27,5 +29,6 @@ declare module 'next-auth/jwt' {
     moduleWork: boolean;
     moduleFinance: boolean;
     employmentType: string;
+    currency: string;
   }
 }

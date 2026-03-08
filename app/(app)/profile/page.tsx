@@ -62,9 +62,15 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
           role={user.role}
           isActive={user.isActive}
           fiscalYearStartMonth={user.fiscalYearStartMonth}
+          currency={user.currency}
           hasPassword={!!user.passwordHash}
           createdAt={user.createdAt.toISOString()}
           employmentType={user.employmentType}
+          businessName={user.businessName}
+          abn={user.abn}
+          businessEmail={user.businessEmail}
+          businessPhone={user.businessPhone}
+          businessAddress={user.businessAddress}
         />
       </div>
     </div>

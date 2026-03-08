@@ -27,7 +27,10 @@ export async function updateSettings(
 ): Promise<User> {
   return prisma.user.update({
     where: { id: userId },
-    data: { fiscalYearStartMonth: data.fiscalYearStartMonth },
+    data: {
+      fiscalYearStartMonth: data.fiscalYearStartMonth,
+      ...(data.currency !== undefined ? { currency: data.currency } : {}),
+    },
   });
 }
 
@@ -60,4 +63,26 @@ export async function updateEmploymentType(
   employmentType: EmploymentType,
 ): Promise<User> {
   return prisma.user.update({ where: { id: userId }, data: { employmentType } });
+}
+
+export async function updateBusinessDetails(
+  userId: string,
+  data: {
+    businessName?: string | null;
+    abn?: string | null;
+    businessEmail?: string | null;
+    businessPhone?: string | null;
+    businessAddress?: string | null;
+  },
+): Promise<User> {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.businessName !== undefined ? { businessName: data.businessName || null } : {}),
+      ...(data.abn !== undefined ? { abn: data.abn || null } : {}),
+      ...(data.businessEmail !== undefined ? { businessEmail: data.businessEmail || null } : {}),
+      ...(data.businessPhone !== undefined ? { businessPhone: data.businessPhone || null } : {}),
+      ...(data.businessAddress !== undefined ? { businessAddress: data.businessAddress || null } : {}),
+    },
+  });
 }
