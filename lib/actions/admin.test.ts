@@ -1,4 +1,4 @@
-import { setUserActiveAction, setUserRoleAction, rejectUserAction, deleteUserAction } from './admin';
+import { setUserActiveAction, setUserRoleAction, rejectUserAction, deleteUserAction, setUserModulesAction, setUserEmploymentTypeAction } from './admin';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
@@ -169,6 +169,74 @@ describe('deleteUserAction', () => {
     expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
     expect(result).toEqual({ success: true });
   });
+});
+
+// ─── setUserModulesAction ─────────────────────────────────────────────────────
+
+describe('setUserModulesAction', () => {
+  it('returns Unauthorized when no session', async () => {
+    mockGetServerSession.mockResolvedValue(null);
+    const result = await setUserModulesAction(targetId, true, true);
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns Unauthorized when session role is not ADMIN', async () => {
+    mockGetServerSession.mockResolvedValue(memberSession as never);
+    const result = await setUserModulesAction(targetId, true, false);
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns error when admin targets their own account', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    const result = await setUserModulesAction(adminId, true, true);
+    expect(result).toEqual({ success: false, error: 'Cannot remove your own module access.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('updates moduleWork and moduleFinance and revalidates', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    const result = await setUserModulesAction(targetId, false, true);
+    expect(mockUserUpdate).toHaveBeenCalledWith({
+      where: { id: targetId },
+      data: { moduleWork: false, moduleFinance: true },
+    });
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
+    expect(result).toEqual({ success: true });
+  });
+});
+
+// ─── setUserEmploymentTypeAction ──────────────────────────────────────────────
+
+describe('setUserEmploymentTypeAction', () => {
+  it('returns Unauthorized when no session', async () => {
+    mockGetServerSession.mockResolvedValue(null);
+    const result = await setUserEmploymentTypeAction(targetId, 'EMPLOYED');
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns Unauthorized when session role is not ADMIN', async () => {
+    mockGetServerSession.mockResolvedValue(memberSession as never);
+    const result = await setUserEmploymentTypeAction(targetId, 'SOLE_TRADER');
+    expect(result).toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it.each([['EMPLOYED'], ['SOLE_TRADER'], ['BOTH']] as const)(
+    'sets employmentType to %s and revalidates',
+    async (employmentType) => {
+      mockGetServerSession.mockResolvedValue(adminSession as never);
+      const result = await setUserEmploymentTypeAction(targetId, employmentType);
+      expect(mockUserUpdate).toHaveBeenCalledWith({
+        where: { id: targetId },
+        data: { employmentType },
+      });
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
+      expect(result).toEqual({ success: true });
+    },
+  );
 });
 
 // ─── setUserRoleAction ────────────────────────────────────────────────────────

@@ -6,10 +6,18 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── Existing enums ───────────────────────────────────────────────────────────
+
 enum Role {
   ADMIN
   MANAGER
   MEMBER
+}
+
+enum EmploymentType {
+  EMPLOYED
+  SOLE_TRADER
+  BOTH
 }
 
 enum TaskStatus {
@@ -26,6 +34,56 @@ enum Priority {
   CRITICAL
 }
 
+// ─── Finance enums ────────────────────────────────────────────────────────────
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  CREDIT
+  INVESTMENT
+}
+
+enum CategoryType {
+  PERSONAL
+  WORK_RELATED
+  BUSINESS
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER_OUT
+  TRANSFER_IN
+}
+
+enum RecurFrequency {
+  WEEKLY
+  FORTNIGHTLY
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum WorkContext {
+  EMPLOYED
+  SOLE_TRADER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  CANCELLED
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  ANNUAL
+}
+
+// ─── Core models ──────────────────────────────────────────────────────────────
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -34,17 +92,32 @@ model User {
   passwordHash String?
   /// Profile image URL from OAuth provider
   image        String?
-  role         Role      @default(MEMBER)
-  isActive     Boolean   @default(true)
-  rejectedAt   DateTime?
-  createdAt    DateTime  @default(now())
+  role           Role           @default(MEMBER)
+  isActive       Boolean        @default(true)
+  rejectedAt     DateTime?
+  moduleWork     Boolean        @default(true)
+  moduleFinance  Boolean        @default(true)
+  employmentType EmploymentType @default(EMPLOYED)
+  createdAt      DateTime       @default(now())
   updatedAt    DateTime  @updatedAt
+  fiscalYearStartMonth Int      @default(4)
+  currency        String    @default("GBP")
+  businessName    String?
+  abn             String?
+  businessEmail   String?
+  businessPhone   String?
+  businessAddress String?
   tasks                Task[]
   workLogs             WorkLog[]
   achievements         Achievement[]
   notes                Note[]
   todoItems            TodoItem[]
-  fiscalYearStartMonth Int           @default(4)
+  accounts             Account[]
+  categories           Category[]
+  transactions         Transaction[]
+  budgets              Budget[]
+  clients              Client[]
+  invoices             Invoice[]
 
   @@map("users")
 }
@@ -71,17 +144,23 @@ model Task {
 }
 
 model WorkLog {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   date        DateTime
   description String
   timeSpent   Float?
   outcome     String?
-  taskId      String
-  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String?
+  task        Task?       @relation(fields: [taskId], references: [id], onDelete: Cascade)
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  user        User        @relation(fields: [userId], references: [id])
+  billable    Boolean     @default(false)
+  clientId    String?
+  billedAt    DateTime?
+  workContext WorkContext?
+  client      Client?     @relation(fields: [clientId], references: [id])
+  invoiceLineItem InvoiceLineItem?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   @@map("work_logs")
 }
@@ -137,4 +216,159 @@ model TodoItem {
   @@index([userId, isDone])
   @@index([taskId])
   @@map("todo_items")
+}
+
+// ─── Finance models ───────────────────────────────────────────────────────────
+
+model Account {
+  id             String        @id @default(uuid())
+  userId         String
+  name           String
+  type           AccountType
+  openingBalance Int           @default(0)
+  currency       String        @default("GBP")
+  isDefault      Boolean       @default(false)
+  description    String?
+  // Payment / banking details (shown on invoices)
+  bankName       String?
+  accountNumber  String?
+  bsb            String?
+  iban           String?
+  swiftBic       String?
+  archivedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  transactions   Transaction[]
+  invoices       Invoice[]
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Category {
+  id           String        @id @default(uuid())
+  userId       String
+  name         String
+  type         CategoryType
+  parentId     String?
+  colour       String?
+  icon         String?
+  createdAt    DateTime      @default(now())
+  parent       Category?     @relation("CategoryChildren", fields: [parentId], references: [id])
+  children     Category[]    @relation("CategoryChildren")
+  transactions Transaction[]
+  budgets      Budget[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("categories")
+}
+
+model Transaction {
+  id             String          @id @default(uuid())
+  userId         String
+  accountId      String
+  categoryId     String
+  type           TransactionType
+  amount         Int
+  description    String?
+  reference      String?
+  date           DateTime
+  workContext    WorkContext?
+  isRecurring    Boolean         @default(false)
+  recurringId    String?
+  recurFrequency RecurFrequency?
+  recurEndsAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  account        Account         @relation(fields: [accountId], references: [id])
+  category       Category        @relation(fields: [categoryId], references: [id])
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+model Budget {
+  id         String       @id @default(uuid())
+  userId     String
+  categoryId String
+  amount     Int
+  period     BudgetPeriod
+  startDate  DateTime
+  endDate    DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  category   Category     @relation(fields: [categoryId], references: [id])
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, period, startDate])
+  @@map("budgets")
+}
+
+model Client {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String
+  email       String?
+  phone       String?
+  address     String?
+  defaultRate Int?
+  currency    String    @default("GBP")
+  notes       String?
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  invoices    Invoice[]
+  workLogs    WorkLog[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("clients")
+}
+
+model Invoice {
+  id               String          @id @default(uuid())
+  userId           String
+  clientId         String
+  paymentAccountId String?
+  invoiceNumber    String
+  status           InvoiceStatus   @default(DRAFT)
+  issueDate        DateTime
+  dueDate          DateTime?
+  notes            String?
+  taxRate          Int             @default(0)
+  subtotal         Int             @default(0)
+  taxAmount        Int             @default(0)
+  total            Int             @default(0)
+  currency         String          @default("GBP")
+  sentAt           DateTime?
+  paidAt           DateTime?
+  reminderCount    Int             @default(0)
+  lastReminderAt   DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  lineItems        InvoiceLineItem[]
+  client           Client          @relation(fields: [clientId], references: [id])
+  paymentAccount   Account?        @relation(fields: [paymentAccountId], references: [id])
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, invoiceNumber])
+  @@index([userId, status])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  description String
+  quantity    Decimal  @db.Decimal(10, 2)
+  unitPrice   Int
+  total       Int
+  sortOrder   Int      @default(0)
+  workLogId   String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  workLog     WorkLog? @relation(fields: [workLogId], references: [id])
+
+  @@map("invoice_line_items")
 }

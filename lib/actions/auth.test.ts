@@ -27,6 +27,7 @@ const mockSendPending = sendRegistrationPendingEmail as jest.MockedFunction<type
 const VALID_INPUT = {
   name: 'Jane Doe',
   email: 'jane@example.com',
+  employmentType: 'SOLE_TRADER' as const,
   password: 'Password1',
   confirmPassword: 'Password1',
 };
@@ -39,7 +40,7 @@ beforeEach(() => {
 
 describe('registerUser', () => {
   it('returns field errors when input fails schema validation', async () => {
-    const result = await registerUser({ name: '', email: 'bad', password: 'x', confirmPassword: 'y' });
+    const result = await registerUser({ name: '', email: 'bad', employmentType: 'EMPLOYED', password: 'x', confirmPassword: 'y' });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.fields).toBeDefined();
@@ -68,6 +69,7 @@ describe('registerUser', () => {
         passwordHash: 'hashed-password',
         role: 'MEMBER',
         isActive: false,
+        employmentType: 'SOLE_TRADER',
       },
     });
     expect(result).toEqual({ success: true });

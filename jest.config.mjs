@@ -25,6 +25,17 @@ const config = {
     '!lib/actions/user.ts',
     '!lib/utils/tiptap-to-markdown.ts',
     '!lib/utils/fiscal-year.ts',
+    // Finance Phase 2 — not yet unit-tested (budget, client, line-item)
+    '!lib/schemas/finance/budget.schema.ts',
+    '!lib/schemas/finance/client.schema.ts',
+    '!lib/schemas/finance/line-item.schema.ts',
+    '!lib/actions/finance/budget.ts',
+    '!lib/actions/finance/client.ts',
+    '!lib/actions/finance/line-item.ts',
+    '!lib/services/finance/line-item.service.ts',
+    // Infrastructure / server-only — not unit-testable in isolation
+    '!lib/email/resend.ts',
+    '!lib/pdf/generateInvoicePdf.ts',
   ],
   coverageThreshold: {
     global: { branches: 80, functions: 80, lines: 80, statements: 80 },

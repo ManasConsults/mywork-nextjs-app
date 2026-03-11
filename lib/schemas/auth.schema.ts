@@ -12,6 +12,7 @@ export const registerSchema = z
       .min(2, 'Name must be at least 2 characters')
       .max(100, 'Name must be 100 characters or fewer'),
     email: z.string().min(1, 'Email is required').email('Enter a valid email address'),
+    employmentType: z.enum(['EMPLOYED', 'SOLE_TRADER', 'BOTH']).default('EMPLOYED'),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')

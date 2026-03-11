@@ -9,10 +9,17 @@ import type { RegisterInput } from '@/lib/schemas/auth.schema';
 
 type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
 
+const EMPLOYMENT_OPTIONS = [
+  { value: 'EMPLOYED', label: 'Employee', description: 'I work as an employee (PAYE / salaried)' },
+  { value: 'SOLE_TRADER', label: 'Sole Trader', description: 'I am self-employed or a freelancer' },
+  { value: 'BOTH', label: 'Both', description: 'I am both employed and self-employed' },
+] as const;
+
 export function RegisterForm(): React.JSX.Element {
   const [values, setValues] = useState<RegisterInput>({
     name: '',
     email: '',
+    employmentType: 'EMPLOYED',
     password: '',
     confirmPassword: '',
   });
@@ -39,6 +46,7 @@ export function RegisterForm(): React.JSX.Element {
       setFieldErrors({
         name: flat.name?.[0],
         email: flat.email?.[0],
+        employmentType: flat.employmentType?.[0],
         password: flat.password?.[0],
         confirmPassword: flat.confirmPassword?.[0],
       });
@@ -157,6 +165,46 @@ export function RegisterForm(): React.JSX.Element {
             {fieldErrors.email && (
               <p id="email-error" role="alert" className="mt-1.5 text-xs text-red-600">
                 {fieldErrors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Employment type */}
+          <div>
+            <p className="block text-sm font-medium text-gray-700 mb-1.5">
+              How do you work?
+            </p>
+            <div className="flex flex-col gap-2" role="radiogroup" aria-label="Employment type">
+              {EMPLOYMENT_OPTIONS.map(({ value, label, description }) => (
+                <label
+                  key={value}
+                  className={[
+                    'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
+                    isPending ? 'opacity-50 cursor-not-allowed' : '',
+                    values.employmentType === value
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-300 hover:border-gray-400',
+                  ].join(' ')}
+                >
+                  <input
+                    type="radio"
+                    name="employmentType"
+                    value={value}
+                    checked={values.employmentType === value}
+                    onChange={handleChange}
+                    disabled={isPending}
+                    className="mt-0.5 accent-blue-600"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{label}</p>
+                    <p className="text-xs text-gray-500">{description}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {fieldErrors.employmentType && (
+              <p role="alert" className="mt-1.5 text-xs text-red-600">
+                {fieldErrors.employmentType}
               </p>
             )}
           </div>

@@ -10,6 +10,9 @@ interface SidebarUser {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  moduleWork?: boolean;
+  moduleFinance?: boolean;
+  employmentType?: string | null;
 }
 
 export function AppShell({
