@@ -2,6 +2,8 @@ import {
   sendRegistrationPendingEmail,
   sendAccountApprovedEmail,
   sendAccountRejectedEmail,
+  sendInvoiceEmail,
+  sendPaymentReminderEmail,
 } from './notifications';
 
 jest.mock('./resend', () => ({
@@ -92,5 +94,74 @@ describe('sendAccountRejectedEmail', () => {
   it('does not throw when send fails', async () => {
     mockSend.mockRejectedValue(new Error('Network error'));
     await expect(sendAccountRejectedEmail(TO, NAME)).resolves.toBeUndefined();
+  });
+});
+
+const PDF = Buffer.from('pdf');
+const invoiceParams = {
+  invoiceNumber: 'INV-2026-001',
+  senderName: 'Acme Ltd',
+  clientName: 'Bob',
+  total: 1250,
+  currency: 'GBP',
+  pdfBuffer: PDF,
+};
+
+describe('sendInvoiceEmail', () => {
+  it('returns { sent: true } on success', async () => {
+    const result = await sendInvoiceEmail(TO, invoiceParams);
+    expect(result.sent).toBe(true);
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({ to: TO, subject: expect.stringContaining('INV-2026-001') }),
+    );
+  });
+
+  it('returns { sent: false } when resend is not configured', async () => {
+    // Temporarily override the mock so resend appears null inside the module
+    jest.resetModules();
+    jest.doMock('./resend', () => ({ resend: null }));
+    const { sendInvoiceEmail: fn } = await import('./notifications');
+    const result = await fn(TO, invoiceParams);
+    expect(result.sent).toBe(false);
+    expect(result.error).toBe('Email service is not configured.');
+    jest.resetModules();
+  });
+
+  it('returns { sent: false, error } when send throws', async () => {
+    mockSend.mockRejectedValue(new Error('SMTP error'));
+    const result = await sendInvoiceEmail(TO, invoiceParams);
+    expect(result.sent).toBe(false);
+    expect(result.error).toContain('SMTP error');
+  });
+});
+
+const reminderParams = {
+  invoiceNumber: 'INV-2026-001',
+  senderName: 'Acme Ltd',
+  clientName: 'Bob',
+  issueDate: new Date('2026-01-01'),
+  dueDate: new Date('2026-02-01'),
+  total: 1250,
+  currency: 'GBP',
+  pdfBuffer: PDF,
+};
+
+describe('sendPaymentReminderEmail', () => {
+  it('sends with a subject containing the invoice number', async () => {
+    await sendPaymentReminderEmail(TO, reminderParams);
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({ to: TO, subject: expect.stringContaining('INV-2026-001') }),
+    );
+  });
+
+  it('includes the due date in the email body', async () => {
+    await sendPaymentReminderEmail(TO, reminderParams);
+    const call = mockSend.mock.calls[0][0] as { html: string };
+    expect(call.html).toContain('Feb');
+  });
+
+  it('throws when send fails', async () => {
+    mockSend.mockRejectedValue(new Error('SMTP error'));
+    await expect(sendPaymentReminderEmail(TO, reminderParams)).rejects.toThrow('SMTP error');
   });
 });

@@ -115,6 +115,21 @@ describe('createAccount', () => {
     const result = await createAccount(userId, input);
     expect(result).toEqual(created);
   });
+
+  it('clears other defaults before creating when isDefault is true', async () => {
+    const mockUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const mockCreate = jest.fn().mockResolvedValue(baseAccount);
+    mockPrismaTransaction.mockImplementation(async (fn) => fn({
+      account: { updateMany: mockUpdateMany, create: mockCreate },
+    } as never));
+    const input = { name: 'Main', type: 'CHECKING' as const, openingBalance: 0, currency: 'GBP', isDefault: true };
+    await createAccount(userId, input);
+    expect(mockUpdateMany).toHaveBeenCalledWith({
+      where: { userId, isDefault: true },
+      data: { isDefault: false },
+    });
+    expect(mockCreate).toHaveBeenCalled();
+  });
 });
 
 describe('archiveAccount', () => {
@@ -142,5 +157,31 @@ describe('updateAccount', () => {
     mockAccountFindFirst.mockResolvedValue(null);
     const result = await updateAccount(userId, accountId, { name: 'Updated' });
     expect(result).toBeNull();
+  });
+
+  it('updates without clearing defaults when isDefault is falsy', async () => {
+    mockAccountFindFirst.mockResolvedValue(baseAccount);
+    const mockUpdateMany = jest.fn();
+    const mockUpdate = jest.fn().mockResolvedValue({ ...baseAccount, name: 'Updated' });
+    mockPrismaTransaction.mockImplementation(async (fn) => fn({
+      account: { updateMany: mockUpdateMany, update: mockUpdate },
+    } as never));
+    const result = await updateAccount(userId, accountId, { name: 'Updated' });
+    expect(mockUpdateMany).not.toHaveBeenCalled();
+    expect(result?.name).toBe('Updated');
+  });
+
+  it('clears other defaults when updating with isDefault: true', async () => {
+    mockAccountFindFirst.mockResolvedValue(baseAccount);
+    const mockUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const mockUpdate = jest.fn().mockResolvedValue({ ...baseAccount, isDefault: true });
+    mockPrismaTransaction.mockImplementation(async (fn) => fn({
+      account: { updateMany: mockUpdateMany, update: mockUpdate },
+    } as never));
+    await updateAccount(userId, accountId, { isDefault: true });
+    expect(mockUpdateMany).toHaveBeenCalledWith({
+      where: { userId, isDefault: true, NOT: { id: accountId } },
+      data: { isDefault: false },
+    });
   });
 });
