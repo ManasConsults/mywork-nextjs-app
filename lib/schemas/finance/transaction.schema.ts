@@ -10,6 +10,9 @@ export const createTransactionSchema = z.object({
   reference: z.string().max(100, 'Reference must be 100 characters or fewer').optional(),
   workContext: z.enum(['EMPLOYED', 'SOLE_TRADER']).optional(),
   transferToAccountId: z.string().uuid('Invalid destination account').optional(),
+  isRecurring: z.boolean().optional(),
+  recurFrequency: z.enum(['WEEKLY', 'FORTNIGHTLY', 'MONTHLY', 'QUARTERLY', 'ANNUALLY']).optional(),
+  recurEndsAt: z.coerce.date().optional(),
 });
 
 export const updateTransactionSchema = createTransactionSchema.partial();

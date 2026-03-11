@@ -38,6 +38,8 @@ interface FieldErrors {
   reference?: string[];
   workContext?: string[];
   transferToAccountId?: string[];
+  recurFrequency?: string[];
+  recurEndsAt?: string[];
 }
 
 interface TransactionFormProps {
@@ -100,6 +102,9 @@ export function TransactionForm({
   const isEdit = !!transaction;
   const showWorkContext = employmentType === 'BOTH';
 
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [selectedFrequency, setSelectedFrequency] = useState<string>('MONTHLY');
+
   const [selectedType, setSelectedType] = useState<TxType>(
     (transaction?.type as TxType) ?? 'EXPENSE',
   );
@@ -147,6 +152,11 @@ export function TransactionForm({
           ? (workContextRaw as 'EMPLOYED' | 'SOLE_TRADER')
           : undefined,
       transferToAccountId,
+      isRecurring: !isEdit && isRecurring ? true : undefined,
+      recurFrequency: !isEdit && isRecurring ? (selectedFrequency as 'WEEKLY' | 'FORTNIGHTLY' | 'MONTHLY' | 'QUARTERLY' | 'ANNUALLY') : undefined,
+      recurEndsAt: !isEdit && isRecurring
+        ? ((fd.get('recurEndsAt') as string) || undefined)
+        : undefined,
     };
 
     if (isEdit) {
@@ -197,6 +207,12 @@ export function TransactionForm({
       {rootError && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
           {rootError}
+        </div>
+      )}
+
+      {isEdit && transaction?.isRecurring && (
+        <div className="rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:border-teal-800/60 dark:bg-teal-900/20 dark:text-teal-300">
+          This is a recurring transaction template. Edits apply to this occurrence only.
         </div>
       )}
 
@@ -280,6 +296,51 @@ export function TransactionForm({
           className={inputCls(!!fieldErrors.date)}
         />
       </Field>
+
+      {/* Recurring */}
+      {!isEdit && (
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500"
+            />
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Make this a recurring transaction</span>
+          </label>
+
+          {isRecurring && (
+            <div className="mt-4 space-y-4">
+              <Field label="Frequency" error={fieldErrors.recurFrequency?.[0]} required>
+                <select
+                  value={selectedFrequency}
+                  onChange={(e) => setSelectedFrequency(e.target.value)}
+                  className={inputCls(!!fieldErrors.recurFrequency)}
+                >
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="FORTNIGHTLY">Fortnightly</option>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="QUARTERLY">Quarterly</option>
+                  <option value="ANNUALLY">Annually</option>
+                </select>
+              </Field>
+
+              <Field label="Repeat until (optional)" error={fieldErrors.recurEndsAt?.[0]}>
+                <input
+                  name="recurEndsAt"
+                  type="date"
+                  min={todayIso()}
+                  className={inputCls(!!fieldErrors.recurEndsAt)}
+                />
+                <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                  Leave blank to repeat indefinitely.
+                </p>
+              </Field>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Category */}
       <Field label="Category" error={fieldErrors.categoryId?.[0]} required>

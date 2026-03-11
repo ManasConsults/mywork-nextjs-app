@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import { authOptions } from '@/lib/auth/auth';
 import { getAccounts } from '@/lib/services/finance/account.service';
 import { getCategories } from '@/lib/services/finance/category.service';
-import { getTransactions } from '@/lib/services/finance/transaction.service';
+import { getTransactions, generateDueRecurrences } from '@/lib/services/finance/transaction.service';
 import { fromMinorUnit } from '@/lib/utils/money';
 import { TransactionFilters } from './_components/TransactionFilters';
 import { DeleteTransactionButton } from './_components/DeleteTransactionButton';
@@ -22,6 +22,14 @@ interface TransactionsPageProps {
     to?: string;
   }>;
 }
+
+const FREQ_LABELS: Record<string, string> = {
+  WEEKLY: 'Weekly',
+  FORTNIGHTLY: 'Fortnightly',
+  MONTHLY: 'Monthly',
+  QUARTERLY: 'Quarterly',
+  ANNUALLY: 'Annually',
+};
 
 const TYPE_LABELS: Record<string, string> = {
   INCOME: 'Income',
@@ -60,6 +68,9 @@ export default async function TransactionsPage({
     ...(from ? { from: new Date(from) } : {}),
     ...(to ? { to: new Date(to) } : {}),
   };
+
+  // Generate any past-due recurring instances before fetching
+  await generateDueRecurrences(userId);
 
   const [accounts, categories, transactions] = await Promise.all([
     getAccounts(userId),
@@ -160,11 +171,23 @@ export default async function TransactionsPage({
                       })}
                     </td>
                     <td className="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">
-                      {tx.description ?? (
-                        <span className="italic text-zinc-400 dark:text-zinc-600">
-                          —
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span>
+                          {tx.description ?? (
+                            <span className="italic text-zinc-400 dark:text-zinc-600">—</span>
+                          )}
                         </span>
-                      )}
+                        {tx.isRecurring && tx.recurFrequency && (
+                          <span className="inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-700 dark:bg-teal-900/40 dark:text-teal-400">
+                            ↻ {FREQ_LABELS[tx.recurFrequency] ?? tx.recurFrequency}
+                          </span>
+                        )}
+                        {!tx.isRecurring && tx.recurringId && (
+                          <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            Series
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 sm:table-cell">
                       <div className="flex items-center gap-2">
