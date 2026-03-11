@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { ProfileForm } from './ProfileForm';
 import { SettingsForm } from './SettingsForm';
 import { ChangePasswordForm } from './ChangePasswordForm';
+import { EmploymentTypeForm } from './EmploymentTypeForm';
+import { BusinessDetailsForm } from './BusinessDetailsForm';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -24,11 +26,18 @@ interface ProfileTabsProps {
   role: string;
   isActive: boolean;
   fiscalYearStartMonth: number;
+  currency: string;
   hasPassword: boolean;
   createdAt: string; // ISO string (serialisable from RSC)
+  employmentType: string;
+  businessName: string | null;
+  abn: string | null;
+  businessEmail: string | null;
+  businessPhone: string | null;
+  businessAddress: string | null;
 }
 
-type TabId = 'profile' | 'settings' | 'security' | 'account';
+type TabId = 'profile' | 'settings' | 'security' | 'account' | 'employment' | 'business';
 
 interface Tab {
   id: TabId;
@@ -42,12 +51,23 @@ export function ProfileTabs({
   role,
   isActive,
   fiscalYearStartMonth,
+  currency,
   hasPassword,
   createdAt,
+  employmentType,
+  businessName,
+  abn,
+  businessEmail,
+  businessPhone,
+  businessAddress,
 }: ProfileTabsProps): React.JSX.Element {
+  const isSoleTrader = employmentType === 'SOLE_TRADER' || employmentType === 'BOTH';
+
   const tabs: Tab[] = [
     { id: 'profile', label: 'Profile' },
     { id: 'settings', label: 'Settings' },
+    { id: 'employment', label: 'Employment' },
+    ...(isSoleTrader ? [{ id: 'business' as TabId, label: 'Business' }] : []),
     ...(hasPassword ? [{ id: 'security' as TabId, label: 'Security' }] : []),
     { id: 'account', label: 'Account' },
   ];
@@ -81,7 +101,21 @@ export function ProfileTabs({
         )}
 
         {activeTab === 'settings' && (
-          <SettingsForm initialFiscalYearStartMonth={fiscalYearStartMonth} />
+          <SettingsForm initialFiscalYearStartMonth={fiscalYearStartMonth} initialCurrency={currency} />
+        )}
+
+        {activeTab === 'employment' && (
+          <EmploymentTypeForm initialEmploymentType={employmentType} />
+        )}
+
+        {activeTab === 'business' && isSoleTrader && (
+          <BusinessDetailsForm
+            initialBusinessName={businessName}
+            initialAbn={abn}
+            initialBusinessEmail={businessEmail}
+            initialBusinessPhone={businessPhone}
+            initialBusinessAddress={businessAddress}
+          />
         )}
 
         {activeTab === 'security' && hasPassword && (
@@ -101,6 +135,10 @@ export function ProfileTabs({
               <dd className="font-medium text-zinc-900 dark:text-zinc-50">
                 {MONTH_NAMES[fiscalYearStartMonth - 1]}
               </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-zinc-500 dark:text-zinc-400">Default currency</dt>
+              <dd className="font-medium text-zinc-900 dark:text-zinc-50">{currency}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-zinc-500 dark:text-zinc-400">Member since</dt>

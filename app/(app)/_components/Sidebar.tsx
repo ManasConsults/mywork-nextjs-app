@@ -9,6 +9,9 @@ interface SidebarUser {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  moduleWork?: boolean;
+  moduleFinance?: boolean;
+  employmentType?: string | null;
 }
 
 interface SidebarProps {
@@ -17,38 +20,118 @@ interface SidebarProps {
   onMobileClose: () => void;
 }
 
-const NAV_LINKS = [
+interface NavLink {
+  href: string;
+  label: string;
+  icon: readonly string[];
+  exact?: boolean;
+  alwaysShow?: boolean;
+  soleTraderOnly?: boolean;
+}
+
+interface NavGroup {
+  id: string;
+  label: string;
+  module: 'work' | 'finance';
+  links: NavLink[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    href: '/dashboard',
-    label: 'Dashboard',
-    icon: ['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'M9 22V12h6v10'],
+    id: 'work',
+    label: 'Work',
+    module: 'work',
+    links: [
+      {
+        href: '/dashboard',
+        label: 'Dashboard',
+        alwaysShow: true,
+        icon: ['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'M9 22V12h6v10'],
+      },
+      {
+        href: '/tasks',
+        label: 'Tasks',
+        icon: ['M9 11l3 3L22 4', 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+      },
+      {
+        href: '/work-logs',
+        label: 'Work Logs',
+        icon: ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20', 'M12 6v6l4 2'],
+      },
+      {
+        href: '/achievements',
+        label: 'Achievements',
+        icon: ['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'],
+      },
+      {
+        href: '/notes',
+        label: 'Notes',
+        icon: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
+      },
+      {
+        href: '/todo',
+        label: 'To-do',
+        icon: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
+      },
+    ],
   },
   {
-    href: '/tasks',
-    label: 'Tasks',
-    icon: ['M9 11l3 3L22 4', 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+    id: 'finance',
+    label: 'Finance',
+    module: 'finance',
+    links: [
+      {
+        href: '/finance',
+        label: 'Overview',
+        exact: true,
+        icon: ['M3 3h18v18H3z', 'M3 9h18', 'M9 21V9'],
+      },
+      {
+        href: '/finance/accounts',
+        label: 'Accounts',
+        icon: ['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'M9 22V12h6v10'],
+      },
+      {
+        href: '/finance/transactions',
+        label: 'Transactions',
+        icon: ['M12 1v22', 'M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'],
+      },
+      {
+        href: '/finance/categories',
+        label: 'Categories',
+        icon: ['M4 6h16', 'M4 12h8', 'M4 18h4'],
+      },
+      {
+        href: '/finance/budgets',
+        label: 'Budgets',
+        icon: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20', 'M12 6v6l4 2'],
+      },
+      {
+        href: '/finance/clients',
+        label: 'Clients',
+        icon: ['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'],
+        soleTraderOnly: true,
+      },
+      {
+        href: '/finance/invoices',
+        label: 'Invoices',
+        icon: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
+        soleTraderOnly: true,
+      },
+      {
+        href: '/finance/timesheets',
+        label: 'Timesheets',
+        icon: ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20', 'M12 6v6l4 2'],
+        soleTraderOnly: true,
+      },
+      {
+        href: '/finance/reports',
+        label: 'Reports',
+        icon: ['M18 20V10', 'M12 20V4', 'M6 20v-6'],
+      },
+    ],
   },
-  {
-    href: '/work-logs',
-    label: 'Work Logs',
-    icon: ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20', 'M12 6v6l4 2'],
-  },
-  {
-    href: '/achievements',
-    label: 'Achievements',
-    icon: ['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'],
-  },
-  {
-    href: '/notes',
-    label: 'Notes',
-    icon: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
-  },
-  {
-    href: '/todo',
-    label: 'To-do',
-    icon: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
-  },
-] as const;
+];
 
 const SIGN_OUT_ICON = ['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9'];
 
@@ -107,28 +190,61 @@ function NavContent({
 }): React.JSX.Element {
   const pathname = usePathname();
 
+  const visibleGroups = NAV_GROUPS.filter((group) => {
+    if (group.module === 'finance') return user.moduleFinance !== false;
+    return true; // Work group always shown (Dashboard is always-visible within it)
+  });
+
   return (
     <>
-      <nav className="flex flex-1 flex-col gap-1 p-2">
-        {NAV_LINKS.map(({ href, label, icon }) => {
-          const isActive = pathname === href || pathname.startsWith(href + '/');
+      <nav className="flex flex-1 flex-col gap-4 p-2 overflow-y-auto">
+        {visibleGroups.map((group, groupIdx) => {
+          const isSoleTrader = user.employmentType === 'SOLE_TRADER' || user.employmentType === 'BOTH';
+          const visibleLinks = group.links.filter((link) => {
+            if (link.alwaysShow) return true;
+            if (group.module === 'work') return user.moduleWork !== false;
+            if (link.soleTraderOnly && !isSoleTrader) return false;
+            return true; // Finance links shown if the group is visible
+          });
+
+          if (visibleLinks.length === 0) return null;
+
           return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onLinkClick}
-              title={collapsed ? label : undefined}
-              className={`flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${
-                collapsed ? 'justify-center' : 'gap-3'
-              } ${
-                isActive
-                  ? 'bg-teal-50 text-teal-700 dark:bg-zinc-800 dark:text-zinc-50'
-                  : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50'
-              }`}
-            >
-              <NavIcon paths={icon} />
-              {!collapsed && label}
-            </Link>
+            <div key={group.id}>
+              {groupIdx > 0 && (
+                <div className="mb-3 border-t border-zinc-200 dark:border-zinc-800" />
+              )}
+              {!collapsed && (
+                <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                  {group.label}
+                </p>
+              )}
+              <div className="flex flex-col gap-0.5">
+                {visibleLinks.map(({ href, label, icon, exact }) => {
+                  const isActive = exact
+                    ? pathname === href
+                    : pathname === href || pathname.startsWith(href + '/');
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={onLinkClick}
+                      title={collapsed ? label : undefined}
+                      className={`flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${
+                        collapsed ? 'justify-center' : 'gap-3'
+                      } ${
+                        isActive
+                          ? 'bg-teal-50 text-teal-700 dark:bg-zinc-800 dark:text-zinc-50'
+                          : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50'
+                      }`}
+                    >
+                      <NavIcon paths={icon} />
+                      {!collapsed && label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>

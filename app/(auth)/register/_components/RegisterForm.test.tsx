@@ -158,6 +158,7 @@ describe('RegisterForm successful registration', () => {
         email: 'jane@example.com',
         password: 'Password1',
         confirmPassword: 'Password1',
+        employmentType: 'EMPLOYED',
       });
     });
   });

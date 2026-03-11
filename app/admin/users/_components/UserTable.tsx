@@ -5,7 +5,14 @@ import { useRouter } from 'next/navigation';
 
 import { Check, X, Ban, Trash2 } from 'lucide-react';
 
-import { setUserActiveAction, setUserRoleAction, rejectUserAction, deleteUserAction } from '@/lib/actions/admin';
+import {
+  setUserActiveAction,
+  setUserRoleAction,
+  rejectUserAction,
+  deleteUserAction,
+  setUserModulesAction,
+  setUserEmploymentTypeAction,
+} from '@/lib/actions/admin';
 
 type UserRow = {
   id: string;
@@ -14,6 +21,9 @@ type UserRow = {
   role: string;
   isActive: boolean;
   rejectedAt: string | null;
+  moduleWork: boolean;
+  moduleFinance: boolean;
+  employmentType: string;
   createdAt: string;
 };
 
@@ -214,6 +224,22 @@ export function UserTable({
     });
   }
 
+  function changeModules(userId: string, moduleWork: boolean, moduleFinance: boolean): void {
+    startTransition(async () => {
+      const res = await setUserModulesAction(userId, moduleWork, moduleFinance);
+      if (res.success) { clearError(userId); router.refresh(); }
+      else handleError(userId, res.error);
+    });
+  }
+
+  function changeEmploymentType(userId: string, employmentType: string): void {
+    startTransition(async () => {
+      const res = await setUserEmploymentTypeAction(userId, employmentType as 'EMPLOYED' | 'SOLE_TRADER' | 'BOTH');
+      if (res.success) { clearError(userId); router.refresh(); }
+      else handleError(userId, res.error);
+    });
+  }
+
   const tabs: { id: Filter; label: string }[] = [
     { id: 'all',      label: `All (${users.length})` },
     { id: 'pending',  label: `Pending (${pendingCount})` },
@@ -280,6 +306,39 @@ export function UserTable({
                 </span>
               </div>
 
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={user.moduleWork}
+                    disabled={isSelf || isPending}
+                    onChange={(e) => changeModules(user.id, e.target.checked, user.moduleFinance)}
+                    className="accent-teal-600"
+                  />
+                  Work
+                </label>
+                <label className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={user.moduleFinance}
+                    disabled={isSelf || isPending}
+                    onChange={(e) => changeModules(user.id, user.moduleWork, e.target.checked)}
+                    className="accent-teal-600"
+                  />
+                  Finance
+                </label>
+                <select
+                  value={user.employmentType}
+                  disabled={isSelf || isPending}
+                  onChange={(e) => changeEmploymentType(user.id, e.target.value)}
+                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 disabled:cursor-not-allowed"
+                >
+                  <option value="EMPLOYED">Employee</option>
+                  <option value="SOLE_TRADER">Sole Trader</option>
+                  <option value="BOTH">Both</option>
+                </select>
+              </div>
+
               {errors[user.id] && (
                 <p className="mt-2 text-xs text-red-600">{errors[user.id]}</p>
               )}
@@ -309,6 +368,8 @@ export function UserTable({
             <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
               <th style={th}>User</th>
               <th style={th}>Role</th>
+              <th style={th}>Modules</th>
+              <th style={th}>Employment</th>
               <th style={th}>Status</th>
               <th style={th}>Joined</th>
               <th style={{ ...th, textAlign: 'right' }}>Actions</th>
@@ -318,7 +379,7 @@ export function UserTable({
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={7}
                   style={{ padding: '2.5rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem' }}
                 >
                   No users found.
@@ -373,6 +434,54 @@ export function UserTable({
                       {ROLES.map((r) => (
                         <option key={r} value={r}>{r}</option>
                       ))}
+                    </select>
+                  </td>
+
+                  {/* Modules */}
+                  <td style={{ padding: '0.875rem 1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: '#374151', cursor: isSelf ? 'not-allowed' : 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={user.moduleWork}
+                          disabled={isSelf || isPending}
+                          onChange={(e) => changeModules(user.id, e.target.checked, user.moduleFinance)}
+                          style={{ accentColor: '#0d9488' }}
+                        />
+                        Work
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: '#374151', cursor: isSelf ? 'not-allowed' : 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={user.moduleFinance}
+                          disabled={isSelf || isPending}
+                          onChange={(e) => changeModules(user.id, user.moduleWork, e.target.checked)}
+                          style={{ accentColor: '#0d9488' }}
+                        />
+                        Finance
+                      </label>
+                    </div>
+                  </td>
+
+                  {/* Employment type */}
+                  <td style={{ padding: '0.875rem 1rem' }}>
+                    <select
+                      value={user.employmentType}
+                      disabled={isSelf || isPending}
+                      onChange={(e) => changeEmploymentType(user.id, e.target.value)}
+                      style={{
+                        fontSize: '0.8125rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem',
+                        padding: '0.25rem 0.5rem',
+                        backgroundColor: '#ffffff',
+                        color: '#374151',
+                        cursor: isSelf ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <option value="EMPLOYED">Employee</option>
+                      <option value="SOLE_TRADER">Sole Trader</option>
+                      <option value="BOTH">Both</option>
                     </select>
                   </td>
 

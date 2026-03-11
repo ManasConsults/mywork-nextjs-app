@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getTaskById } from '@/lib/services/task.service';
 import type { CreateWorkLogInput, UpdateWorkLogInput, WorkLogFilters } from '@/lib/schemas/work-log.schema';
 
-export type WorkLogWithTask = WorkLog & { task: { id: string; title: string } };
+export type WorkLogWithTask = WorkLog & { task: { id: string; title: string } | null };
 
 export async function getWorkLogsByUser(
   userId: string,

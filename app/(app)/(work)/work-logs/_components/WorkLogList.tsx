@@ -7,7 +7,7 @@ import type { WorkLog } from '@prisma/client';
 
 import { deleteWorkLogAction } from '@/lib/actions/work-log';
 
-type WorkLogWithTask = WorkLog & { task: { id: string; title: string } };
+type WorkLogWithTask = WorkLog & { task: { id: string; title: string } | null };
 
 function formatHours(hours: number): string {
   const h = Math.floor(hours);
@@ -53,12 +53,14 @@ export function WorkLogList({ logs }: { logs: WorkLogWithTask[] }): React.JSX.El
                 <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                   {new Date(log.date).toLocaleDateString()}
                 </span>
-                <Link
-                  href={`/tasks/${log.task.id}`}
-                  className="truncate text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
-                >
-                  {log.task.title}
-                </Link>
+                {log.task && (
+                  <Link
+                    href={`/tasks/${log.task.id}`}
+                    className="truncate text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
+                  >
+                    {log.task.title}
+                  </Link>
+                )}
               </div>
               <p className="text-sm text-zinc-800 dark:text-zinc-200">{log.description}</p>
               {log.outcome && (

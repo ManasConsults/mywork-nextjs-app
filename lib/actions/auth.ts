@@ -19,7 +19,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterResult
     };
   }
 
-  const { name, email, password } = parsed.data;
+  const { name, email, password, employmentType } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -32,7 +32,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterResult
   const passwordHash = await hashPassword(password);
 
   await prisma.user.create({
-    data: { name, email, passwordHash, role: 'MEMBER', isActive: false },
+    data: { name, email, passwordHash, role: 'MEMBER', isActive: false, employmentType },
   });
 
   try { await sendRegistrationPendingEmail(email, name ?? null); } catch { /* email failure is non-fatal */ }
