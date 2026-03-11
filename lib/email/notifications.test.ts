@@ -18,7 +18,12 @@ const NAME = 'Jane Doe';
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.spyOn(console, 'error').mockImplementation(() => {});
   mockSend.mockResolvedValue({ data: { id: 'email-id' }, error: null, headers: null } as never);
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 describe('sendRegistrationPendingEmail', () => {
