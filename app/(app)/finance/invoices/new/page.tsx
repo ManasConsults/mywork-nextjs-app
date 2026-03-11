@@ -21,6 +21,7 @@ export default async function NewInvoicePage(): Promise<React.JSX.Element> {
 
   // getClients returns ClientWithTotals; strip computed fields to get plain Client shape
   const clientList: Client[] = rawClients.map(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ({ totalInvoiced: _ti, totalOutstanding: _to, ...client }) => client,
   );
 

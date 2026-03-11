@@ -7,8 +7,7 @@ import type { Category } from '@prisma/client';
 import { createCategoryAction, updateCategoryAction } from '@/lib/actions/finance/category';
 import { createCategorySchema, updateCategorySchema } from '@/lib/schemas/finance/category.schema';
 
-const CATEGORY_TYPES = ['PERSONAL', 'WORK_RELATED', 'BUSINESS'] as const;
-type CategoryType = (typeof CATEGORY_TYPES)[number];
+type CategoryType = 'PERSONAL' | 'WORK_RELATED' | 'BUSINESS';
 
 const CATEGORY_TYPE_LABELS: Record<CategoryType, string> = {
   PERSONAL: 'Personal',

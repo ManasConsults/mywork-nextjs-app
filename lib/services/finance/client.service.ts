@@ -38,7 +38,7 @@ export async function getClients(userId: string): Promise<ClientWithTotals[]> {
       }
     }
 
-    const { invoices: _invoices, ...clientData } = client;
+    const { invoices: _invoices, ...clientData } = client; // eslint-disable-line @typescript-eslint/no-unused-vars
     return { ...clientData, totalInvoiced, totalOutstanding };
   });
 }

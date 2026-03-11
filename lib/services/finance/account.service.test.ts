@@ -20,7 +20,6 @@ import { prisma } from '@/lib/db/prisma';
 
 const mockAccountFindMany = (prisma.account as jest.Mocked<typeof prisma.account>).findMany;
 const mockAccountFindFirst = (prisma.account as jest.Mocked<typeof prisma.account>).findFirst;
-const mockAccountCreate = (prisma.account as jest.Mocked<typeof prisma.account>).create;
 const mockAccountUpdate = (prisma.account as jest.Mocked<typeof prisma.account>).update;
 const mockTransactionGroupBy = (prisma.transaction as jest.Mocked<typeof prisma.transaction>).groupBy;
 const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;

@@ -42,7 +42,7 @@ const mockCreateInvoice = createInvoice as jest.MockedFunction<typeof createInvo
 const mockUpdateInvoice = updateInvoice as jest.MockedFunction<typeof updateInvoice>;
 const mockCancelInvoice = cancelInvoice as jest.MockedFunction<typeof cancelInvoice>;
 const mockDeleteInvoice = deleteInvoice as jest.MockedFunction<typeof deleteInvoice>;
-const mockGetInvoiceById = getInvoiceById as jest.MockedFunction<typeof getInvoiceById>;
+void (getInvoiceById as jest.MockedFunction<typeof getInvoiceById>); // imported for mock completeness
 
 const session = { user: { id: 'user-1', role: 'MEMBER', currency: 'GBP' }, expires: '' };
 const invoiceId = 'inv-1';

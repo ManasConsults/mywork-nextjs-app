@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import type { Client } from '@prisma/client';
 
 import { createInvoiceAction } from '@/lib/actions/finance/invoice';
@@ -191,9 +192,9 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
       {clients.length === 0 && (
         <p className="text-sm text-amber-600 dark:text-amber-400">
           You need to{' '}
-          <a href="/finance/clients/new" className="underline">
+          <Link href="/finance/clients/new" className="underline">
             add a client
-          </a>{' '}
+          </Link>{' '}
           before creating an invoice.
         </p>
       )}

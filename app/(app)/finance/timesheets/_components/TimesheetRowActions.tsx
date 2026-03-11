@@ -39,7 +39,7 @@ export function TimesheetRow({
   description,
   timeSpentMinutes,
   rate,
-  value,
+  value: _value, // eslint-disable-line @typescript-eslint/no-unused-vars
   isBilled,
   formattedDate,
   formattedRate,

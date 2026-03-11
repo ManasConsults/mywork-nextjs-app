@@ -86,7 +86,7 @@ export async function updateTransaction(
 ): Promise<Transaction | null> {
   const existing = await prisma.transaction.findFirst({ where: { id, userId } });
   if (!existing) return null;
-  const { transferToAccountId: _, ...rest } = data;
+  const { transferToAccountId: _transferToAccountId, ...rest } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
   return prisma.transaction.update({ where: { id }, data: rest });
 }
 
