@@ -21,7 +21,7 @@ const session = { user: { id: 'user-1', role: 'MEMBER' }, expires: '' };
 
 const baseCategory = {
   id: 'cat-1', userId: 'user-1', name: 'Groceries', type: 'PERSONAL' as const,
-  parentId: null, colour: null, createdAt: new Date(), updatedAt: new Date(),
+  parentId: null, colour: null, icon: null, createdAt: new Date(), updatedAt: new Date(),
 };
 
 const validInput = { name: 'Groceries', type: 'PERSONAL' as const };
