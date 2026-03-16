@@ -18,9 +18,13 @@ type ClientActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: { message: string; fields?: Record<string, string[]> } };
 
-async function getAuthUserId(): Promise<string | null> {
+async function getAuthUser(): Promise<{ userId: string; currency: string } | null> {
   const session = await getServerSession(authOptions);
-  return session?.user?.id ?? null;
+  if (!session?.user?.id) return null;
+  return {
+    userId: session.user.id,
+    currency: (session.user as { currency?: string }).currency ?? 'GBP',
+  };
 }
 
 function revalidateClientPaths(): void {
@@ -31,8 +35,8 @@ function revalidateClientPaths(): void {
 export async function createClientAction(
   input: CreateClientInput,
 ): Promise<ClientActionResult<Client>> {
-  const userId = await getAuthUserId();
-  if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
+  const auth = await getAuthUser();
+  if (!auth) return { success: false, error: { message: 'You must be signed in.' } };
 
   const parsed = createClientSchema.safeParse(input);
   if (!parsed.success) {
@@ -46,7 +50,7 @@ export async function createClientAction(
   }
 
   try {
-    const client = await createClient(userId, parsed.data);
+    const client = await createClient(auth.userId, parsed.data, auth.currency);
     revalidateClientPaths();
     return { success: true, data: client };
   } catch {
@@ -58,7 +62,8 @@ export async function updateClientAction(
   id: string,
   input: UpdateClientInput,
 ): Promise<ClientActionResult<Client>> {
-  const userId = await getAuthUserId();
+  const auth = await getAuthUser();
+  const userId = auth?.userId ?? null;
   if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
 
   const parsed = updateClientSchema.safeParse(input);
@@ -83,7 +88,8 @@ export async function updateClientAction(
 }
 
 export async function archiveClientAction(id: string): Promise<ClientActionResult<void>> {
-  const userId = await getAuthUserId();
+  const auth = await getAuthUser();
+  const userId = auth?.userId ?? null;
   if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
 
   try {
@@ -97,7 +103,8 @@ export async function archiveClientAction(id: string): Promise<ClientActionResul
 }
 
 export async function deleteClientAction(id: string): Promise<ClientActionResult<void>> {
-  const userId = await getAuthUserId();
+  const auth = await getAuthUser();
+  const userId = auth?.userId ?? null;
   if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
 
   try {

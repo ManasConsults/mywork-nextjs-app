@@ -9,6 +9,7 @@ interface SidebarUser {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  role?: string | null;
   moduleWork?: boolean;
   moduleFinance?: boolean;
   employmentType?: string | null;
@@ -100,11 +101,6 @@ const NAV_GROUPS: NavGroup[] = [
         href: '/finance/categories',
         label: 'Categories',
         icon: ['M4 6h16', 'M4 12h8', 'M4 18h4'],
-      },
-      {
-        href: '/finance/budgets',
-        label: 'Budgets',
-        icon: ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20', 'M12 6v6l4 2'],
       },
       {
         href: '/finance/clients',
@@ -248,6 +244,22 @@ function NavContent({
           );
         })}
       </nav>
+
+      {user.role === 'ADMIN' && (
+        <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
+          <Link
+            href="/admin"
+            onClick={onLinkClick}
+            title={collapsed ? 'Admin' : undefined}
+            className={`flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${
+              collapsed ? 'justify-center' : 'gap-3'
+            } text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50`}
+          >
+            <NavIcon paths={['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']} />
+            {!collapsed && 'Admin'}
+          </Link>
+        </div>
+      )}
 
       <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
         {collapsed ? (
