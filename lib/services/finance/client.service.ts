@@ -56,8 +56,9 @@ export async function getClientById(
 export async function createClient(
   userId: string,
   data: CreateClientInput,
+  currency = 'GBP',
 ): Promise<Client> {
-  return prisma.client.create({ data: { ...data, userId } });
+  return prisma.client.create({ data: { ...data, userId, currency } });
 }
 
 export async function updateClient(

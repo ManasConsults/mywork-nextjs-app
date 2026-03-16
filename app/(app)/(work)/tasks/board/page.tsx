@@ -26,7 +26,7 @@ export default async function TaskBoardPage(): Promise<React.JSX.Element> {
             List view
           </Link>
           <Link
-            href="/tasks/new"
+            href="/tasks/new?from=board"
             className="rounded-md bg-teal-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-teal-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
             New task

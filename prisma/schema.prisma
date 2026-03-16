@@ -77,11 +77,6 @@ enum InvoiceStatus {
   CANCELLED
 }
 
-enum BudgetPeriod {
-  MONTHLY
-  ANNUAL
-}
-
 // ─── Core models ──────────────────────────────────────────────────────────────
 
 model User {
@@ -115,7 +110,6 @@ model User {
   accounts             Account[]
   categories           Category[]
   transactions         Transaction[]
-  budgets              Budget[]
   clients              Client[]
   invoices             Invoice[]
 
@@ -257,7 +251,6 @@ model Category {
   parent       Category?     @relation("CategoryChildren", fields: [parentId], references: [id])
   children     Category[]    @relation("CategoryChildren")
   transactions Transaction[]
-  budgets      Budget[]
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("categories")
@@ -286,23 +279,6 @@ model Transaction {
 
   @@index([userId, date])
   @@map("transactions")
-}
-
-model Budget {
-  id         String       @id @default(uuid())
-  userId     String
-  categoryId String
-  amount     Int
-  period     BudgetPeriod
-  startDate  DateTime
-  endDate    DateTime?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  category   Category     @relation(fields: [categoryId], references: [id])
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, categoryId, period, startDate])
-  @@map("budgets")
 }
 
 model Client {
