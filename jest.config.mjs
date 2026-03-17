@@ -25,11 +25,9 @@ const config = {
     '!lib/actions/user.ts',
     '!lib/utils/tiptap-to-markdown.ts',
     '!lib/utils/fiscal-year.ts',
-    // Finance Phase 2 — not yet unit-tested (budget, client, line-item)
-    '!lib/schemas/finance/budget.schema.ts',
+    // Finance Phase 2 — not yet unit-tested (client, line-item)
     '!lib/schemas/finance/client.schema.ts',
     '!lib/schemas/finance/line-item.schema.ts',
-    '!lib/actions/finance/budget.ts',
     '!lib/actions/finance/client.ts',
     '!lib/actions/finance/line-item.ts',
     '!lib/services/finance/line-item.service.ts',

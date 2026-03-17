@@ -141,15 +141,26 @@ describe('getClientById', () => {
 });
 
 describe('createClient', () => {
-  it('creates and returns a client with the given userId', async () => {
+  it('creates and returns a client with the given userId and default currency GBP', async () => {
     const input = { name: 'New Corp', email: 'new@corp.com' };
     mockClientCreate.mockResolvedValue({ ...baseClient, ...input } as never);
 
     const result = await createClient(userId, input);
     expect(mockClientCreate).toHaveBeenCalledWith({
-      data: { ...input, userId },
+      data: { ...input, userId, currency: 'GBP' },
     });
     expect(result.name).toBe('New Corp');
+  });
+
+  it('creates client with an explicit non-default currency', async () => {
+    const input = { name: 'Euro Corp', email: 'euro@corp.com' };
+    mockClientCreate.mockResolvedValue({ ...baseClient, ...input, currency: 'EUR' } as never);
+
+    const result = await createClient(userId, input, 'EUR');
+    expect(mockClientCreate).toHaveBeenCalledWith({
+      data: { ...input, userId, currency: 'EUR' },
+    });
+    expect(result.currency).toBe('EUR');
   });
 });
 

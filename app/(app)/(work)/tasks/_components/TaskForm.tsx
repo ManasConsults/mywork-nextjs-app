@@ -23,6 +23,7 @@ const PRIORITY_LABELS: Record<string, string> = {
 
 interface TaskFormProps {
   task?: Task;
+  returnTo?: string;
 }
 
 interface FieldErrors {
@@ -34,7 +35,7 @@ interface FieldErrors {
   tags?: string[];
 }
 
-export function TaskForm({ task }: TaskFormProps): React.JSX.Element {
+export function TaskForm({ task, returnTo = '/tasks' }: TaskFormProps): React.JSX.Element {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
@@ -77,7 +78,7 @@ export function TaskForm({ task }: TaskFormProps): React.JSX.Element {
         if (result.error.fields) setFieldErrors(result.error.fields as FieldErrors);
         return;
       }
-      router.push('/tasks');
+      router.push(returnTo);
     });
   }
 
@@ -151,7 +152,7 @@ export function TaskForm({ task }: TaskFormProps): React.JSX.Element {
         </button>
         <button
           type="button"
-          onClick={() => router.push('/tasks')}
+          onClick={() => router.push(returnTo)}
           className="rounded-md px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
         >
           Cancel
