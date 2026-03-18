@@ -19,10 +19,22 @@ export const updateWorkLogSchema = createWorkLogSchema
   .omit({ taskId: true })
   .partial();
 
+export const WORK_LOG_PAGE_SIZES = [10, 20, 50, 100] as const;
+export const WORK_LOG_DEFAULT_PAGE_SIZE = 20;
+
 export const workLogFiltersSchema = z.object({
   taskId: z.string().uuid().optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .refine((v) => (WORK_LOG_PAGE_SIZES as readonly number[]).includes(v), {
+      message: 'Invalid page size',
+    })
+    .default(WORK_LOG_DEFAULT_PAGE_SIZE),
 });
 
 export type CreateWorkLogInput = z.infer<typeof createWorkLogSchema>;

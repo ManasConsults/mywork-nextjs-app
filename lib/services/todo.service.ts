@@ -1,9 +1,17 @@
-import type { TodoItem } from '@prisma/client';
+import type { TodoItem, Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
-import type { CreateTodoInput, UpdateTodoInput } from '@/lib/schemas/todo.schema';
+import type { CreateTodoInput, UpdateTodoInput, TodoFilters } from '@/lib/schemas/todo.schema';
 
 export type TodoItemWithTask = TodoItem & { task: { id: string; title: string } | null };
+
+export interface PagedTodos {
+  todos: TodoItemWithTask[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
 
 const taskSelect = { select: { id: true, title: true } };
 
@@ -17,6 +25,42 @@ export async function getTodosByUser(userId: string): Promise<TodoItemWithTask[]
       { createdAt: 'asc' },
     ],
   });
+}
+
+export async function getTodosByUserPaged(
+  userId: string,
+  filters: TodoFilters,
+): Promise<PagedTodos> {
+  const { status, sortBy, sortOrder, page, pageSize } = filters;
+
+  const where: Prisma.TodoItemWhereInput = {
+    userId,
+    ...(status !== 'all' ? { isDone: status === 'complete' } : {}),
+  };
+
+  const orderBy: Prisma.TodoItemOrderByWithRelationInput[] =
+    sortBy === 'status'
+      ? [{ isDone: sortOrder }, { createdAt: 'desc' as const }]
+      : [{ createdAt: sortOrder }];
+
+  const [todos, total] = await prisma.$transaction([
+    prisma.todoItem.findMany({
+      where,
+      include: { task: taskSelect },
+      orderBy,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.todoItem.count({ where }),
+  ]);
+
+  return {
+    todos,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
 }
 
 export async function createTodo(userId: string, data: CreateTodoInput): Promise<TodoItemWithTask> {

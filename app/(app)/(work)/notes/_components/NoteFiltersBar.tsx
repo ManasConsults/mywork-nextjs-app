@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { NOTE_SORT_BY, NOTE_PAGE_SIZES } from '@/lib/schemas/note.schema';
+
 interface TaskOption {
   id: string;
   title: string;
@@ -12,18 +14,32 @@ interface NoteFiltersBarProps {
   tasks: TaskOption[];
   currentTag?: string;
   currentTaskId?: string;
+  currentSortBy: string;
+  currentSortOrder: string;
+  currentPageSize: number;
 }
+
+const SORT_BY_LABELS: Record<string, string> = {
+  createdAt: 'Created date',
+  updatedAt: 'Updated date',
+};
+
+const SELECT_CLS =
+  'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
 
 export function NoteFiltersBar({
   tasks,
   currentTag,
   currentTaskId,
+  currentSortBy,
+  currentSortOrder,
+  currentPageSize,
 }: NoteFiltersBarProps): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tagInput, setTagInput] = useState('');
 
-  function updateParams(updates: Record<string, string | undefined>) {
+  function updateParams(updates: Record<string, string | undefined>, resetPage = true) {
     const params = new URLSearchParams(searchParams.toString());
     for (const [key, value] of Object.entries(updates)) {
       if (value) {
@@ -32,6 +48,7 @@ export function NoteFiltersBar({
         params.delete(key);
       }
     }
+    if (resetPage) params.delete('page');
     router.push(`/notes?${params.toString()}`);
   }
 
@@ -45,12 +62,14 @@ export function NoteFiltersBar({
   }
 
   function clearAllFilters() {
-    router.push('/notes');
+    const params = new URLSearchParams();
+    if (searchParams.get('sortBy')) params.set('sortBy', searchParams.get('sortBy')!);
+    if (searchParams.get('sortOrder')) params.set('sortOrder', searchParams.get('sortOrder')!);
+    if (searchParams.get('pageSize')) params.set('pageSize', searchParams.get('pageSize')!);
+    router.push(`/notes?${params.toString()}`);
   }
 
   const hasFilters = Boolean(currentTag || currentTaskId);
-  const selectCls =
-    'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -91,7 +110,7 @@ export function NoteFiltersBar({
       <select
         value={currentTaskId ?? ''}
         onChange={(e) => updateParams({ taskId: e.target.value || undefined })}
-        className={selectCls}
+        className={SELECT_CLS}
       >
         <option value="">All tasks</option>
         {tasks.map((t) => (
@@ -101,7 +120,7 @@ export function NoteFiltersBar({
         ))}
       </select>
 
-      {/* Clear all */}
+      {/* Clear filters */}
       {hasFilters && (
         <button
           type="button"
@@ -111,6 +130,45 @@ export function NoteFiltersBar({
           Clear filters
         </button>
       )}
+
+      {/* Sort + page size */}
+      <div className="ml-auto flex items-center gap-2">
+        <select
+          value={currentSortBy}
+          onChange={(e) => updateParams({ sortBy: e.target.value }, false)}
+          className={SELECT_CLS}
+          aria-label="Sort by"
+        >
+          {NOTE_SORT_BY.map((s) => (
+            <option key={s} value={s}>
+              {SORT_BY_LABELS[s]}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={currentSortOrder}
+          onChange={(e) => updateParams({ sortOrder: e.target.value }, false)}
+          className={SELECT_CLS}
+          aria-label="Sort order"
+        >
+          <option value="desc">Newest first</option>
+          <option value="asc">Oldest first</option>
+        </select>
+
+        <select
+          value={currentPageSize}
+          onChange={(e) => updateParams({ pageSize: e.target.value })}
+          className={SELECT_CLS}
+          aria-label="Items per page"
+        >
+          {NOTE_PAGE_SIZES.map((n) => (
+            <option key={n} value={n}>
+              {n} per page
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

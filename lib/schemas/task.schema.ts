@@ -14,9 +14,24 @@ export const createTaskSchema = z.object({
 
 export const updateTaskSchema = createTaskSchema.partial();
 
+export const TASK_SORT_BY = ['createdAt', 'dueDate', 'status'] as const;
+export const TASK_SORT_ORDER = ['asc', 'desc'] as const;
+export const TASK_PAGE_SIZES = [10, 20, 50, 100] as const;
+export const TASK_DEFAULT_PAGE_SIZE = 20;
+
 export const taskFiltersSchema = z.object({
   status: z.enum(TASK_STATUSES).optional(),
   priority: z.enum(TASK_PRIORITIES).optional(),
+  sortBy: z.enum(TASK_SORT_BY).default('createdAt'),
+  sortOrder: z.enum(TASK_SORT_ORDER).default('desc'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .refine((v) => (TASK_PAGE_SIZES as readonly number[]).includes(v), {
+      message: 'Invalid page size',
+    })
+    .default(TASK_DEFAULT_PAGE_SIZE),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;

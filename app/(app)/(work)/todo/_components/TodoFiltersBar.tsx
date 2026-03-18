@@ -2,80 +2,66 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { ACHIEVEMENT_CATEGORIES, ACHIEVEMENT_SORT_BY, ACHIEVEMENT_PAGE_SIZES } from '@/lib/schemas/achievement.schema';
-import { fiscalYearLabel } from '@/lib/utils/fiscal-year';
+import { TODO_SORT_BY, TODO_STATUS_FILTER, TODO_PAGE_SIZES } from '@/lib/schemas/todo.schema';
 
-interface AchievementFiltersProps {
-  currentCategory?: string;
-  currentReviewYear?: number;
-  currentFiscalYear: number;
-  fiscalYearStartMonth: number;
+interface TodoFiltersBarProps {
+  currentStatus: string;
   currentSortBy: string;
   currentSortOrder: string;
   currentPageSize: number;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  incomplete: 'Incomplete',
+  complete: 'Complete',
+  all: 'All',
+};
+
 const SORT_BY_LABELS: Record<string, string> = {
   createdAt: 'Created date',
-  updatedAt: 'Updated date',
+  status: 'Status',
 };
 
 const SELECT_CLS =
   'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
 
-export function AchievementFilters({
-  currentCategory,
-  currentReviewYear,
-  currentFiscalYear,
-  fiscalYearStartMonth,
+export function TodoFiltersBar({
+  currentStatus,
   currentSortBy,
   currentSortOrder,
   currentPageSize,
-}: AchievementFiltersProps): React.JSX.Element {
+}: TodoFiltersBarProps): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   function updateParam(key: string, value: string, resetPage = true) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
+    params.set(key, value);
     if (resetPage) params.delete('page');
-    router.push(`/achievements?${params.toString()}`);
+    router.push(`/todo?${params.toString()}`);
   }
 
-  const yearOptions = Array.from({ length: 9 }, (_, i) => currentFiscalYear - 4 + i);
-
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3">
-      <select
-        value={currentCategory ?? ''}
-        onChange={(e) => updateParam('category', e.target.value)}
-        className={SELECT_CLS}
-      >
-        <option value="">All categories</option>
-        {ACHIEVEMENT_CATEGORIES.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
+    <div className="flex flex-wrap items-center gap-3">
+      {/* Status filter */}
+      <div className="flex items-center gap-1 rounded-lg border border-zinc-200 p-1 dark:border-zinc-700">
+        {TODO_STATUS_FILTER.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => updateParam('status', s)}
+            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+              currentStatus === s
+                ? 'bg-teal-600 text-white dark:bg-zinc-50 dark:text-zinc-900'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+            }`}
+          >
+            {STATUS_LABELS[s]}
+          </button>
         ))}
-      </select>
+      </div>
 
-      <select
-        value={currentReviewYear ?? ''}
-        onChange={(e) => updateParam('reviewYear', e.target.value)}
-        className={SELECT_CLS}
-      >
-        <option value="">All years</option>
-        {yearOptions.map((y) => (
-          <option key={y} value={y}>
-            {fiscalYearLabel(y, fiscalYearStartMonth)}
-          </option>
-        ))}
-      </select>
-
+      {/* Sort + page size pushed right */}
       <div className="ml-auto flex items-center gap-2">
         <select
           value={currentSortBy}
@@ -83,7 +69,7 @@ export function AchievementFilters({
           className={SELECT_CLS}
           aria-label="Sort by"
         >
-          {ACHIEVEMENT_SORT_BY.map((s) => (
+          {TODO_SORT_BY.map((s) => (
             <option key={s} value={s}>
               {SORT_BY_LABELS[s]}
             </option>
@@ -106,7 +92,7 @@ export function AchievementFilters({
           className={SELECT_CLS}
           aria-label="Items per page"
         >
-          {ACHIEVEMENT_PAGE_SIZES.map((n) => (
+          {TODO_PAGE_SIZES.map((n) => (
             <option key={n} value={n}>
               {n} per page
             </option>

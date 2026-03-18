@@ -22,9 +22,23 @@ export const createAchievementSchema = z.object({
 
 export const updateAchievementSchema = createAchievementSchema.partial();
 
+export const ACHIEVEMENT_SORT_BY = ['createdAt', 'updatedAt'] as const;
+export const ACHIEVEMENT_PAGE_SIZES = [10, 20, 50, 100] as const;
+export const ACHIEVEMENT_DEFAULT_PAGE_SIZE = 20;
+
 export const achievementFiltersSchema = z.object({
   category: z.enum(ACHIEVEMENT_CATEGORIES).optional(),
   reviewYear: z.coerce.number().int().optional(),
+  sortBy: z.enum(ACHIEVEMENT_SORT_BY).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .refine((v) => (ACHIEVEMENT_PAGE_SIZES as readonly number[]).includes(v), {
+      message: 'Invalid page size',
+    })
+    .default(ACHIEVEMENT_DEFAULT_PAGE_SIZE),
 });
 
 export type CreateAchievementInput = z.infer<typeof createAchievementSchema>;
