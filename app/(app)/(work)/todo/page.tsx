@@ -1,25 +1,40 @@
+import { Suspense } from 'react';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getTodosByUser } from '@/lib/services/todo.service';
+import { getTodosByUserPaged } from '@/lib/services/todo.service';
 import { getTasksByUser } from '@/lib/services/task.service';
+import { todoFiltersSchema } from '@/lib/schemas/todo.schema';
 import { AddTodoForm } from './_components/AddTodoForm';
 import { TodoList } from './_components/TodoList';
+import { TodoFiltersBar } from './_components/TodoFiltersBar';
+import { TodoPagination } from './_components/TodoPagination';
 
 export const metadata: Metadata = { title: 'MyWork — To-do' };
 
-export default async function TodoPage(): Promise<React.JSX.Element> {
+interface TodoPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function TodoPage({ searchParams }: TodoPageProps): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
 
-  const [todos, tasks] = await Promise.all([
-    getTodosByUser(userId),
+  const params = await searchParams;
+  const filters = todoFiltersSchema.parse({
+    status: typeof params.status === 'string' ? params.status : undefined,
+    sortBy: typeof params.sortBy === 'string' ? params.sortBy : undefined,
+    sortOrder: typeof params.sortOrder === 'string' ? params.sortOrder : undefined,
+    page: typeof params.page === 'string' ? params.page : undefined,
+    pageSize: typeof params.pageSize === 'string' ? params.pageSize : undefined,
+  });
+
+  const [{ todos, total, page, pageSize, totalPages }, tasks] = await Promise.all([
+    getTodosByUserPaged(userId, filters),
     getTasksByUser(userId),
   ]);
 
-  const total = todos.length;
-  const done = todos.filter((t) => t.isDone).length;
   const taskOptions = tasks.map((t) => ({ id: t.id, title: t.title }));
 
   return (
@@ -28,11 +43,9 @@ export default async function TodoPage(): Promise<React.JSX.Element> {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">To-do</h1>
-          {total > 0 && (
-            <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-              {done} of {total} done
-            </p>
-          )}
+          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+            {total} {total === 1 ? 'item' : 'items'}
+          </p>
         </div>
         {/* Legend */}
         <div className="hidden items-center gap-3 sm:flex">
@@ -53,8 +66,23 @@ export default async function TodoPage(): Promise<React.JSX.Element> {
         <AddTodoForm tasks={taskOptions} />
       </div>
 
+      {/* Filters + sort */}
+      <Suspense>
+        <TodoFiltersBar
+          currentStatus={filters.status}
+          currentSortBy={filters.sortBy}
+          currentSortOrder={filters.sortOrder}
+          currentPageSize={filters.pageSize}
+        />
+      </Suspense>
+
       {/* List */}
       <TodoList todos={todos} tasks={taskOptions} />
+
+      {/* Pagination */}
+      <Suspense>
+        <TodoPagination page={page} totalPages={totalPages} total={total} pageSize={pageSize} />
+      </Suspense>
     </div>
   );
 }

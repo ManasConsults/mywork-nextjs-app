@@ -4,15 +4,17 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getWorkLogsByUser } from '@/lib/services/work-log.service';
+import { getWorkLogsByUserPaged } from '@/lib/services/work-log.service';
 import { getTasksByUser } from '@/lib/services/task.service';
+import { workLogFiltersSchema } from '@/lib/schemas/work-log.schema';
 import { WorkLogFilters } from './_components/WorkLogFilters';
 import { WorkLogList } from './_components/WorkLogList';
+import { WorkLogPagination } from './_components/WorkLogPagination';
 
 export const metadata: Metadata = { title: 'MyWork — Work Logs' };
 
 interface WorkLogsPageProps {
-  searchParams: Promise<{ taskId?: string; dateFrom?: string; dateTo?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function formatHours(hours: number): string {
@@ -27,20 +29,20 @@ export default async function WorkLogsPage({ searchParams }: WorkLogsPageProps):
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
 
-  const { taskId, dateFrom, dateTo } = await searchParams;
+  const params = await searchParams;
+  const filters = workLogFiltersSchema.parse({
+    taskId: typeof params.taskId === 'string' ? params.taskId : undefined,
+    dateFrom: typeof params.dateFrom === 'string' ? params.dateFrom : undefined,
+    dateTo: typeof params.dateTo === 'string' ? params.dateTo : undefined,
+    sortOrder: typeof params.sortOrder === 'string' ? params.sortOrder : undefined,
+    page: typeof params.page === 'string' ? params.page : undefined,
+    pageSize: typeof params.pageSize === 'string' ? params.pageSize : undefined,
+  });
 
-  const filters = {
-    ...(taskId ? { taskId } : {}),
-    ...(dateFrom ? { dateFrom: new Date(dateFrom) } : {}),
-    ...(dateTo ? { dateTo: new Date(dateTo) } : {}),
-  };
-
-  const [logs, tasks] = await Promise.all([
-    getWorkLogsByUser(userId, filters),
+  const [{ logs, total, totalHours, page, pageSize, totalPages }, tasks] = await Promise.all([
+    getWorkLogsByUserPaged(userId, filters),
     getTasksByUser(userId),
   ]);
-
-  const totalHours = logs.reduce((sum, l) => sum + (l.timeSpent ?? 0), 0);
 
   return (
     <div>
@@ -53,7 +55,7 @@ export default async function WorkLogsPage({ searchParams }: WorkLogsPageProps):
               <span className="font-medium text-teal-600 dark:text-teal-400">
                 {formatHours(totalHours)}
               </span>
-              {' '}across {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
+              {' '}across {total} {total === 1 ? 'entry' : 'entries'}
             </p>
           )}
         </div>
@@ -68,13 +70,19 @@ export default async function WorkLogsPage({ searchParams }: WorkLogsPageProps):
       <Suspense>
         <WorkLogFilters
           tasks={tasks}
-          currentTaskId={taskId}
-          currentDateFrom={dateFrom}
-          currentDateTo={dateTo}
+          currentTaskId={filters.taskId}
+          currentDateFrom={typeof params.dateFrom === 'string' ? params.dateFrom : undefined}
+          currentDateTo={typeof params.dateTo === 'string' ? params.dateTo : undefined}
+          currentSortOrder={filters.sortOrder}
+          currentPageSize={filters.pageSize}
         />
       </Suspense>
 
       <WorkLogList logs={logs} />
+
+      <Suspense>
+        <WorkLogPagination page={page} totalPages={totalPages} total={total} pageSize={pageSize} />
+      </Suspense>
     </div>
   );
 }

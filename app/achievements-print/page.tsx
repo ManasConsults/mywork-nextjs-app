@@ -4,8 +4,7 @@ import type { Metadata } from 'next';
 import { authOptions } from '@/lib/auth/auth';
 import { getAchievementsByUser } from '@/lib/services/achievement.service';
 import { fiscalYearLabel } from '@/lib/utils/fiscal-year';
-import type { AchievementFilters } from '@/lib/schemas/achievement.schema';
-import { ACHIEVEMENT_CATEGORIES } from '@/lib/schemas/achievement.schema';
+import { achievementFiltersSchema, ACHIEVEMENT_CATEGORIES } from '@/lib/schemas/achievement.schema';
 import { AutoPrint } from './_components/AutoPrint';
 import { CloseButton } from './_components/CloseButton';
 
@@ -40,10 +39,10 @@ export default async function AchievementsPrintPage({ searchParams }: PrintPageP
   const fiscalYearStartMonth = fyMonthStr ? Number(fyMonthStr) : 4;
   const reviewYear = reviewYearStr ? Number(reviewYearStr) : undefined;
 
-  const filters: AchievementFilters = {
-    ...(category && CATEGORY_LABELS[category] ? { category: category as AchievementFilters['category'] } : {}),
+  const filters = achievementFiltersSchema.parse({
+    ...(category && CATEGORY_LABELS[category] ? { category } : {}),
     ...(reviewYear ? { reviewYear } : {}),
-  };
+  });
 
   const achievements = await getAchievementsByUser(userId, filters, fiscalYearStartMonth);
 

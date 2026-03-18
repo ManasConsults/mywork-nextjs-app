@@ -3,11 +3,20 @@ import type { Note, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { getTaskById } from '@/lib/services/task.service';
 import type { CreateNoteInput, UpdateNoteInput, SaveDraftInput, NoteFilters } from '@/lib/schemas/note.schema';
+import { noteFiltersSchema } from '@/lib/schemas/note.schema';
 import { noteDisplayTitle as _noteDisplayTitle, noteBodyPreview as _noteBodyPreview } from '@/lib/utils/note-helpers';
 
 export type NoteWithTask = Note & {
   task: { id: string; title: string } | null;
 };
+
+export interface PagedNotes {
+  notes: NoteWithTask[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
 
 // Re-export pure helpers so RSC pages can import from one place
 export function noteDisplayTitle(note: Pick<Note, 'title' | 'body'>): string {
@@ -20,7 +29,7 @@ export function noteBodyPreview(note: Pick<Note, 'body'>, maxChars = 120): strin
 
 export async function getNotesByUser(
   userId: string,
-  filters: NoteFilters = {},
+  filters: NoteFilters = noteFiltersSchema.parse({}),
 ): Promise<NoteWithTask[]> {
   const where: Prisma.NoteWhereInput = {
     userId,
@@ -34,6 +43,39 @@ export async function getNotesByUser(
     include: { task: { select: { id: true, title: true } } },
     orderBy: { updatedAt: 'desc' },
   });
+}
+
+export async function getNotesByUserPaged(
+  userId: string,
+  filters: NoteFilters,
+): Promise<PagedNotes> {
+  const { tag, taskId, sortBy, sortOrder, page, pageSize } = filters;
+
+  const where: Prisma.NoteWhereInput = {
+    userId,
+    deletedAt: null,
+    ...(tag ? { tags: { has: tag } } : {}),
+    ...(taskId ? { taskId } : {}),
+  };
+
+  const [notes, total] = await prisma.$transaction([
+    prisma.note.findMany({
+      where,
+      include: { task: { select: { id: true, title: true } } },
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.note.count({ where }),
+  ]);
+
+  return {
+    notes,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
 }
 
 export async function getNoteById(

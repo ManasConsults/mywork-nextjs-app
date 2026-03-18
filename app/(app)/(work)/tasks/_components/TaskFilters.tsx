@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { TASK_STATUSES, TASK_PRIORITIES } from '@/lib/schemas/task.schema';
+import { TASK_STATUSES, TASK_PRIORITIES, TASK_SORT_BY, TASK_PAGE_SIZES } from '@/lib/schemas/task.schema';
 
 const STATUS_LABELS: Record<string, string> = {
   BACKLOG: 'To Do',
@@ -18,31 +18,50 @@ const PRIORITY_LABELS: Record<string, string> = {
   CRITICAL: 'Critical',
 };
 
+const SORT_BY_LABELS: Record<string, string> = {
+  createdAt: 'Created date',
+  dueDate: 'Due date',
+  status: 'Status',
+};
+
 interface TaskFiltersProps {
   currentStatus?: string;
   currentPriority?: string;
+  currentSortBy: string;
+  currentSortOrder: string;
+  currentPageSize: number;
 }
 
-export function TaskFilters({ currentStatus, currentPriority }: TaskFiltersProps): React.JSX.Element {
+const SELECT_CLASS =
+  'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
+
+export function TaskFilters({
+  currentStatus,
+  currentPriority,
+  currentSortBy,
+  currentSortOrder,
+  currentPageSize,
+}: TaskFiltersProps): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  function updateFilter(key: string, value: string) {
+  function updateParam(key: string, value: string, resetPage = true) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
       params.set(key, value);
     } else {
       params.delete(key);
     }
+    if (resetPage) params.delete('page');
     router.push(`/tasks?${params.toString()}`);
   }
 
   return (
-    <div className="mb-4 flex flex-wrap gap-3">
+    <div className="mb-4 flex flex-wrap items-center gap-3">
       <select
         value={currentStatus ?? ''}
-        onChange={(e) => updateFilter('status', e.target.value)}
-        className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+        onChange={(e) => updateParam('status', e.target.value)}
+        className={SELECT_CLASS}
       >
         <option value="">All statuses</option>
         {TASK_STATUSES.map((s) => (
@@ -54,8 +73,8 @@ export function TaskFilters({ currentStatus, currentPriority }: TaskFiltersProps
 
       <select
         value={currentPriority ?? ''}
-        onChange={(e) => updateFilter('priority', e.target.value)}
-        className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+        onChange={(e) => updateParam('priority', e.target.value)}
+        className={SELECT_CLASS}
       >
         <option value="">All priorities</option>
         {TASK_PRIORITIES.map((p) => (
@@ -64,6 +83,44 @@ export function TaskFilters({ currentStatus, currentPriority }: TaskFiltersProps
           </option>
         ))}
       </select>
+
+      <div className="ml-auto flex items-center gap-2">
+        <select
+          value={currentSortBy}
+          onChange={(e) => updateParam('sortBy', e.target.value, false)}
+          className={SELECT_CLASS}
+          aria-label="Sort by"
+        >
+          {TASK_SORT_BY.map((s) => (
+            <option key={s} value={s}>
+              {SORT_BY_LABELS[s]}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={currentSortOrder}
+          onChange={(e) => updateParam('sortOrder', e.target.value, false)}
+          className={SELECT_CLASS}
+          aria-label="Sort order"
+        >
+          <option value="desc">Newest first</option>
+          <option value="asc">Oldest first</option>
+        </select>
+
+        <select
+          value={currentPageSize}
+          onChange={(e) => updateParam('pageSize', e.target.value)}
+          className={SELECT_CLASS}
+          aria-label="Items per page"
+        >
+          {TASK_PAGE_SIZES.map((n) => (
+            <option key={n} value={n}>
+              {n} per page
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

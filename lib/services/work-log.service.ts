@@ -3,12 +3,22 @@ import type { WorkLog } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { getTaskById } from '@/lib/services/task.service';
 import type { CreateWorkLogInput, UpdateWorkLogInput, WorkLogFilters } from '@/lib/schemas/work-log.schema';
+import { workLogFiltersSchema } from '@/lib/schemas/work-log.schema';
 
 export type WorkLogWithTask = WorkLog & { task: { id: string; title: string } | null };
 
+export interface PagedWorkLogs {
+  logs: WorkLogWithTask[];
+  total: number;
+  totalHours: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export async function getWorkLogsByUser(
   userId: string,
-  filters: WorkLogFilters = {},
+  filters: WorkLogFilters = workLogFiltersSchema.parse({}),
 ): Promise<WorkLogWithTask[]> {
   return prisma.workLog.findMany({
     where: {
@@ -26,6 +36,47 @@ export async function getWorkLogsByUser(
     include: { task: { select: { id: true, title: true } } },
     orderBy: { date: 'desc' },
   });
+}
+
+export async function getWorkLogsByUserPaged(
+  userId: string,
+  filters: WorkLogFilters,
+): Promise<PagedWorkLogs> {
+  const { taskId, dateFrom, dateTo, sortOrder, page, pageSize } = filters;
+
+  const where = {
+    userId,
+    ...(taskId ? { taskId } : {}),
+    ...(dateFrom ?? dateTo
+      ? {
+          date: {
+            ...(dateFrom ? { gte: dateFrom } : {}),
+            ...(dateTo ? { lte: dateTo } : {}),
+          },
+        }
+      : {}),
+  };
+
+  const [logs, total, agg] = await prisma.$transaction([
+    prisma.workLog.findMany({
+      where,
+      include: { task: { select: { id: true, title: true } } },
+      orderBy: { createdAt: sortOrder },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.workLog.count({ where }),
+    prisma.workLog.aggregate({ where, _sum: { timeSpent: true } }),
+  ]);
+
+  return {
+    logs,
+    total,
+    totalHours: agg._sum.timeSpent ?? 0,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
 }
 
 export async function getWorkLogsByTask(userId: string, taskId: string): Promise<WorkLog[]> {
