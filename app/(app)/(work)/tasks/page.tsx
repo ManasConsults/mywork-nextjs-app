@@ -4,10 +4,11 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getTasksByUser } from '@/lib/services/task.service';
+import { getTasksByUserPaged } from '@/lib/services/task.service';
 import { taskFiltersSchema } from '@/lib/schemas/task.schema';
 import { TaskFilters } from './_components/TaskFilters';
 import { TaskList } from './_components/TaskList';
+import { TaskPagination } from './_components/TaskPagination';
 
 export const metadata: Metadata = { title: 'MyWork — Tasks' };
 
@@ -23,9 +24,13 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
   const filters = taskFiltersSchema.parse({
     status: typeof params.status === 'string' ? params.status : undefined,
     priority: typeof params.priority === 'string' ? params.priority : undefined,
+    sortBy: typeof params.sortBy === 'string' ? params.sortBy : undefined,
+    sortOrder: typeof params.sortOrder === 'string' ? params.sortOrder : undefined,
+    page: typeof params.page === 'string' ? params.page : undefined,
+    pageSize: typeof params.pageSize === 'string' ? params.pageSize : undefined,
   });
 
-  const tasks = await getTasksByUser(userId, filters);
+  const { tasks, total, page, pageSize, totalPages } = await getTasksByUserPaged(userId, filters);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -48,9 +53,18 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
       </div>
 
       <Suspense>
-        <TaskFilters currentStatus={filters.status} currentPriority={filters.priority} />
+        <TaskFilters
+          currentStatus={filters.status}
+          currentPriority={filters.priority}
+          currentSortBy={filters.sortBy}
+          currentSortOrder={filters.sortOrder}
+          currentPageSize={filters.pageSize}
+        />
       </Suspense>
       <TaskList tasks={tasks} />
+      <Suspense>
+        <TaskPagination page={page} totalPages={totalPages} total={total} pageSize={pageSize} />
+      </Suspense>
     </div>
   );
 }

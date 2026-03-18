@@ -16,9 +16,23 @@ export const saveDraftSchema = z.object({
   body: tiptapDocSchema,
 });
 
+export const NOTE_SORT_BY = ['createdAt', 'updatedAt'] as const;
+export const NOTE_PAGE_SIZES = [10, 20, 50, 100] as const;
+export const NOTE_DEFAULT_PAGE_SIZE = 20;
+
 export const noteFiltersSchema = z.object({
   tag: z.string().optional(),
   taskId: z.string().uuid().optional(),
+  sortBy: z.enum(NOTE_SORT_BY).default('updatedAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .refine((v) => (NOTE_PAGE_SIZES as readonly number[]).includes(v), {
+      message: 'Invalid page size',
+    })
+    .default(NOTE_DEFAULT_PAGE_SIZE),
 });
 
 // Use z.input<> so callers don't need to pass `tags` (it has a default)

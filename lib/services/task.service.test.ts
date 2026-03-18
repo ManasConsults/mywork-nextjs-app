@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import { taskFiltersSchema } from '@/lib/schemas/task.schema';
 import {
   getTasksByUser,
   getTaskById,
@@ -56,7 +57,7 @@ describe('getTasksByUser', () => {
   it('applies status filter when provided', async () => {
     mockPrismaTask.findMany.mockResolvedValue([]);
 
-    await getTasksByUser(userId, { status: 'IN_PROGRESS' });
+    await getTasksByUser(userId, taskFiltersSchema.parse({ status: 'IN_PROGRESS' }));
 
     expect(mockPrismaTask.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -68,7 +69,7 @@ describe('getTasksByUser', () => {
   it('applies priority filter when provided', async () => {
     mockPrismaTask.findMany.mockResolvedValue([]);
 
-    await getTasksByUser(userId, { priority: 'HIGH' });
+    await getTasksByUser(userId, taskFiltersSchema.parse({ priority: 'HIGH' }));
 
     expect(mockPrismaTask.findMany).toHaveBeenCalledWith(
       expect.objectContaining({

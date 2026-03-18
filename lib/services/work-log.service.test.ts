@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import * as taskService from '@/lib/services/task.service';
+import { workLogFiltersSchema } from '@/lib/schemas/work-log.schema';
 import {
   getWorkLogsByUser,
   getWorkLogsByTask,
@@ -28,7 +29,7 @@ const mockWorkLog = prisma.workLog as jest.Mocked<typeof prisma.workLog>;
 const mockGetTaskById = taskService.getTaskById as jest.MockedFunction<typeof taskService.getTaskById>;
 
 const userId = 'user-1';
-const taskId = 'task-1';
+const taskId = '123e4567-e89b-12d3-a456-426614174000';
 const workLogId = 'wl-1';
 
 const baseTask = {
@@ -81,7 +82,7 @@ describe('getWorkLogsByUser', () => {
   it('applies taskId filter', async () => {
     mockWorkLog.findMany.mockResolvedValue([]);
 
-    await getWorkLogsByUser(userId, { taskId });
+    await getWorkLogsByUser(userId, workLogFiltersSchema.parse({ taskId }));
 
     expect(mockWorkLog.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: expect.objectContaining({ taskId }) }),
@@ -93,7 +94,7 @@ describe('getWorkLogsByUser', () => {
     const dateFrom = new Date('2026-01-01');
     const dateTo = new Date('2026-12-31');
 
-    await getWorkLogsByUser(userId, { dateFrom, dateTo });
+    await getWorkLogsByUser(userId, workLogFiltersSchema.parse({ dateFrom, dateTo }));
 
     expect(mockWorkLog.findMany).toHaveBeenCalledWith(
       expect.objectContaining({

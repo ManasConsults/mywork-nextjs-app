@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import * as taskService from '@/lib/services/task.service';
+import { noteFiltersSchema } from '@/lib/schemas/note.schema';
 import {
   getNotesByUser,
   getNoteById,
@@ -123,7 +124,7 @@ describe('getNotesByUser', () => {
   it('applies tag filter using { has: tag }', async () => {
     mockNote.findMany.mockResolvedValue([]);
 
-    await getNotesByUser(userId, { tag: 'work' });
+    await getNotesByUser(userId, noteFiltersSchema.parse({ tag: 'work' }));
 
     expect(mockNote.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -135,7 +136,7 @@ describe('getNotesByUser', () => {
   it('applies taskId filter', async () => {
     mockNote.findMany.mockResolvedValue([]);
 
-    await getNotesByUser(userId, { taskId });
+    await getNotesByUser(userId, noteFiltersSchema.parse({ taskId }));
 
     expect(mockNote.findMany).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import * as taskService from '@/lib/services/task.service';
+import { achievementFiltersSchema } from '@/lib/schemas/achievement.schema';
 import {
   getAchievementsByUser,
   getAchievementById,
@@ -80,7 +81,7 @@ describe('getAchievementsByUser', () => {
   it('applies category filter', async () => {
     mockAchievement.findMany.mockResolvedValue([]);
 
-    await getAchievementsByUser(userId, { category: 'Leadership' });
+    await getAchievementsByUser(userId, achievementFiltersSchema.parse({ category: 'Leadership' }));
 
     expect(mockAchievement.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -92,7 +93,7 @@ describe('getAchievementsByUser', () => {
   it('applies fiscal year date range when reviewYear provided', async () => {
     mockAchievement.findMany.mockResolvedValue([]);
 
-    await getAchievementsByUser(userId, { reviewYear: 2026 }, 4);
+    await getAchievementsByUser(userId, achievementFiltersSchema.parse({ reviewYear: 2026 }), 4);
 
     const call = mockAchievement.findMany.mock.calls[0][0] as { where: { dateAchieved?: { gte: Date; lte: Date } } };
     expect(call.where.dateAchieved).toBeDefined();
