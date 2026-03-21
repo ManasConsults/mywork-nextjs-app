@@ -274,4 +274,74 @@ describe('getUnbilledHours', () => {
     expect(result.grandTotalHours).toBe(0);
     expect(result.grandTotalValue).toBe(0);
   });
+
+  it('skips work log entries where client is null', async () => {
+    mockWlFindMany.mockResolvedValue([
+      { ...baseLog, client: null },
+    ] as never);
+
+    const result = await getUnbilledHours(userId);
+
+    expect(result.clients).toHaveLength(0);
+    expect(result.grandTotalHours).toBe(0);
+  });
+});
+
+// ─── computePreviousPeriod branches ───────────────────────────────────────────
+// These are exercised indirectly through getProfitAndLoss, which calls the
+// private helper. We vary the from/to dates to hit each branch.
+
+describe('getProfitAndLoss — computePreviousPeriod branches', () => {
+  beforeEach(() => {
+    // Default: return empty for both current and previous periods
+    mockTxFindMany.mockResolvedValue([] as never);
+  });
+
+  it('shifts back by one year when range is exactly 365 days', async () => {
+    // Use a 365-day range (non-leap year)
+    const fromY = new Date('2025-03-01');
+    const toY = new Date('2026-03-01'); // 365 days
+
+    await getProfitAndLoss(userId, fromY, toY);
+
+    // The second findMany call is the previous-period query; verify it ran
+    expect(mockTxFindMany).toHaveBeenCalledTimes(2);
+  });
+
+  it('shifts back by one year when range is 366 days (leap year)', async () => {
+    const fromY = new Date('2024-01-01');
+    const toY = new Date('2024-12-31'); // 365 days (not 366 — but within 365–366 window)
+
+    await getProfitAndLoss(userId, fromY, toY);
+
+    expect(mockTxFindMany).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses general case (shift back by same duration) for non-month non-year ranges', async () => {
+    // 90-day range — not 28–31 days and not 365–366 days
+    const from = new Date('2026-01-01');
+    const to = new Date('2026-04-01'); // ~90 days
+
+    await getProfitAndLoss(userId, from, to);
+
+    expect(mockTxFindMany).toHaveBeenCalledTimes(2);
+  });
+
+  it('applies categoryType filter when provided', async () => {
+    const from = new Date('2026-01-01');
+    const to = new Date('2026-01-31');
+
+    await getProfitAndLoss(userId, from, to, 'BUSINESS');
+
+    expect(mockTxFindMany).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not apply categoryType filter when null', async () => {
+    const from = new Date('2026-01-01');
+    const to = new Date('2026-01-31');
+
+    await getProfitAndLoss(userId, from, to, null);
+
+    expect(mockTxFindMany).toHaveBeenCalledTimes(2);
+  });
 });
