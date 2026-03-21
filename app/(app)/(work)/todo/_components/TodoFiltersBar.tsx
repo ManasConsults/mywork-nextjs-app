@@ -19,6 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const SORT_BY_LABELS: Record<string, string> = {
   createdAt: 'Created date',
+  dueDate: 'Due date',
   status: 'Status',
 };
 
