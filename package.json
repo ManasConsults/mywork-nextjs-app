@@ -38,6 +38,11 @@
     "tiptap-markdown": "^0.9.0",
     "zod": "^4.3.6"
   },
+  "overrides": {
+    "hono": "^4.12.8",
+    "effect": "^3.21.0",
+    "@hono/node-server": "^1.19.11"
+  },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",

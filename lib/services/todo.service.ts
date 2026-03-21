@@ -41,7 +41,9 @@ export async function getTodosByUserPaged(
   const orderBy: Prisma.TodoItemOrderByWithRelationInput[] =
     sortBy === 'status'
       ? [{ isDone: sortOrder }, { createdAt: 'desc' as const }]
-      : [{ createdAt: sortOrder }];
+      : sortBy === 'dueDate'
+        ? [{ dueDate: { sort: sortOrder, nulls: 'last' } }, { createdAt: 'desc' as const }]
+        : [{ createdAt: sortOrder }];
 
   const [todos, total] = await prisma.$transaction([
     prisma.todoItem.findMany({

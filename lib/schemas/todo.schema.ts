@@ -13,7 +13,7 @@ export const updateTodoSchema = z.object({
   taskId: z.string().uuid().optional().nullable(),
 });
 
-export const TODO_SORT_BY = ['createdAt', 'status'] as const;
+export const TODO_SORT_BY = ['createdAt', 'dueDate', 'status'] as const;
 export const TODO_STATUS_FILTER = ['incomplete', 'complete', 'all'] as const;
 export const TODO_PAGE_SIZES = [10, 20, 50, 100] as const;
 export const TODO_DEFAULT_PAGE_SIZE = 20;

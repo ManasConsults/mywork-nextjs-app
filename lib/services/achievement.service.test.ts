@@ -3,6 +3,7 @@ import * as taskService from '@/lib/services/task.service';
 import { achievementFiltersSchema } from '@/lib/schemas/achievement.schema';
 import {
   getAchievementsByUser,
+  getAchievementsByUserPaged,
   getAchievementById,
   createAchievement,
   updateAchievement,
@@ -16,7 +17,9 @@ jest.mock('@/lib/db/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -26,6 +29,7 @@ jest.mock('@/lib/services/task.service', () => ({
 
 const mockAchievement = prisma.achievement as jest.Mocked<typeof prisma.achievement>;
 const mockGetTaskById = taskService.getTaskById as jest.MockedFunction<typeof taskService.getTaskById>;
+const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
 
 const userId = 'user-1';
 const achievementId = 'ach-1';
@@ -205,5 +209,101 @@ describe('softDeleteAchievement', () => {
 
     expect(result).toBe(false);
     expect(mockAchievement.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('getAchievementsByUserPaged', () => {
+  const defaultFilters = achievementFiltersSchema.parse({});
+  const withTask = { ...baseAchievement, task: null };
+
+  function mockPagedTransaction(achievements: object[], total: number) {
+    mockPrismaTransaction.mockResolvedValue([achievements, total] as never);
+  }
+
+  it('returns paged achievements with total, page, pageSize, totalPages', async () => {
+    mockPagedTransaction([withTask], 1);
+
+    const result = await getAchievementsByUserPaged(userId, defaultFilters);
+
+    expect(result.achievements).toHaveLength(1);
+    expect(result.total).toBe(1);
+    expect(result.page).toBe(1);
+    expect(result.pageSize).toBe(20);
+    expect(result.totalPages).toBe(1);
+  });
+
+  it('applies category filter', async () => {
+    mockPagedTransaction([], 0);
+
+    await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({ category: 'Leadership' }));
+
+    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies reviewYear fiscal year date range filter', async () => {
+    mockPagedTransaction([], 0);
+
+    await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({ reviewYear: 2026 }), 4);
+
+    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('works without reviewYear (no date range filter applied)', async () => {
+    mockPagedTransaction([withTask], 1);
+
+    const result = await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({}));
+
+    expect(result.achievements).toHaveLength(1);
+  });
+
+  it('sorts by createdAt desc', async () => {
+    mockPagedTransaction([withTask], 1);
+
+    const result = await getAchievementsByUserPaged(
+      userId,
+      achievementFiltersSchema.parse({ sortBy: 'createdAt', sortOrder: 'desc' }),
+    );
+
+    expect(result.achievements).toHaveLength(1);
+  });
+
+  it('sorts by updatedAt desc', async () => {
+    mockPagedTransaction([withTask], 1);
+
+    const result = await getAchievementsByUserPaged(
+      userId,
+      achievementFiltersSchema.parse({ sortBy: 'updatedAt', sortOrder: 'desc' }),
+    );
+
+    expect(result.achievements).toHaveLength(1);
+  });
+
+  it('page 2 offsets correctly', async () => {
+    mockPagedTransaction([withTask], 25);
+
+    const result = await getAchievementsByUserPaged(
+      userId,
+      achievementFiltersSchema.parse({ page: 2, pageSize: 20 }),
+    );
+
+    expect(result.page).toBe(2);
+    expect(result.total).toBe(25);
+    expect(result.totalPages).toBe(2);
+  });
+
+  it('totalPages rounds up — 21 items / 20 per page = 2 pages', async () => {
+    mockPagedTransaction([], 21);
+
+    const result = await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({ pageSize: 20 }));
+
+    expect(result.totalPages).toBe(2);
+  });
+
+  it('totalPages is at minimum 1 when total is 0', async () => {
+    mockPagedTransaction([], 0);
+
+    const result = await getAchievementsByUserPaged(userId, defaultFilters);
+
+    expect(result.totalPages).toBe(1);
   });
 });

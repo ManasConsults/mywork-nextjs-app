@@ -3,6 +3,7 @@ import * as taskService from '@/lib/services/task.service';
 import { noteFiltersSchema } from '@/lib/schemas/note.schema';
 import {
   getNotesByUser,
+  getNotesByUserPaged,
   getNoteById,
   createNote,
   updateNote,
@@ -19,7 +20,9 @@ jest.mock('@/lib/db/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -29,6 +32,7 @@ jest.mock('@/lib/services/task.service', () => ({
 
 const mockNote = prisma.note as jest.Mocked<typeof prisma.note>;
 const mockGetTaskById = taskService.getTaskById as jest.MockedFunction<typeof taskService.getTaskById>;
+const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
 
 const userId = 'user-1';
 const noteId = 'note-1';
@@ -170,6 +174,16 @@ describe('getNoteById', () => {
 describe('createNote', () => {
   const input = { body: validBody, tags: ['work'] };
 
+  it('uses empty array default when tags not provided', async () => {
+    mockNote.create.mockResolvedValue(baseNote as never);
+
+    await createNote(userId, { body: validBody });
+
+    expect(mockNote.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ tags: [] }) }),
+    );
+  });
+
   it('creates note without task', async () => {
     mockNote.create.mockResolvedValue(baseNote as never);
 
@@ -219,6 +233,20 @@ describe('updateNote', () => {
 
     expect(result).toBeNull();
     expect(mockNote.update).not.toHaveBeenCalled();
+  });
+
+  it('omits title from update data when title is undefined', async () => {
+    const withTask = { ...baseNote, task: null };
+    mockNote.findFirst.mockResolvedValue(withTask as never);
+    mockNote.update.mockResolvedValue(baseNote as never);
+
+    // Pass only tags — title and body are undefined, so they should NOT appear in data
+    await updateNote(userId, noteId, { tags: ['q2'] });
+
+    const updateCall = mockNote.update.mock.calls[0][0] as { data: Record<string, unknown> };
+    expect(updateCall.data).not.toHaveProperty('title');
+    expect(updateCall.data).not.toHaveProperty('body');
+    expect(updateCall.data).toHaveProperty('tags');
   });
 
   it('re-checks task ownership when taskId provided', async () => {
@@ -288,5 +316,84 @@ describe('softDeleteNote', () => {
 
     expect(result).toBe(false);
     expect(mockNote.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('getNotesByUserPaged', () => {
+  const defaultFilters = noteFiltersSchema.parse({});
+  const withTask = { ...baseNote, task: null };
+
+  function mockPagedTransaction(notes: object[], total: number) {
+    mockPrismaTransaction.mockResolvedValue([notes, total] as never);
+  }
+
+  it('returns paged notes with total, page, pageSize, totalPages', async () => {
+    mockPagedTransaction([withTask], 1);
+
+    const result = await getNotesByUserPaged(userId, defaultFilters);
+
+    expect(result.notes).toHaveLength(1);
+    expect(result.total).toBe(1);
+    expect(result.page).toBe(1);
+    expect(result.pageSize).toBe(20);
+    expect(result.totalPages).toBe(1);
+  });
+
+  it('applies tag filter', async () => {
+    mockPagedTransaction([], 0);
+
+    await getNotesByUserPaged(userId, noteFiltersSchema.parse({ tag: 'work' }));
+
+    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies taskId filter', async () => {
+    mockPagedTransaction([], 0);
+
+    await getNotesByUserPaged(userId, noteFiltersSchema.parse({ taskId }));
+
+    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('sorts by updatedAt desc by default', async () => {
+    mockPagedTransaction([withTask], 1);
+
+    const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ sortBy: 'updatedAt', sortOrder: 'desc' }));
+
+    expect(result.notes).toHaveLength(1);
+  });
+
+  it('sorts by createdAt desc', async () => {
+    mockPagedTransaction([withTask], 1);
+
+    const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ sortBy: 'createdAt', sortOrder: 'desc' }));
+
+    expect(result.notes).toHaveLength(1);
+  });
+
+  it('page 2 offsets correctly', async () => {
+    mockPagedTransaction([withTask], 25);
+
+    const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ page: 2, pageSize: 20 }));
+
+    expect(result.page).toBe(2);
+    expect(result.total).toBe(25);
+    expect(result.totalPages).toBe(2);
+  });
+
+  it('totalPages rounds up — 21 items / 20 per page = 2 pages', async () => {
+    mockPagedTransaction([], 21);
+
+    const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ pageSize: 20 }));
+
+    expect(result.totalPages).toBe(2);
+  });
+
+  it('totalPages is at minimum 1 when total is 0', async () => {
+    mockPagedTransaction([], 0);
+
+    const result = await getNotesByUserPaged(userId, defaultFilters);
+
+    expect(result.totalPages).toBe(1);
   });
 });

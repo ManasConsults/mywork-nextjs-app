@@ -20,6 +20,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               MyWork Admin
             </span>
             <Link
+              href="/admin"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
+              Dashboard
+            </Link>
+            <Link
               href="/admin/users"
               className="text-sm font-medium text-gray-700 hover:text-gray-900"
             >
