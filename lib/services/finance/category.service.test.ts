@@ -1,4 +1,11 @@
-import { getCategories, createCategory, deleteCategory, seedDefaultCategories } from './category.service';
+import {
+  getCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  seedDefaultCategories,
+} from './category.service';
 
 jest.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -19,6 +26,7 @@ import { prisma } from '@/lib/db/prisma';
 const mockFindMany = (prisma.category as jest.Mocked<typeof prisma.category>).findMany;
 const mockFindFirst = (prisma.category as jest.Mocked<typeof prisma.category>).findFirst;
 const mockCreate = (prisma.category as jest.Mocked<typeof prisma.category>).create;
+const mockUpdate = (prisma.category as jest.Mocked<typeof prisma.category>).update;
 const mockDelete = (prisma.category as jest.Mocked<typeof prisma.category>).delete;
 const mockCount = (prisma.category as jest.Mocked<typeof prisma.category>).count;
 const mockCreateMany = (prisma.category as jest.Mocked<typeof prisma.category>).createMany;
@@ -27,6 +35,26 @@ const userId = 'user-1';
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe('getCategoryById', () => {
+  it('returns category when found for the user', async () => {
+    const cat = { id: 'cat-1', userId, name: 'Groceries', type: 'PERSONAL' as const, parentId: null, colour: null, icon: null, createdAt: new Date() };
+    mockFindFirst.mockResolvedValue(cat as never);
+
+    const result = await getCategoryById(userId, 'cat-1');
+
+    expect(mockFindFirst).toHaveBeenCalledWith({ where: { id: 'cat-1', userId } });
+    expect(result).toEqual(cat);
+  });
+
+  it('returns null when category belongs to a different user', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    const result = await getCategoryById('other-user', 'cat-1');
+
+    expect(result).toBeNull();
+  });
 });
 
 describe('getCategories', () => {
@@ -57,6 +85,29 @@ describe('createCategory', () => {
     const result = await createCategory(userId, { name: 'Groceries', type: 'PERSONAL' });
     expect(mockCreate).toHaveBeenCalledWith({ data: { name: 'Groceries', type: 'PERSONAL', userId } });
     expect(result).toEqual(cat);
+  });
+});
+
+describe('updateCategory', () => {
+  it('returns null when category not found', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    const result = await updateCategory(userId, 'cat-1', { name: 'Updated' });
+
+    expect(result).toBeNull();
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it('updates and returns the category when found', async () => {
+    const existing = { id: 'cat-1', userId, name: 'Old', type: 'PERSONAL' as const, parentId: null, colour: null, icon: null, createdAt: new Date() };
+    const updated = { ...existing, name: 'Updated' };
+    mockFindFirst.mockResolvedValue(existing as never);
+    mockUpdate.mockResolvedValue(updated as never);
+
+    const result = await updateCategory(userId, 'cat-1', { name: 'Updated' });
+
+    expect(mockUpdate).toHaveBeenCalledWith({ where: { id: 'cat-1' }, data: { name: 'Updated' } });
+    expect(result?.name).toBe('Updated');
   });
 });
 

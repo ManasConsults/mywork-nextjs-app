@@ -3,12 +3,14 @@ import {
   getInvoiceById,
   createInvoice,
   generateInvoiceNumber,
+  updateInvoice,
   sendInvoice,
   markInvoicePaid,
   cancelInvoice,
   revertToDraft,
   deleteInvoice,
   resolveInvoiceStatus,
+  sendPaymentReminder,
 } from './invoice.service';
 
 jest.mock('@/lib/db/prisma', () => ({
@@ -617,5 +619,338 @@ describe('deleteInvoice', () => {
     expect(mockInvoiceFindFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: expect.objectContaining({ userId }) }),
     );
+  });
+});
+
+// ─── updateInvoice ────────────────────────────────────────────────────────────
+
+describe('updateInvoice', () => {
+  it('returns null when invoice not found', async () => {
+    mockInvoiceFindFirst.mockResolvedValue(null);
+
+
+    const result = await updateInvoice(userId, invoiceId, { notes: 'updated' });
+
+    expect(result).toBeNull();
+    expect(mockInvoiceUpdate).not.toHaveBeenCalled();
+  });
+
+  it('throws when invoice is not DRAFT', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({ ...baseInvoice, status: 'SENT' as const } as never);
+
+
+
+    await expect(updateInvoice(userId, invoiceId, { notes: 'x' })).rejects.toThrow(
+      'Only DRAFT invoices can be edited',
+    );
+    expect(mockInvoiceUpdate).not.toHaveBeenCalled();
+  });
+
+  it('updates a DRAFT invoice successfully', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({ ...baseInvoice, status: 'DRAFT' as const } as never);
+    const updated = { ...baseInvoice, notes: 'updated note' };
+    mockInvoiceUpdate.mockResolvedValue(updated as never);
+
+
+    const result = await updateInvoice(userId, invoiceId, { notes: 'updated note' });
+
+    expect(mockInvoiceUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: invoiceId }, data: expect.objectContaining({ notes: 'updated note' }) }),
+    );
+    expect(result?.notes).toBe('updated note');
+  });
+});
+
+// ─── revertToDraft with work log IDs ─────────────────────────────────────────
+
+describe('revertToDraft (with linked work logs)', () => {
+  it('clears billedAt on linked work logs when reverting a SENT invoice', async () => {
+    const workLogId = 'wl-1';
+    const sentInvoice = {
+      ...baseInvoice,
+      status: 'SENT' as const,
+      lineItems: [{ workLogId }],
+    };
+    const draftInvoice = { ...baseInvoice, status: 'DRAFT' as const, sentAt: null, subtotal: 0, taxAmount: 0, total: 0 };
+
+    mockInvoiceFindFirst.mockResolvedValue(sentInvoice as never);
+
+    const mockWorkLogUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+    mockPrismaTransaction.mockImplementation(async (fn) => {
+      const tx = {
+        invoice: { update: jest.fn().mockResolvedValue(draftInvoice) },
+        workLog: { updateMany: mockWorkLogUpdateMany },
+      };
+      return fn(tx as never);
+    });
+
+    await revertToDraft(userId, invoiceId);
+
+    expect(mockWorkLogUpdateMany).toHaveBeenCalledWith({
+      where: { id: { in: [workLogId] } },
+      data: { billedAt: null },
+    });
+  });
+
+  it('does not call workLog.updateMany when no linked work logs', async () => {
+    const sentInvoice = {
+      ...baseInvoice,
+      status: 'SENT' as const,
+      lineItems: [{ workLogId: null }],
+    };
+    const draftInvoice = { ...baseInvoice, status: 'DRAFT' as const, sentAt: null, subtotal: 0, taxAmount: 0, total: 0 };
+
+    mockInvoiceFindFirst.mockResolvedValue(sentInvoice as never);
+
+    const mockWorkLogUpdateMany = jest.fn();
+    mockPrismaTransaction.mockImplementation(async (fn) => {
+      const tx = {
+        invoice: { update: jest.fn().mockResolvedValue(draftInvoice) },
+        workLog: { updateMany: mockWorkLogUpdateMany },
+      };
+      return fn(tx as never);
+    });
+
+    await revertToDraft(userId, invoiceId);
+
+    expect(mockWorkLogUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it('throws when invoice not found', async () => {
+    mockInvoiceFindFirst.mockResolvedValue(null);
+
+    await expect(revertToDraft(userId, invoiceId)).rejects.toThrow('Invoice not found');
+  });
+});
+
+// ─── sendPaymentReminder ──────────────────────────────────────────────────────
+
+describe('sendPaymentReminder', () => {
+  it('throws when invoice not found', async () => {
+    mockInvoiceFindFirst.mockResolvedValue(null);
+
+
+    await expect(sendPaymentReminder(userId, invoiceId)).rejects.toThrow('Invoice not found');
+  });
+
+  it('throws when invoice is not SENT', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({ ...baseInvoice, status: 'DRAFT' as const } as never);
+
+
+    await expect(sendPaymentReminder(userId, invoiceId)).rejects.toThrow(
+      'Reminders can only be sent for SENT invoices',
+    );
+  });
+
+  it('throws when invoice is SENT but not yet overdue (dueDate in future)', async () => {
+    const future = new Date(Date.now() + 86400000 * 7);
+    mockInvoiceFindFirst.mockResolvedValue({
+      ...baseInvoice,
+      status: 'SENT' as const,
+      dueDate: future,
+    } as never);
+
+
+    await expect(sendPaymentReminder(userId, invoiceId)).rejects.toThrow(
+      'Reminders can only be sent for overdue invoices',
+    );
+  });
+
+  it('throws when invoice is SENT but has no dueDate', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({
+      ...baseInvoice,
+      status: 'SENT' as const,
+      dueDate: null,
+    } as never);
+
+
+    await expect(sendPaymentReminder(userId, invoiceId)).rejects.toThrow(
+      'Reminders can only be sent for overdue invoices',
+    );
+  });
+
+  it('increments reminderCount and sets lastReminderAt for an overdue SENT invoice', async () => {
+    const pastDue = new Date(Date.now() - 86400000 * 3);
+    mockInvoiceFindFirst.mockResolvedValue({
+      ...baseInvoice,
+      status: 'SENT' as const,
+      dueDate: pastDue,
+    } as never);
+
+    const updatedAt = new Date();
+    mockInvoiceUpdate.mockResolvedValue({
+      ...baseInvoice,
+      status: 'SENT' as const,
+      reminderCount: 1,
+      lastReminderAt: updatedAt,
+    } as never);
+
+
+    const result = await sendPaymentReminder(userId, invoiceId);
+
+    expect(mockInvoiceUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: invoiceId },
+        data: expect.objectContaining({ reminderCount: { increment: 1 } }),
+      }),
+    );
+    expect(result.reminderCount).toBe(1);
+    expect(result.lastReminderAt).toEqual(updatedAt);
+  });
+
+  it('falls back to now when lastReminderAt is null on the updated record', async () => {
+    const pastDue = new Date(Date.now() - 86400000 * 3);
+    mockInvoiceFindFirst.mockResolvedValue({
+      ...baseInvoice,
+      status: 'SENT' as const,
+      dueDate: pastDue,
+    } as never);
+
+    mockInvoiceUpdate.mockResolvedValue({
+      ...baseInvoice,
+      status: 'SENT' as const,
+      reminderCount: 1,
+      lastReminderAt: null,
+    } as never);
+
+
+    const result = await sendPaymentReminder(userId, invoiceId);
+
+    expect(result.lastReminderAt).toBeInstanceOf(Date);
+  });
+});
+
+// ─── assertTransition fallback branch (unknown current status → ?? []) ────────
+
+describe('assertTransition fallback — unknown status key', () => {
+  it('throws when current status is an unknown value (uses ?? [] fallback)', async () => {
+    // Give an invoice with a status value not present in ALLOWED_TRANSITIONS
+    mockInvoiceFindFirst.mockResolvedValue({
+      ...baseInvoice,
+      status: 'UNKNOWN_STATUS' as never,
+    } as never);
+
+    await expect(markInvoicePaid(userId, invoiceId)).rejects.toThrow(
+      'Cannot transition invoice from UNKNOWN_STATUS to PAID',
+    );
+  });
+});
+
+// ─── generateInvoiceNumber — isNaN branch ────────────────────────────────────
+
+describe('generateInvoiceNumber — isNaN branch', () => {
+  it('treats non-numeric sequence as 0 when invoice number has non-numeric part', async () => {
+    const year = new Date().getFullYear();
+    mockInvoiceFindMany.mockResolvedValue([
+      { invoiceNumber: `INV-${year}-ABC` }, // parts[2] = 'ABC' → isNaN → 0
+      { invoiceNumber: `INV-${year}-005` },
+    ] as never);
+
+    const result = await generateInvoiceNumber(userId);
+
+    expect(result).toBe(`INV-${year}-006`);
+  });
+});
+
+// ─── createInvoice — default taxRate and currency branches ───────────────────
+
+describe('createInvoice — default field branches', () => {
+  it('applies taxRate=0 default when not provided', async () => {
+    mockInvoiceFindMany.mockResolvedValue([]);
+    mockInvoiceCreate.mockResolvedValue({ ...baseInvoice, taxRate: 0 } as never);
+
+    await createInvoice(userId, { clientId, issueDate: now, currency: 'GBP', taxRate: 0 });
+
+    expect(mockInvoiceCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ taxRate: 0 }),
+      }),
+    );
+  });
+
+  it('applies currency=GBP default when not provided', async () => {
+    mockInvoiceFindMany.mockResolvedValue([]);
+    mockInvoiceCreate.mockResolvedValue({ ...baseInvoice } as never);
+
+    await createInvoice(userId, { clientId, issueDate: now, taxRate: 0, currency: 'GBP' });
+
+    expect(mockInvoiceCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ currency: 'GBP' }),
+      }),
+    );
+  });
+});
+
+// ─── updateInvoice — optional field spread branches ──────────────────────────
+
+describe('updateInvoice — optional field spreads', () => {
+  it('includes all provided optional fields in the update data', async () => {
+    mockInvoiceFindFirst.mockResolvedValue({ ...baseInvoice, status: 'DRAFT' as const } as never);
+    const updated = { ...baseInvoice, taxRate: 2000, currency: 'USD' };
+    mockInvoiceUpdate.mockResolvedValue(updated as never);
+
+    const issueDate = new Date('2026-04-01');
+    const dueDate = new Date('2026-04-30');
+    const result = await updateInvoice(userId, invoiceId, {
+      clientId,
+      issueDate,
+      dueDate,
+      notes: 'test note',
+      taxRate: 2000,
+      currency: 'USD',
+    });
+
+    expect(mockInvoiceUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          clientId,
+          issueDate,
+          dueDate,
+          notes: 'test note',
+          taxRate: 2000,
+          currency: 'USD',
+        }),
+      }),
+    );
+    expect(result?.currency).toBe('USD');
+  });
+});
+
+// ─── markInvoicePaid — explicit paidAt branch ────────────────────────────────
+
+describe('markInvoicePaid — explicit paidAt', () => {
+  it('uses the provided paidAt date instead of new Date()', async () => {
+    const sentInvoice = { ...baseInvoice, status: 'SENT' as const };
+    const explicitPaidAt = new Date('2026-03-15T10:00:00Z');
+    const paidInvoice = { ...baseInvoice, status: 'PAID' as const, paidAt: explicitPaidAt };
+
+    mockInvoiceFindFirst.mockResolvedValue(sentInvoice as never);
+    mockInvoiceUpdate.mockResolvedValue(paidInvoice as never);
+
+    const result = await markInvoicePaid(userId, invoiceId, explicitPaidAt);
+
+    expect(mockInvoiceUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ paidAt: explicitPaidAt }),
+      }),
+    );
+    expect(result.paidAt).toEqual(explicitPaidAt);
+  });
+
+  it('throws when invoice not found', async () => {
+    mockInvoiceFindFirst.mockResolvedValue(null);
+
+    await expect(markInvoicePaid(userId, invoiceId)).rejects.toThrow('Invoice not found');
+  });
+});
+
+// ─── cancelInvoice — not found ────────────────────────────────────────────────
+
+describe('cancelInvoice — not found', () => {
+  it('throws when invoice not found', async () => {
+    mockInvoiceFindFirst.mockResolvedValue(null);
+
+    await expect(cancelInvoice(userId, invoiceId)).rejects.toThrow('Invoice not found');
   });
 });
