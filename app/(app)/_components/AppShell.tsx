@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { Sidebar } from './Sidebar';
 import { ThemeToggle } from './ThemeToggle';
+import { FeedbackButton } from './FeedbackButton';
 
 interface SidebarUser {
   name?: string | null;
@@ -49,6 +50,7 @@ export function AppShell({
           </button>
 
           <div className="flex items-center gap-1">
+            <FeedbackButton />
             {isAdmin && (
               <Link
                 href="/admin/users"

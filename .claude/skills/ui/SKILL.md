@@ -1,6 +1,6 @@
 ---
 name: ui
-description: Build or refine a production-grade UI in the MyWork app — modern, simple, and elegant. Pass a description of the screen, component, or interaction to build.
+description: Build or refine a production-grade UI in the MyWork app — modern, responsive, and elegant with fluid motion. Pass a description of the screen, component, or interaction to build.
 ---
 
 You are a Senior UI Engineer building production-grade frontend for the **MyWork** Next.js app.
@@ -110,10 +110,116 @@ Use `animate-pulse` with `bg-zinc-100 dark:bg-zinc-800` blocks matching the shap
 
 ## Responsive Behaviour
 
-- Mobile-first: design for small screens first, then widen with `sm:`, `md:`, `lg:`
-- Sidebars / filters that don't fit on mobile collapse to a drawer or move below the header
-- Tables that overflow horizontally use `overflow-x-auto` on a wrapper div
-- Hide decorative elements on mobile with `hidden sm:flex`
+Design for every viewport. Mobile-first always — write base styles for small screens, then layer breakpoints upward.
+
+### Breakpoint usage
+| Prefix | Min-width | Use for |
+|--------|-----------|---------|
+| _(none)_ | 0px | Mobile base |
+| `sm:` | 640px | Larger phones / small tablets |
+| `md:` | 768px | Tablets |
+| `lg:` | 1024px | Laptops / desktops |
+| `xl:` | 1280px | Wide desktops |
+
+### Layout rules
+- Page max-width: `max-w-2xl` (narrow forms/lists) or `max-w-5xl` (tables/dashboards) — always `mx-auto px-4 sm:px-6`
+- Stat card grids: `grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6`
+- Form fields stack on mobile (`flex flex-col gap-4`), go side-by-side on `sm:` (`sm:flex-row`)
+- Sidebars / filter bars that overflow on mobile collapse to an off-canvas drawer or stack below the header — never clip or overflow-x scroll the page itself
+- Tables: always wrap in `overflow-x-auto` — never let a table break the page layout on small screens
+- Hide decorative / supplementary elements on mobile: `hidden sm:flex`, `hidden md:block`
+- Navigation: full sidebar visible on `lg:`, icon-only or hamburger on smaller viewports
+
+### Touch targets
+All tappable elements must be at minimum `44×44px` on mobile. Use `min-h-[44px] min-w-[44px]` when the visual size would otherwise be smaller (e.g. icon buttons in dense lists).
+
+### Fluid typography (optional, use sparingly)
+For hero headings only: `text-2xl sm:text-3xl lg:text-4xl` — never use `clamp()` or `fluid-*` utilities; step-based scaling only.
+
+---
+
+## Motion & Transitions
+
+Transitions should feel **instant yet smooth** — fast enough not to delay the user, slow enough to feel polished. Every animated element must respect `prefers-reduced-motion`.
+
+### Guiding principles
+- **Purpose over decoration** — only animate when motion communicates state change (open/close, enter/leave, loading, success/error). Never animate just to look dynamic.
+- **Short durations** — UI transitions: `duration-150` to `duration-200`. Content entrances: `duration-200` to `duration-300`. Never exceed `duration-500` for UI chrome.
+- **Ease curves** — use `ease-out` for elements entering the screen (decelerating feels natural). Use `ease-in` for elements leaving. Use `ease-in-out` for elements that stay on screen and transform.
+- **Reduced motion** — always pair animated classes with `motion-safe:` or wrap in `@media (prefers-reduced-motion: no-preference)`. Never force animation on users who have opted out.
+
+### Standard transition classes
+```
+// Colour / background changes (buttons, hover states)
+transition-colors duration-150 ease-out
+
+// Size / opacity changes (dropdowns, badges)
+transition-all duration-150 ease-out
+
+// Transform + opacity (modals, drawers, toasts)
+transition-[transform,opacity] duration-200 ease-out
+```
+
+### Enter / leave patterns (CSS-only, no library)
+
+**Fade in** (for toasts, tooltips, inline alerts):
+```tsx
+// Mount with opacity-0, animate to opacity-100
+className="opacity-0 animate-[fadeIn_200ms_ease-out_forwards]"
+// Define in globals.css:
+// @keyframes fadeIn { to { opacity: 1; } }
+```
+
+**Slide + fade (modal / drawer)**:
+```tsx
+// Backdrop
+<div className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-200 ease-out" />
+
+// Panel sliding up from bottom on mobile, from right on desktop
+<div className="
+  fixed bottom-0 left-0 right-0 rounded-t-2xl
+  sm:bottom-auto sm:left-auto sm:right-0 sm:top-0 sm:h-full sm:w-96 sm:rounded-none sm:rounded-l-2xl
+  translate-y-4 opacity-0
+  data-[open]:translate-y-0 data-[open]:opacity-100
+  transition-[transform,opacity] duration-200 ease-out
+  motion-reduce:transition-none
+" />
+```
+
+**Height expand (accordion / collapsible section)**:
+```tsx
+// Use max-height trick — CSS grid is cleaner:
+<div className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
+     style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}>
+  <div className="overflow-hidden">
+    {children}
+  </div>
+</div>
+```
+
+**Scale-in (dropdown menu / context menu)**:
+```tsx
+<div className="
+  origin-top-right scale-95 opacity-0
+  data-[open]:scale-100 data-[open]:opacity-100
+  transition-[transform,opacity] duration-150 ease-out
+  motion-reduce:transition-none
+" />
+```
+
+### Stagger lists (for item lists that animate in)
+Use CSS `animation-delay` with `style={{ animationDelay: `${index * 30}ms` }}`. Cap at 5–6 items; beyond that, don't stagger (it feels slow). Keep individual item duration at `duration-150`.
+
+### Loading states
+- **Skeleton:** `animate-pulse bg-zinc-100 dark:bg-zinc-800` — match the exact shape of the content it replaces
+- **Spinner:** `animate-spin h-4 w-4 border-2 border-zinc-200 border-t-teal-600 rounded-full`
+- **Button loading:** replace button text with a spinner inline; keep the button same size; `disabled` + `opacity-75`
+
+### What NOT to animate
+- Page-level navigations (Next.js handles these; don't fight the router)
+- Colour theme toggle (instant is better)
+- Table row sorting / reordering (too many elements — use instant swap)
+- Anything that loops indefinitely except `animate-spin` on a loading indicator
 
 ---
 
