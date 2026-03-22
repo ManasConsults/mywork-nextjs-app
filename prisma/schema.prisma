@@ -77,6 +77,19 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+// ─── Feedback enums ───────────────────────────────────────────────────────────
+
+enum FeedbackType {
+  FEATURE_REQUEST
+  BUG
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+}
+
 // ─── Core models ──────────────────────────────────────────────────────────────
 
 model User {
@@ -112,6 +125,7 @@ model User {
   transactions         Transaction[]
   clients              Client[]
   invoices             Invoice[]
+  feedbackSubmissions  FeedbackSubmission[]
 
   @@map("users")
 }
@@ -347,4 +361,23 @@ model InvoiceLineItem {
   workLog     WorkLog? @relation(fields: [workLogId], references: [id])
 
   @@map("invoice_line_items")
+}
+
+// ─── Feedback model ───────────────────────────────────────────────────────────
+
+model FeedbackSubmission {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  type        FeedbackType
+  status      FeedbackStatus @default(OPEN)
+  title       String         @db.VarChar(200)
+  description String         @db.VarChar(2000)
+  module      String         @db.VarChar(50)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, type, createdAt(sort: Desc)])
+  @@map("feedback_submissions")
 }
