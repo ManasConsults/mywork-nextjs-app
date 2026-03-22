@@ -31,6 +31,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             >
               Users
             </Link>
+            <Link
+              href="/admin/feedback"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
+              Feedback
+            </Link>
           </div>
           <Link
             href="/dashboard"

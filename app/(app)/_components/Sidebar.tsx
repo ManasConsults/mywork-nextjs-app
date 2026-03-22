@@ -74,6 +74,11 @@ const NAV_GROUPS: NavGroup[] = [
         label: 'To-do',
         icon: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
       },
+      {
+        href: '/feedback',
+        label: 'My Feedback',
+        icon: ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+      },
     ],
   },
   {
