@@ -15,6 +15,12 @@ const EMPLOYMENT_OPTIONS = [
   { value: 'BOTH', label: 'Both', description: 'I am both employed and self-employed' },
 ] as const;
 
+const INPUT_BASE =
+  'block w-full rounded-lg border px-3.5 py-2.5 text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 bg-white dark:bg-zinc-800 disabled:opacity-50 disabled:bg-zinc-50 dark:disabled:bg-zinc-900 transition-colors focus:outline-none focus:ring-2';
+
+const INPUT_NORMAL = `${INPUT_BASE} border-zinc-200 dark:border-zinc-700 focus:ring-teal-600 dark:focus:ring-zinc-400`;
+const INPUT_ERROR  = `${INPUT_BASE} border-red-400 focus:ring-red-400`;
+
 export function RegisterForm(): React.JSX.Element {
   const [values, setValues] = useState<RegisterInput>({
     name: '',
@@ -76,26 +82,26 @@ export function RegisterForm(): React.JSX.Element {
   if (isSuccess) {
     return (
       <div role="status" className="text-center py-4">
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mx-auto mb-4">
-          <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-teal-50 dark:bg-teal-900/30 mx-auto mb-4">
+          <svg className="w-6 h-6 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Registration submitted!</h3>
-        <p className="text-sm text-gray-500">Your account is pending approval by an administrator. You will be able to sign in once activated.</p>
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-1">Registration submitted!</h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Your account is pending approval by an administrator. You will be able to sign in once activated.</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Create your account</h2>
+      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-6">Create your account</h2>
 
       {rootError && (
         <div
           role="alert"
           aria-live="assertive"
-          className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
+          className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400"
         >
           {rootError}
         </div>
@@ -105,7 +111,7 @@ export function RegisterForm(): React.JSX.Element {
         <div className="flex flex-col gap-4">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
               Full name
             </label>
             <input
@@ -119,18 +125,10 @@ export function RegisterForm(): React.JSX.Element {
               aria-invalid={!!fieldErrors.name}
               aria-describedby={fieldErrors.name ? 'name-error' : undefined}
               placeholder="Jane Doe"
-              className={[
-                'block w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900',
-                'placeholder:text-gray-400 bg-white',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'disabled:opacity-50 disabled:bg-gray-50 transition-colors',
-                fieldErrors.name
-                  ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
-                  : 'border-gray-300',
-              ].join(' ')}
+              className={fieldErrors.name ? INPUT_ERROR : INPUT_NORMAL}
             />
             {fieldErrors.name && (
-              <p id="name-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              <p id="name-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
                 {fieldErrors.name}
               </p>
             )}
@@ -138,7 +136,7 @@ export function RegisterForm(): React.JSX.Element {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
               Email address
             </label>
             <input
@@ -152,18 +150,10 @@ export function RegisterForm(): React.JSX.Element {
               aria-invalid={!!fieldErrors.email}
               aria-describedby={fieldErrors.email ? 'email-error' : undefined}
               placeholder="you@example.com"
-              className={[
-                'block w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900',
-                'placeholder:text-gray-400 bg-white',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'disabled:opacity-50 disabled:bg-gray-50 transition-colors',
-                fieldErrors.email
-                  ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
-                  : 'border-gray-300',
-              ].join(' ')}
+              className={fieldErrors.email ? INPUT_ERROR : INPUT_NORMAL}
             />
             {fieldErrors.email && (
-              <p id="email-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              <p id="email-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
                 {fieldErrors.email}
               </p>
             )}
@@ -171,7 +161,7 @@ export function RegisterForm(): React.JSX.Element {
 
           {/* Employment type */}
           <div>
-            <p className="block text-sm font-medium text-gray-700 mb-1.5">
+            <p className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
               How do you work?
             </p>
             <div className="flex flex-col gap-2" role="radiogroup" aria-label="Employment type">
@@ -182,8 +172,8 @@ export function RegisterForm(): React.JSX.Element {
                     'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
                     isPending ? 'opacity-50 cursor-not-allowed' : '',
                     values.employmentType === value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-300 hover:border-gray-400',
+                      ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20'
+                      : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600',
                   ].join(' ')}
                 >
                   <input
@@ -193,17 +183,17 @@ export function RegisterForm(): React.JSX.Element {
                     checked={values.employmentType === value}
                     onChange={handleChange}
                     disabled={isPending}
-                    className="mt-0.5 accent-blue-600"
+                    className="mt-0.5 accent-teal-600"
                   />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{label}</p>
-                    <p className="text-xs text-gray-500">{description}</p>
+                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{label}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{description}</p>
                   </div>
                 </label>
               ))}
             </div>
             {fieldErrors.employmentType && (
-              <p role="alert" className="mt-1.5 text-xs text-red-600">
+              <p role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
                 {fieldErrors.employmentType}
               </p>
             )}
@@ -211,7 +201,7 @@ export function RegisterForm(): React.JSX.Element {
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
               Password
             </label>
             <input
@@ -225,22 +215,14 @@ export function RegisterForm(): React.JSX.Element {
               aria-invalid={!!fieldErrors.password}
               aria-describedby={fieldErrors.password ? 'password-error' : 'password-hint'}
               placeholder="Min. 8 chars, 1 uppercase, 1 number"
-              className={[
-                'block w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900',
-                'placeholder:text-gray-400 bg-white',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'disabled:opacity-50 disabled:bg-gray-50 transition-colors',
-                fieldErrors.password
-                  ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
-                  : 'border-gray-300',
-              ].join(' ')}
+              className={fieldErrors.password ? INPUT_ERROR : INPUT_NORMAL}
             />
             {fieldErrors.password ? (
-              <p id="password-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              <p id="password-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
                 {fieldErrors.password}
               </p>
             ) : (
-              <p id="password-hint" className="mt-1.5 text-xs text-gray-400">
+              <p id="password-hint" className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
                 At least 8 characters, one uppercase letter, and one number.
               </p>
             )}
@@ -248,7 +230,7 @@ export function RegisterForm(): React.JSX.Element {
 
           {/* Confirm password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
               Confirm password
             </label>
             <input
@@ -262,18 +244,10 @@ export function RegisterForm(): React.JSX.Element {
               aria-invalid={!!fieldErrors.confirmPassword}
               aria-describedby={fieldErrors.confirmPassword ? 'confirm-password-error' : undefined}
               placeholder="••••••••"
-              className={[
-                'block w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900',
-                'placeholder:text-gray-400 bg-white',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'disabled:opacity-50 disabled:bg-gray-50 transition-colors',
-                fieldErrors.confirmPassword
-                  ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
-                  : 'border-gray-300',
-              ].join(' ')}
+              className={fieldErrors.confirmPassword ? INPUT_ERROR : INPUT_NORMAL}
             />
             {fieldErrors.confirmPassword && (
-              <p id="confirm-password-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              <p id="confirm-password-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
                 {fieldErrors.confirmPassword}
               </p>
             )}
@@ -284,18 +258,19 @@ export function RegisterForm(): React.JSX.Element {
           type="submit"
           disabled={isPending}
           aria-busy={isPending}
-          className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white
-                     hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2
-                     focus-visible:ring-blue-500 focus-visible:ring-offset-2
-                     disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="mt-6 w-full rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white
+                     hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2
+                     focus-visible:ring-teal-600 focus-visible:ring-offset-2
+                     disabled:opacity-50 disabled:cursor-not-allowed transition-colors
+                     dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           {isPending ? 'Creating account…' : 'Create account'}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-500">
+      <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
         Already have an account?{' '}
-        <Link href="/login" className="text-blue-600 font-medium hover:text-blue-700 hover:underline">
+        <Link href="/login" className="text-teal-600 dark:text-teal-400 font-medium hover:text-teal-700 dark:hover:text-teal-300 hover:underline">
           Sign in
         </Link>
       </p>
