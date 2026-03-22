@@ -146,6 +146,7 @@ export function FeedbackButton(): React.JSX.Element {
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-modal-title"
+        aria-hidden={!isOpen}
         className={`fixed z-50 w-full bg-white dark:bg-zinc-900
           bottom-0 left-0 right-0 rounded-t-2xl
           sm:inset-0 sm:m-auto sm:max-w-lg sm:rounded-xl sm:h-fit
