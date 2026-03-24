@@ -17,7 +17,9 @@ jest.mock('@/lib/db/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
       delete: jest.fn(),
+      deleteMany: jest.fn(),
       count: jest.fn(),
       aggregate: jest.fn(),
     },
@@ -31,7 +33,6 @@ jest.mock('@/lib/services/task.service', () => ({
 
 const mockWorkLog = prisma.workLog as jest.Mocked<typeof prisma.workLog>;
 const mockGetTaskById = taskService.getTaskById as jest.MockedFunction<typeof taskService.getTaskById>;
-const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
 
 const userId = 'user-1';
 const taskId = '123e4567-e89b-12d3-a456-426614174000';
@@ -169,75 +170,72 @@ describe('createWorkLog', () => {
 
 describe('updateWorkLog', () => {
   it('updates work log when owned by user', async () => {
-    mockWorkLog.findFirst.mockResolvedValue(baseWorkLog as never);
     const updated = { ...baseWorkLog, timeSpent: 2 };
-    mockWorkLog.update.mockResolvedValue(updated as never);
+    mockWorkLog.updateMany.mockResolvedValue({ count: 1 });
+    mockWorkLog.findFirst.mockResolvedValue(updated as never);
 
     const result = await updateWorkLog(userId, workLogId, { timeSpent: 2 });
 
-    expect(mockWorkLog.findFirst).toHaveBeenCalledWith({ where: { id: workLogId, userId } });
-    expect(mockWorkLog.update).toHaveBeenCalledWith({
-      where: { id: workLogId },
-      data: { timeSpent: 2 },
-    });
+    expect(mockWorkLog.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: workLogId, userId }, data: { timeSpent: 2 } }),
+    );
     expect(result?.timeSpent).toBe(2);
   });
 
   it('returns null when work log not owned by user', async () => {
-    mockWorkLog.findFirst.mockResolvedValue(null);
+    mockWorkLog.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await updateWorkLog('other-user', workLogId, { timeSpent: 2 });
 
     expect(result).toBeNull();
-    expect(mockWorkLog.update).not.toHaveBeenCalled();
+    expect(mockWorkLog.findFirst).not.toHaveBeenCalled();
   });
 });
 
 describe('deleteWorkLog', () => {
   it('deletes work log when owned by user', async () => {
-    mockWorkLog.findFirst.mockResolvedValue(baseWorkLog as never);
-    mockWorkLog.delete.mockResolvedValue(baseWorkLog as never);
+    mockWorkLog.deleteMany.mockResolvedValue({ count: 1 });
 
     const result = await deleteWorkLog(userId, workLogId);
 
-    expect(mockWorkLog.delete).toHaveBeenCalledWith({ where: { id: workLogId } });
+    expect(mockWorkLog.deleteMany).toHaveBeenCalledWith({ where: { id: workLogId, userId } });
     expect(result).toBe(true);
   });
 
   it('returns false when work log not owned by user', async () => {
-    mockWorkLog.findFirst.mockResolvedValue(null);
+    mockWorkLog.deleteMany.mockResolvedValue({ count: 0 });
 
     const result = await deleteWorkLog('other-user', workLogId);
 
     expect(result).toBe(false);
-    expect(mockWorkLog.delete).not.toHaveBeenCalled();
   });
 });
 
 describe('getWorkLogsByUserPaged', () => {
   const defaultFilters = workLogFiltersSchema.parse({});
-
   const withTask = { ...baseWorkLog, task: { id: taskId, title: 'Test task' } };
 
-  function mockPagedTransaction(logs: object[], total: number, totalHoursSum: number | null) {
-    mockPrismaTransaction.mockResolvedValue([logs, total, { _sum: { timeSpent: totalHoursSum } }] as never);
+  function mockPagedQuery(logs: object[], total: number, totalHoursSum: number | null) {
+    mockWorkLog.findMany.mockResolvedValue(logs as never);
+    mockWorkLog.count.mockResolvedValue(total);
+    mockWorkLog.aggregate.mockResolvedValue({ _sum: { timeSpent: totalHoursSum } } as never);
   }
 
   it('returns paged logs with total, page, pageSize, totalPages, totalHours', async () => {
-    mockPagedTransaction([withTask], 1, 1.5);
+    mockPagedQuery([withTask], 1, 1.5);
 
     const result = await getWorkLogsByUserPaged(userId, defaultFilters);
 
     expect(result.logs).toHaveLength(1);
     expect(result.total).toBe(1);
     expect(result.page).toBe(1);
-    expect(result.pageSize).toBe(20);
+    expect(result.pageSize).toBe(10);
     expect(result.totalPages).toBe(1);
     expect(result.totalHours).toBe(1.5);
   });
 
   it('totalHours defaults to 0 when aggregate sum is null', async () => {
-    mockPagedTransaction([], 0, null);
+    mockPagedQuery([], 0, null);
 
     const result = await getWorkLogsByUserPaged(userId, defaultFilters);
 
@@ -245,41 +243,45 @@ describe('getWorkLogsByUserPaged', () => {
   });
 
   it('applies taskId filter', async () => {
-    mockPagedTransaction([], 0, null);
+    mockPagedQuery([], 0, null);
 
     await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ taskId }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockWorkLog.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ taskId }) }),
+    );
   });
 
   it('applies date range filter with dateFrom and dateTo', async () => {
-    mockPagedTransaction([], 0, null);
-
+    mockPagedQuery([], 0, null);
     const dateFrom = new Date('2026-01-01');
     const dateTo = new Date('2026-12-31');
+
     await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ dateFrom, dateTo }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockWorkLog.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ date: { gte: dateFrom, lte: dateTo } }) }),
+    );
   });
 
   it('applies dateFrom-only filter', async () => {
-    mockPagedTransaction([], 0, null);
+    mockPagedQuery([], 0, null);
 
     await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ dateFrom: new Date('2026-01-01') }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockWorkLog.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('applies dateTo-only filter (lte branch in paged)', async () => {
-    mockPagedTransaction([], 0, null);
+    mockPagedQuery([], 0, null);
 
     await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ dateTo: new Date('2026-12-31') }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockWorkLog.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('sorts by date desc', async () => {
-    mockPagedTransaction([withTask], 1, 1.5);
+    mockPagedQuery([withTask], 1, 1.5);
 
     const result = await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ sortOrder: 'desc' }));
 
@@ -287,7 +289,7 @@ describe('getWorkLogsByUserPaged', () => {
   });
 
   it('sorts by date asc', async () => {
-    mockPagedTransaction([withTask], 1, 1.5);
+    mockPagedQuery([withTask], 1, 1.5);
 
     const result = await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ sortOrder: 'asc' }));
 
@@ -295,7 +297,7 @@ describe('getWorkLogsByUserPaged', () => {
   });
 
   it('page 2 offsets correctly and computes totalPages', async () => {
-    mockPagedTransaction([withTask], 25, 37.5);
+    mockPagedQuery([withTask], 25, 37.5);
 
     const result = await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ page: 2, pageSize: 20 }));
 
@@ -305,7 +307,7 @@ describe('getWorkLogsByUserPaged', () => {
   });
 
   it('totalPages is at minimum 1 when total is 0', async () => {
-    mockPagedTransaction([], 0, null);
+    mockPagedQuery([], 0, null);
 
     const result = await getWorkLogsByUserPaged(userId, defaultFilters);
 
@@ -313,8 +315,7 @@ describe('getWorkLogsByUserPaged', () => {
   });
 
   it('totalHours sums the full filtered set (reflects aggregate, not just page)', async () => {
-    // Only 1 log on this page but aggregate covers all 25 records = 50 hours
-    mockPagedTransaction([withTask], 25, 50);
+    mockPagedQuery([withTask], 25, 50);
 
     const result = await getWorkLogsByUserPaged(userId, workLogFiltersSchema.parse({ page: 2, pageSize: 20 }));
 

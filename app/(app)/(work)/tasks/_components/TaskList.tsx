@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import type { Task } from '@prisma/client';
+
+import type { TaskListItem } from '@/lib/services/task.service';
 
 const STATUS_BADGE: Record<string, string> = {
   BACKLOG: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
@@ -29,7 +30,7 @@ const PRIORITY_LABELS: Record<string, string> = {
   CRITICAL: 'Critical',
 };
 
-export function TaskList({ tasks }: { tasks: Task[] }): React.JSX.Element {
+export function TaskList({ tasks }: { tasks: TaskListItem[] }): React.JSX.Element {
   if (tasks.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-700">

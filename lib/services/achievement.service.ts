@@ -59,7 +59,7 @@ export async function getAchievementsByUserPaged(
     ...(fyRange ? { dateAchieved: { gte: fyRange.from, lte: fyRange.to } } : {}),
   };
 
-  const [achievements, total] = await prisma.$transaction([
+  const [achievements, total] = await Promise.all([
     prisma.achievement.findMany({
       where,
       include: { task: { select: { id: true, title: true } } },
@@ -103,24 +103,25 @@ export async function createAchievement(
   });
 }
 
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
 export async function updateAchievement(
   userId: string,
   id: string,
   data: UpdateAchievementInput,
 ): Promise<Achievement | null> {
-  const existing = await getAchievementById(userId, id);
-  if (!existing) return null;
-
-  return prisma.achievement.update({ where: { id }, data });
+  const result = await prisma.achievement.updateMany({
+    where: { id, userId, deletedAt: null },
+    data,
+  });
+  if (result.count === 0) return null;
+  return prisma.achievement.findFirst({ where: { id, userId } });
 }
 
-export async function softDeleteAchievement(
-  userId: string,
-  id: string,
-): Promise<boolean> {
-  const existing = await getAchievementById(userId, id);
-  if (!existing) return false;
-
-  await prisma.achievement.update({ where: { id }, data: { deletedAt: new Date() } });
-  return true;
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
+export async function softDeleteAchievement(userId: string, id: string): Promise<boolean> {
+  const result = await prisma.achievement.updateMany({
+    where: { id, userId, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+  return result.count > 0;
 }

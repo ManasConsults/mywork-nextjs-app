@@ -17,9 +17,9 @@ jest.mock('@/lib/db/prisma', () => ({
     feedbackSubmission: {
       create: jest.fn(),
       findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      findFirst: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     },
   },
 }));
@@ -223,22 +223,22 @@ describe('getAllFeedbackSubmissions', () => {
 
 describe('updateFeedbackSubmissionStatus', () => {
   it('should return null when the submission does not exist', async () => {
-    mockFeedbackSubmission.findUnique.mockResolvedValue(null);
+    mockFeedbackSubmission.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await updateFeedbackSubmissionStatus('non-existent-id', 'IN_REVIEW');
 
     expect(result).toBeNull();
-    expect(mockFeedbackSubmission.update).not.toHaveBeenCalled();
+    expect(mockFeedbackSubmission.findFirst).not.toHaveBeenCalled();
   });
 
   it('should update the status and return the updated record', async () => {
     const updatedSubmission = { ...baseSubmission, status: 'IN_REVIEW' as const };
-    mockFeedbackSubmission.findUnique.mockResolvedValue(baseSubmission);
-    mockFeedbackSubmission.update.mockResolvedValue(updatedSubmission);
+    mockFeedbackSubmission.updateMany.mockResolvedValue({ count: 1 });
+    mockFeedbackSubmission.findFirst.mockResolvedValue(updatedSubmission);
 
     const result = await updateFeedbackSubmissionStatus(submissionId, 'IN_REVIEW');
 
-    expect(mockFeedbackSubmission.update).toHaveBeenCalledWith({
+    expect(mockFeedbackSubmission.updateMany).toHaveBeenCalledWith({
       where: { id: submissionId },
       data: { status: 'IN_REVIEW' },
     });
@@ -247,8 +247,8 @@ describe('updateFeedbackSubmissionStatus', () => {
 
   it('should allow transition to any status (no restrictions in v1)', async () => {
     const resolvedSubmission = { ...baseSubmission, status: 'RESOLVED' as const };
-    mockFeedbackSubmission.findUnique.mockResolvedValue(baseSubmission);
-    mockFeedbackSubmission.update.mockResolvedValue(resolvedSubmission);
+    mockFeedbackSubmission.updateMany.mockResolvedValue({ count: 1 });
+    mockFeedbackSubmission.findFirst.mockResolvedValue(resolvedSubmission);
 
     const result = await updateFeedbackSubmissionStatus(submissionId, 'RESOLVED');
 
@@ -260,7 +260,7 @@ describe('updateFeedbackSubmissionStatus', () => {
 
 describe('deleteFeedbackSubmission', () => {
   it('should return false when the submission does not exist', async () => {
-    mockFeedbackSubmission.findUnique.mockResolvedValue(null);
+    mockFeedbackSubmission.deleteMany.mockResolvedValue({ count: 0 });
 
     const result = await deleteFeedbackSubmission('non-existent-id');
 
@@ -268,20 +268,11 @@ describe('deleteFeedbackSubmission', () => {
   });
 
   it('should hard-delete the submission and return true', async () => {
-    mockFeedbackSubmission.findUnique.mockResolvedValue(baseSubmission);
-    mockFeedbackSubmission.delete.mockResolvedValue(baseSubmission);
+    mockFeedbackSubmission.deleteMany.mockResolvedValue({ count: 1 });
 
     const result = await deleteFeedbackSubmission(submissionId);
 
-    expect(mockFeedbackSubmission.delete).toHaveBeenCalledWith({ where: { id: submissionId } });
+    expect(mockFeedbackSubmission.deleteMany).toHaveBeenCalledWith({ where: { id: submissionId } });
     expect(result).toBe(true);
-  });
-
-  it('should not call prisma.delete when submission is not found', async () => {
-    mockFeedbackSubmission.findUnique.mockResolvedValue(null);
-
-    await deleteFeedbackSubmission('non-existent-id');
-
-    expect(mockFeedbackSubmission.delete).not.toHaveBeenCalled();
   });
 });

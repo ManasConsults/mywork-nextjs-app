@@ -5,6 +5,7 @@ import {
   updateFiscalYearSettingAction,
 } from './achievement';
 
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
 jest.mock('@/lib/services/achievement.service', () => ({

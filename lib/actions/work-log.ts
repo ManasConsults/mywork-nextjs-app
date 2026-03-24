@@ -1,6 +1,7 @@
 'use server';
 
 import { getServerSession } from 'next-auth';
+import { revalidatePath } from 'next/cache';
 import type { WorkLog } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
@@ -41,6 +42,7 @@ export async function createWorkLogAction(
     if (!workLog) {
       return { success: false, error: { message: 'Task not found or not accessible.' } };
     }
+    revalidatePath('/work-logs');
     return { success: true, data: workLog };
   } catch {
     return { success: false, error: { message: 'Failed to create work log.' } };
@@ -72,6 +74,7 @@ export async function updateWorkLogAction(
     if (!workLog) {
       return { success: false, error: { message: 'Work log not found.' } };
     }
+    revalidatePath('/work-logs');
     return { success: true, data: workLog };
   } catch {
     return { success: false, error: { message: 'Failed to update work log.' } };
@@ -91,6 +94,7 @@ export async function deleteWorkLogAction(
     if (!deleted) {
       return { success: false, error: { message: 'Work log not found.' } };
     }
+    revalidatePath('/work-logs');
     return { success: true, data: undefined };
   } catch {
     return { success: false, error: { message: 'Failed to delete work log.' } };

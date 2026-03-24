@@ -18,7 +18,7 @@ export const saveDraftSchema = z.object({
 
 export const NOTE_SORT_BY = ['createdAt', 'updatedAt'] as const;
 export const NOTE_PAGE_SIZES = [10, 20, 50, 100] as const;
-export const NOTE_DEFAULT_PAGE_SIZE = 20;
+export const NOTE_DEFAULT_PAGE_SIZE = 10;
 
 export const noteFiltersSchema = z.object({
   tag: z.string().optional(),

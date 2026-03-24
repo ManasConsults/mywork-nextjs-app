@@ -45,7 +45,7 @@ export async function getTodosByUserPaged(
         ? [{ dueDate: { sort: sortOrder, nulls: 'last' } }, { createdAt: 'desc' as const }]
         : [{ createdAt: sortOrder }];
 
-  const [todos, total] = await prisma.$transaction([
+  const [todos, total] = await Promise.all([
     prisma.todoItem.findMany({
       where,
       include: { task: taskSelect },
@@ -77,25 +77,19 @@ export async function createTodo(userId: string, data: CreateTodoInput): Promise
   });
 }
 
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
 export async function updateTodo(
   userId: string,
   id: string,
   data: UpdateTodoInput,
 ): Promise<TodoItemWithTask | null> {
-  const existing = await prisma.todoItem.findFirst({ where: { id, userId } });
-  if (!existing) return null;
-
-  return prisma.todoItem.update({
-    where: { id },
-    data,
-    include: { task: taskSelect },
-  });
+  const result = await prisma.todoItem.updateMany({ where: { id, userId }, data });
+  if (result.count === 0) return null;
+  return prisma.todoItem.findFirst({ where: { id, userId }, include: { task: taskSelect } });
 }
 
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
 export async function deleteTodo(userId: string, id: string): Promise<boolean> {
-  const existing = await prisma.todoItem.findFirst({ where: { id, userId } });
-  if (!existing) return false;
-
-  await prisma.todoItem.delete({ where: { id } });
-  return true;
+  const result = await prisma.todoItem.deleteMany({ where: { id, userId } });
+  return result.count > 0;
 }

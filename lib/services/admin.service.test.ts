@@ -3,16 +3,12 @@ import { getAppUsageStats } from './admin.service';
 
 // ─── Prisma mock ──────────────────────────────────────────────────────────────
 //
-// The service runs two concurrent operations:
-//   1. prisma.$transaction([count×6, findMany×1])  → 7-element array
-//   2. Promise.all([groupBy×5])                    → 5-element array
-//
-// Both are awaited inside an outer Promise.all, so we mock $transaction to
-// return the 7-element result and mock each groupBy to return its fixture data.
+// The service runs two concurrent batches:
+//   1. Promise.all([count×6, findMany×1])  — individual mocks per query
+//   2. Promise.all([groupBy×5])            — individual mocks per groupBy
 
 jest.mock('@/lib/db/prisma', () => ({
   prisma: {
-    $transaction: jest.fn(),
     user: { count: jest.fn(), findMany: jest.fn() },
     task: { count: jest.fn(), groupBy: jest.fn() },
     workLog: { count: jest.fn(), groupBy: jest.fn() },
@@ -22,7 +18,13 @@ jest.mock('@/lib/db/prisma', () => ({
   },
 }));
 
-const mockTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
+const mockUserCount = prisma.user.count as jest.MockedFunction<typeof prisma.user.count>;
+const mockUserFindMany = prisma.user.findMany as jest.MockedFunction<typeof prisma.user.findMany>;
+const mockTaskCount = prisma.task.count as jest.MockedFunction<typeof prisma.task.count>;
+const mockWorkLogCount = prisma.workLog.count as jest.MockedFunction<typeof prisma.workLog.count>;
+const mockAchievementCount = prisma.achievement.count as jest.MockedFunction<typeof prisma.achievement.count>;
+const mockNoteCount = prisma.note.count as jest.MockedFunction<typeof prisma.note.count>;
+const mockTodoItemCount = prisma.todoItem.count as jest.MockedFunction<typeof prisma.todoItem.count>;
 const mockTaskGroupBy = prisma.task.groupBy as jest.MockedFunction<typeof prisma.task.groupBy>;
 const mockWorkLogGroupBy = prisma.workLog.groupBy as jest.MockedFunction<typeof prisma.workLog.groupBy>;
 const mockAchievementGroupBy = prisma.achievement.groupBy as jest.MockedFunction<typeof prisma.achievement.groupBy>;
@@ -54,15 +56,17 @@ const rawUsers = [
   },
 ];
 
-// The $transaction result: [totalUsers, totalTasks, totalWorkLogs,
-//                            totalAchievements, totalNotes, totalTodos, rawUsers]
-const transactionResult = [2, 5, 3, 2, 1, 4, rawUsers];
-
 beforeEach(() => {
   jest.clearAllMocks();
 
-  // $transaction resolves to the 7-element array
-  mockTransaction.mockResolvedValue(transactionResult as never);
+  // Count mocks
+  mockUserCount.mockResolvedValue(2);
+  mockTaskCount.mockResolvedValue(5);
+  mockWorkLogCount.mockResolvedValue(3);
+  mockAchievementCount.mockResolvedValue(2);
+  mockNoteCount.mockResolvedValue(1);
+  mockTodoItemCount.mockResolvedValue(4);
+  mockUserFindMany.mockResolvedValue(rawUsers as never);
 
   // groupBy mocks — each resolves to the per-module per-user max-date rows
   mockTaskGroupBy.mockResolvedValue([
@@ -127,9 +131,15 @@ describe('getAppUsageStats', () => {
     expect(stats.users[1].id).toBe('user-2');
   });
 
-  it('calls $transaction exactly once for the batched counts + findMany', async () => {
+  it('calls each count and findMany exactly once', async () => {
     await getAppUsageStats();
-    expect(mockTransaction).toHaveBeenCalledTimes(1);
+    expect(mockUserCount).toHaveBeenCalledTimes(1);
+    expect(mockTaskCount).toHaveBeenCalledTimes(1);
+    expect(mockWorkLogCount).toHaveBeenCalledTimes(1);
+    expect(mockAchievementCount).toHaveBeenCalledTimes(1);
+    expect(mockNoteCount).toHaveBeenCalledTimes(1);
+    expect(mockTodoItemCount).toHaveBeenCalledTimes(1);
+    expect(mockUserFindMany).toHaveBeenCalledTimes(1);
   });
 
   it('calls groupBy on each module to compute lastActiveAt', async () => {
