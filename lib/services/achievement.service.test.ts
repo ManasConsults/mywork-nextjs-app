@@ -17,6 +17,7 @@ jest.mock('@/lib/db/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
       count: jest.fn(),
     },
     $transaction: jest.fn(),
@@ -29,7 +30,6 @@ jest.mock('@/lib/services/task.service', () => ({
 
 const mockAchievement = prisma.achievement as jest.Mocked<typeof prisma.achievement>;
 const mockGetTaskById = taskService.getTaskById as jest.MockedFunction<typeof taskService.getTaskById>;
-const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
 
 const userId = 'user-1';
 const achievementId = 'ach-1';
@@ -165,50 +165,49 @@ describe('createAchievement', () => {
 
 describe('updateAchievement', () => {
   it('updates when owned by user', async () => {
-    mockAchievement.findFirst.mockResolvedValue(baseAchievement as never);
     const updated = { ...baseAchievement, impactRating: 5 };
-    mockAchievement.update.mockResolvedValue(updated as never);
+    mockAchievement.updateMany.mockResolvedValue({ count: 1 });
+    mockAchievement.findFirst.mockResolvedValue(updated as never);
 
     const result = await updateAchievement(userId, achievementId, { impactRating: 5 });
 
-    expect(mockAchievement.update).toHaveBeenCalledWith({
-      where: { id: achievementId },
-      data: { impactRating: 5 },
-    });
+    expect(mockAchievement.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: achievementId, userId }), data: { impactRating: 5 } }),
+    );
     expect(result?.impactRating).toBe(5);
   });
 
   it('returns null when not owned', async () => {
-    mockAchievement.findFirst.mockResolvedValue(null);
+    mockAchievement.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await updateAchievement('other-user', achievementId, { impactRating: 5 });
 
     expect(result).toBeNull();
-    expect(mockAchievement.update).not.toHaveBeenCalled();
+    expect(mockAchievement.findFirst).not.toHaveBeenCalled();
   });
 });
 
 describe('softDeleteAchievement', () => {
   it('sets deletedAt when owned by user', async () => {
-    mockAchievement.findFirst.mockResolvedValue(baseAchievement as never);
-    mockAchievement.update.mockResolvedValue({ ...baseAchievement, deletedAt: new Date() } as never);
+    mockAchievement.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await softDeleteAchievement(userId, achievementId);
 
-    expect(mockAchievement.update).toHaveBeenCalledWith({
-      where: { id: achievementId },
-      data: { deletedAt: expect.any(Date) },
-    });
+    expect(mockAchievement.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: achievementId, userId, deletedAt: null }),
+        data: { deletedAt: expect.any(Date) },
+      }),
+    );
     expect(result).toBe(true);
   });
 
   it('returns false when not owned', async () => {
-    mockAchievement.findFirst.mockResolvedValue(null);
+    mockAchievement.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await softDeleteAchievement('other-user', achievementId);
 
     expect(result).toBe(false);
-    expect(mockAchievement.update).not.toHaveBeenCalled();
   });
 });
 
@@ -216,40 +215,43 @@ describe('getAchievementsByUserPaged', () => {
   const defaultFilters = achievementFiltersSchema.parse({});
   const withTask = { ...baseAchievement, task: null };
 
-  function mockPagedTransaction(achievements: object[], total: number) {
-    mockPrismaTransaction.mockResolvedValue([achievements, total] as never);
+  function mockPagedQuery(achievements: object[], total: number) {
+    mockAchievement.findMany.mockResolvedValue(achievements as never);
+    mockAchievement.count.mockResolvedValue(total);
   }
 
   it('returns paged achievements with total, page, pageSize, totalPages', async () => {
-    mockPagedTransaction([withTask], 1);
+    mockPagedQuery([withTask], 1);
 
     const result = await getAchievementsByUserPaged(userId, defaultFilters);
 
     expect(result.achievements).toHaveLength(1);
     expect(result.total).toBe(1);
     expect(result.page).toBe(1);
-    expect(result.pageSize).toBe(20);
+    expect(result.pageSize).toBe(10);
     expect(result.totalPages).toBe(1);
   });
 
   it('applies category filter', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({ category: 'Leadership' }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockAchievement.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ category: 'Leadership' }) }),
+    );
   });
 
   it('applies reviewYear fiscal year date range filter', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({ reviewYear: 2026 }), 4);
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockAchievement.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('works without reviewYear (no date range filter applied)', async () => {
-    mockPagedTransaction([withTask], 1);
+    mockPagedQuery([withTask], 1);
 
     const result = await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({}));
 
@@ -257,7 +259,7 @@ describe('getAchievementsByUserPaged', () => {
   });
 
   it('sorts by createdAt desc', async () => {
-    mockPagedTransaction([withTask], 1);
+    mockPagedQuery([withTask], 1);
 
     const result = await getAchievementsByUserPaged(
       userId,
@@ -268,7 +270,7 @@ describe('getAchievementsByUserPaged', () => {
   });
 
   it('sorts by updatedAt desc', async () => {
-    mockPagedTransaction([withTask], 1);
+    mockPagedQuery([withTask], 1);
 
     const result = await getAchievementsByUserPaged(
       userId,
@@ -279,7 +281,7 @@ describe('getAchievementsByUserPaged', () => {
   });
 
   it('page 2 offsets correctly', async () => {
-    mockPagedTransaction([withTask], 25);
+    mockPagedQuery([withTask], 25);
 
     const result = await getAchievementsByUserPaged(
       userId,
@@ -292,7 +294,7 @@ describe('getAchievementsByUserPaged', () => {
   });
 
   it('totalPages rounds up — 21 items / 20 per page = 2 pages', async () => {
-    mockPagedTransaction([], 21);
+    mockPagedQuery([], 21);
 
     const result = await getAchievementsByUserPaged(userId, achievementFiltersSchema.parse({ pageSize: 20 }));
 
@@ -300,7 +302,7 @@ describe('getAchievementsByUserPaged', () => {
   });
 
   it('totalPages is at minimum 1 when total is 0', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     const result = await getAchievementsByUserPaged(userId, defaultFilters);
 

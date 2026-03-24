@@ -4,16 +4,33 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getTasksByUserPaged } from '@/lib/services/task.service';
 import { taskFiltersSchema } from '@/lib/schemas/task.schema';
 import { TaskFilters } from './_components/TaskFilters';
-import { TaskList } from './_components/TaskList';
-import { TaskPagination } from './_components/TaskPagination';
+import { TaskListServer } from './_components/TaskListServer';
 
 export const metadata: Metadata = { title: 'MyWork — Tasks' };
 
 interface TasksPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function TaskListSkeleton(): React.JSX.Element {
+  return (
+    <div className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="flex animate-pulse items-center gap-4 px-4 py-3">
+          <div className="flex-1 space-y-1.5">
+            <div className="h-4 w-2/3 rounded bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-3 w-1/4 rounded bg-zinc-100 dark:bg-zinc-800" />
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <div className="h-5 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-5 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default async function TasksPage({ searchParams }: TasksPageProps): Promise<React.JSX.Element> {
@@ -29,8 +46,6 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
     page: typeof params.page === 'string' ? params.page : undefined,
     pageSize: typeof params.pageSize === 'string' ? params.pageSize : undefined,
   });
-
-  const { tasks, total, page, pageSize, totalPages } = await getTasksByUserPaged(userId, filters);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -52,6 +67,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
         </div>
       </div>
 
+      {/* Filters render instantly — client component with no async work */}
       <Suspense>
         <TaskFilters
           currentStatus={filters.status}
@@ -61,9 +77,10 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
           currentPageSize={filters.pageSize}
         />
       </Suspense>
-      <TaskList tasks={tasks} />
-      <Suspense>
-        <TaskPagination page={page} totalPages={totalPages} total={total} pageSize={pageSize} />
+
+      {/* List streams in — skeleton shown while DB query runs */}
+      <Suspense fallback={<TaskListSkeleton />}>
+        <TaskListServer userId={userId} filters={filters} />
       </Suspense>
     </div>
   );

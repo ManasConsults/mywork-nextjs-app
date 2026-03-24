@@ -58,7 +58,7 @@ export async function getNotesByUserPaged(
     ...(taskId ? { taskId } : {}),
   };
 
-  const [notes, total] = await prisma.$transaction([
+  const [notes, total] = await Promise.all([
     prisma.note.findMany({
       where,
       include: { task: { select: { id: true, title: true } } },
@@ -132,27 +132,25 @@ export async function updateNote(
   });
 }
 
+/** Eliminates the N+1 pre-flight SELECT — auto-save hot path, called every 30s. */
 export async function saveDraft(
   userId: string,
   id: string,
   data: SaveDraftInput,
 ): Promise<Note | null> {
-  const existing = await getNoteById(userId, id);
-  if (!existing) return null;
-
-  return prisma.note.update({
-    where: { id },
+  const result = await prisma.note.updateMany({
+    where: { id, userId, deletedAt: null },
     data: { body: data.body as Prisma.InputJsonValue },
   });
+  if (result.count === 0) return null;
+  return prisma.note.findFirst({ where: { id, userId } });
 }
 
-export async function softDeleteNote(
-  userId: string,
-  id: string,
-): Promise<boolean> {
-  const existing = await getNoteById(userId, id);
-  if (!existing) return false;
-
-  await prisma.note.update({ where: { id }, data: { deletedAt: new Date() } });
-  return true;
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
+export async function softDeleteNote(userId: string, id: string): Promise<boolean> {
+  const result = await prisma.note.updateMany({
+    where: { id, userId, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+  return result.count > 0;
 }

@@ -20,7 +20,7 @@ export const updateWorkLogSchema = createWorkLogSchema
   .partial();
 
 export const WORK_LOG_PAGE_SIZES = [10, 20, 50, 100] as const;
-export const WORK_LOG_DEFAULT_PAGE_SIZE = 20;
+export const WORK_LOG_DEFAULT_PAGE_SIZE = 10;
 
 export const workLogFiltersSchema = z.object({
   taskId: z.string().uuid().optional(),

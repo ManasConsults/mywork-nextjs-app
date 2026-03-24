@@ -1,6 +1,7 @@
 'use server';
 
 import { getServerSession } from 'next-auth';
+import { revalidatePath } from 'next/cache';
 import type { Task } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
@@ -39,6 +40,7 @@ export async function createTaskAction(
 
   try {
     const task = await createTask(userId, parsed.data);
+    revalidatePath('/tasks');
     return { success: true, data: task };
   } catch {
     return { success: false, error: { message: 'Failed to create task.' } };
@@ -67,6 +69,8 @@ export async function updateTaskAction(
     if (!task) {
       return { success: false, error: { message: 'Task not found.' } };
     }
+    revalidatePath('/tasks');
+    revalidatePath(`/tasks/${taskId}`);
     return { success: true, data: task };
   } catch {
     return { success: false, error: { message: 'Failed to update task.' } };
@@ -84,6 +88,7 @@ export async function deleteTaskAction(taskId: string): Promise<TaskActionResult
     if (!deleted) {
       return { success: false, error: { message: 'Task not found.' } };
     }
+    revalidatePath('/tasks');
     return { success: true, data: undefined };
   } catch {
     return { success: false, error: { message: 'Failed to delete task.' } };

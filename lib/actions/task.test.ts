@@ -1,5 +1,7 @@
 import { createTaskAction, updateTaskAction, deleteTaskAction } from './task';
 
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
+
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
 }));

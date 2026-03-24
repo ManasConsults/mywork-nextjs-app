@@ -1,6 +1,7 @@
 'use server';
 
 import { getServerSession } from 'next-auth';
+import { revalidatePath } from 'next/cache';
 import type { Achievement } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
@@ -43,6 +44,7 @@ export async function createAchievementAction(
 
   try {
     const achievement = await createAchievement(userId, parsed.data);
+    revalidatePath('/achievements');
     return { success: true, data: achievement };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to create achievement.';
@@ -75,6 +77,7 @@ export async function updateAchievementAction(
     if (!achievement) {
       return { success: false, error: { message: 'Achievement not found.' } };
     }
+    revalidatePath('/achievements');
     return { success: true, data: achievement };
   } catch {
     return { success: false, error: { message: 'Failed to update achievement.' } };
@@ -94,6 +97,7 @@ export async function deleteAchievementAction(
     if (!deleted) {
       return { success: false, error: { message: 'Achievement not found.' } };
     }
+    revalidatePath('/achievements');
     return { success: true, data: undefined };
   } catch {
     return { success: false, error: { message: 'Failed to delete achievement.' } };
@@ -117,6 +121,7 @@ export async function updateFiscalYearSettingAction(
       where: { id: userId },
       data: { fiscalYearStartMonth: month },
     });
+    revalidatePath('/achievements');
     return { success: true, data: undefined };
   } catch {
     return { success: false, error: { message: 'Failed to update fiscal year setting.' } };

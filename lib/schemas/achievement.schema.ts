@@ -24,7 +24,7 @@ export const updateAchievementSchema = createAchievementSchema.partial();
 
 export const ACHIEVEMENT_SORT_BY = ['createdAt', 'updatedAt'] as const;
 export const ACHIEVEMENT_PAGE_SIZES = [10, 20, 50, 100] as const;
-export const ACHIEVEMENT_DEFAULT_PAGE_SIZE = 20;
+export const ACHIEVEMENT_DEFAULT_PAGE_SIZE = 10;
 
 export const achievementFiltersSchema = z.object({
   category: z.enum(ACHIEVEMENT_CATEGORIES).optional(),

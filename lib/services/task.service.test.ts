@@ -16,6 +16,7 @@ jest.mock('@/lib/db/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
       count: jest.fn(),
     },
     $transaction: jest.fn(),
@@ -23,7 +24,6 @@ jest.mock('@/lib/db/prisma', () => ({
 }));
 
 const mockPrismaTask = prisma.task as jest.Mocked<typeof prisma.task>;
-const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
 
 const userId = 'user-1';
 const taskId = 'task-1';
@@ -46,9 +46,10 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// Helper: mock $transaction to resolve with [tasks, count]
-function mockPagedTransaction(tasks: typeof baseTask[], count: number) {
-  mockPrismaTransaction.mockResolvedValue([tasks, count] as never);
+// Helper: mock Promise.all-based paged query (findMany + count run in parallel)
+function mockPagedQuery(tasks: typeof baseTask[], count: number) {
+  mockPrismaTask.findMany.mockResolvedValue(tasks as never);
+  mockPrismaTask.count.mockResolvedValue(count);
 }
 
 describe('getTasksByUser', () => {
@@ -125,50 +126,49 @@ describe('createTask', () => {
 
 describe('updateTask', () => {
   it('updates task when ownership verified', async () => {
-    mockPrismaTask.findFirst.mockResolvedValue(baseTask);
     const updated = { ...baseTask, status: 'DONE' as const };
-    mockPrismaTask.update.mockResolvedValue(updated);
+    mockPrismaTask.updateMany.mockResolvedValue({ count: 1 });
+    mockPrismaTask.findFirst.mockResolvedValue(updated);
 
     const result = await updateTask(userId, taskId, { status: 'DONE' });
 
-    expect(mockPrismaTask.update).toHaveBeenCalledWith({
-      where: { id: taskId },
-      data: { status: 'DONE' },
-    });
+    expect(mockPrismaTask.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: taskId, userId }), data: { status: 'DONE' } }),
+    );
     expect(result?.status).toBe('DONE');
   });
 
   it('returns null when task not owned by user', async () => {
-    mockPrismaTask.findFirst.mockResolvedValue(null);
+    mockPrismaTask.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await updateTask('other-user', taskId, { status: 'DONE' });
 
     expect(result).toBeNull();
-    expect(mockPrismaTask.update).not.toHaveBeenCalled();
+    expect(mockPrismaTask.findFirst).not.toHaveBeenCalled();
   });
 });
 
 describe('softDeleteTask', () => {
   it('sets deletedAt when ownership verified', async () => {
-    mockPrismaTask.findFirst.mockResolvedValue(baseTask);
-    mockPrismaTask.update.mockResolvedValue({ ...baseTask, deletedAt: new Date() });
+    mockPrismaTask.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await softDeleteTask(userId, taskId);
 
-    expect(mockPrismaTask.update).toHaveBeenCalledWith({
-      where: { id: taskId },
-      data: { deletedAt: expect.any(Date) },
-    });
+    expect(mockPrismaTask.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: taskId, userId, deletedAt: null }),
+        data: { deletedAt: expect.any(Date) },
+      }),
+    );
     expect(result).toBe(true);
   });
 
   it('returns false when task not owned by user', async () => {
-    mockPrismaTask.findFirst.mockResolvedValue(null);
+    mockPrismaTask.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await softDeleteTask('other-user', taskId);
 
     expect(result).toBe(false);
-    expect(mockPrismaTask.update).not.toHaveBeenCalled();
   });
 });
 
@@ -176,64 +176,64 @@ describe('getTasksByUserPaged', () => {
   const defaultFilters = taskFiltersSchema.parse({});
 
   it('returns paged tasks with correct total, page, pageSize, totalPages', async () => {
-    mockPagedTransaction([baseTask], 1);
+    mockPagedQuery([baseTask], 1);
 
     const result = await getTasksByUserPaged(userId, defaultFilters);
 
     expect(result.tasks).toEqual([baseTask]);
     expect(result.total).toBe(1);
     expect(result.page).toBe(1);
-    expect(result.pageSize).toBe(20);
+    expect(result.pageSize).toBe(10);
     expect(result.totalPages).toBe(1);
   });
 
   it('applies status filter — passes status in where clause', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     await getTasksByUserPaged(userId, taskFiltersSchema.parse({ status: 'IN_PROGRESS' }));
 
-    const [[findManyCall]] = mockPrismaTransaction.mock.calls;
-    // $transaction receives an array of PrismaPromises; we verify it was called
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
-    // The transaction call receives the array — just verify it ran
-    expect(findManyCall).toBeDefined();
+    expect(mockPrismaTask.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ status: 'IN_PROGRESS' }) }),
+    );
   });
 
   it('applies priority filter — passes priority in where clause', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     await getTasksByUserPaged(userId, taskFiltersSchema.parse({ priority: 'HIGH' }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockPrismaTask.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ priority: 'HIGH' }) }),
+    );
   });
 
   it('sorts by createdAt desc by default', async () => {
-    mockPagedTransaction([baseTask], 1);
+    mockPagedQuery([baseTask], 1);
 
     const result = await getTasksByUserPaged(userId, taskFiltersSchema.parse({ sortBy: 'createdAt', sortOrder: 'desc' }));
 
     expect(result.tasks).toHaveLength(1);
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockPrismaTask.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('sorts by dueDate (uses multi-field orderBy with nulls last)', async () => {
-    mockPagedTransaction([baseTask], 1);
+    mockPagedQuery([baseTask], 1);
 
     await getTasksByUserPaged(userId, taskFiltersSchema.parse({ sortBy: 'dueDate', sortOrder: 'asc' }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockPrismaTask.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('sorts by status', async () => {
-    mockPagedTransaction([baseTask], 1);
+    mockPagedQuery([baseTask], 1);
 
     await getTasksByUserPaged(userId, taskFiltersSchema.parse({ sortBy: 'status', sortOrder: 'asc' }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockPrismaTask.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('page 2 skips correctly — totalPages is still correct', async () => {
-    mockPagedTransaction([baseTask], 25);
+    mockPagedQuery([baseTask], 25);
 
     const result = await getTasksByUserPaged(userId, taskFiltersSchema.parse({ page: 2, pageSize: 20 }));
 
@@ -243,7 +243,7 @@ describe('getTasksByUserPaged', () => {
   });
 
   it('totalPages rounds up — 21 items / 20 per page = 2 pages', async () => {
-    mockPagedTransaction([], 21);
+    mockPagedQuery([], 21);
 
     const result = await getTasksByUserPaged(userId, taskFiltersSchema.parse({ pageSize: 20 }));
 
@@ -251,7 +251,7 @@ describe('getTasksByUserPaged', () => {
   });
 
   it('totalPages is at minimum 1 even when total is 0', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     const result = await getTasksByUserPaged(userId, defaultFilters);
 
