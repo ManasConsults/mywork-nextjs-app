@@ -30,17 +30,15 @@ export interface AppUsageStats {
  * Soft-delete filter (deletedAt: null) is applied to tasks, achievements and
  * notes. WorkLog and TodoItem have no soft-delete column per the schema.
  *
- * Two concurrent operations are issued:
- *  1. A $transaction with all PrismaPromise count/findMany queries.
- *  2. A Promise.all of groupBy queries to find the most-recent createdAt per
- *     user per module, used to compute lastActiveAt.
- *
- * Both are awaited in parallel via an outer Promise.all to minimise latency.
+ * Two concurrent batches are issued via Promise.all:
+ *  1. Parallel count + findMany queries (no transaction needed for reads).
+ *  2. Parallel groupBy queries to find the most-recent createdAt per user per
+ *     module, used to compute lastActiveAt.
  */
 export async function getAppUsageStats(): Promise<AppUsageStats> {
   const [totalsAndUsers, lastActiveDates] = await Promise.all([
-    // ── Batch 1: counts + per-user _count in a single round-trip ──────────────
-    prisma.$transaction([
+    // ── Batch 1: counts + per-user _count in parallel ─────────────────────────
+    Promise.all([
       prisma.user.count(),
       prisma.task.count({ where: { deletedAt: null } }),
       prisma.workLog.count(),

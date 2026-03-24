@@ -4,15 +4,22 @@ import { prisma } from '@/lib/db/prisma';
 import type { CreateTaskInput, UpdateTaskInput, TaskFilters } from '@/lib/schemas/task.schema';
 import { taskFiltersSchema } from '@/lib/schemas/task.schema';
 
+/** Narrow type used for list views — excludes heavy fields (description, tags). */
+export type TaskListItem = Pick<Task, 'id' | 'title' | 'status' | 'priority' | 'dueDate'>;
+
 export interface PagedTasks {
-  tasks: Task[];
+  tasks: TaskListItem[];
   total: number;
   page: number;
   pageSize: number;
   totalPages: number;
 }
 
-export async function getTasksByUser(userId: string, filters: TaskFilters = taskFiltersSchema.parse({})): Promise<Task[]> {
+/** Full rows — used by the Kanban board where all fields are needed. */
+export async function getTasksByUser(
+  userId: string,
+  filters: TaskFilters = taskFiltersSchema.parse({}),
+): Promise<Task[]> {
   return prisma.task.findMany({
     where: {
       userId,
@@ -24,7 +31,11 @@ export async function getTasksByUser(userId: string, filters: TaskFilters = task
   });
 }
 
-export async function getTasksByUserPaged(userId: string, filters: TaskFilters): Promise<PagedTasks> {
+/** Paged list — projects only the five fields rendered by TaskList. */
+export async function getTasksByUserPaged(
+  userId: string,
+  filters: TaskFilters,
+): Promise<PagedTasks> {
   const { status, priority, sortBy, sortOrder, page, pageSize } = filters;
 
   const where = {
@@ -41,12 +52,21 @@ export async function getTasksByUserPaged(userId: string, filters: TaskFilters):
         ? [{ status: sortOrder }, { createdAt: 'desc' as const }]
         : [{ createdAt: sortOrder }];
 
-  const [tasks, total] = await prisma.$transaction([
+  // Run count and data queries in parallel — no transaction needed for reads.
+  // Select only the five fields TaskList renders; avoids fetching description/tags.
+  const [tasks, total] = await Promise.all([
     prisma.task.findMany({
       where,
       orderBy,
       skip: (page - 1) * pageSize,
       take: pageSize,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+      },
     }),
     prisma.task.count({ where }),
   ]);
@@ -55,7 +75,7 @@ export async function getTasksByUserPaged(userId: string, filters: TaskFilters):
     tasks,
     total,
     page,
-    pageSize: pageSize,
+    pageSize,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
   };
 }
@@ -67,35 +87,28 @@ export async function getTaskById(userId: string, taskId: string): Promise<Task 
 }
 
 export async function createTask(userId: string, data: CreateTaskInput): Promise<Task> {
-  return prisma.task.create({
-    data: {
-      ...data,
-      userId,
-    },
-  });
+  return prisma.task.create({ data: { ...data, userId } });
 }
 
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
 export async function updateTask(
   userId: string,
   taskId: string,
   data: UpdateTaskInput,
 ): Promise<Task | null> {
-  const existing = await getTaskById(userId, taskId);
-  if (!existing) return null;
-
-  return prisma.task.update({
-    where: { id: taskId },
+  const result = await prisma.task.updateMany({
+    where: { id: taskId, userId, deletedAt: null },
     data,
   });
+  if (result.count === 0) return null;
+  return prisma.task.findFirst({ where: { id: taskId, userId } });
 }
 
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
 export async function softDeleteTask(userId: string, taskId: string): Promise<boolean> {
-  const existing = await getTaskById(userId, taskId);
-  if (!existing) return false;
-
-  await prisma.task.update({
-    where: { id: taskId },
+  const result = await prisma.task.updateMany({
+    where: { id: taskId, userId, deletedAt: null },
     data: { deletedAt: new Date() },
   });
-  return true;
+  return result.count > 0;
 }

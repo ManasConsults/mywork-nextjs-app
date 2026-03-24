@@ -20,6 +20,7 @@ jest.mock('@/lib/db/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
       count: jest.fn(),
     },
     $transaction: jest.fn(),
@@ -32,7 +33,6 @@ jest.mock('@/lib/services/task.service', () => ({
 
 const mockNote = prisma.note as jest.Mocked<typeof prisma.note>;
 const mockGetTaskById = taskService.getTaskById as jest.MockedFunction<typeof taskService.getTaskById>;
-const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
 
 const userId = 'user-1';
 const noteId = 'note-1';
@@ -271,51 +271,51 @@ describe('updateNote', () => {
 
 describe('saveDraft', () => {
   it('updates only body field', async () => {
-    const withTask = { ...baseNote, task: null };
-    mockNote.findFirst.mockResolvedValue(withTask as never);
-    mockNote.update.mockResolvedValue(baseNote as never);
-
     const newBody = { type: 'doc', content: [] };
+    mockNote.updateMany.mockResolvedValue({ count: 1 });
+    mockNote.findFirst.mockResolvedValue(baseNote as never);
+
     await saveDraft(userId, noteId, { body: newBody });
 
-    expect(mockNote.update).toHaveBeenCalledWith({
-      where: { id: noteId },
-      data: { body: newBody },
-    });
+    expect(mockNote.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: noteId, userId }),
+        data: { body: newBody },
+      }),
+    );
   });
 
   it('returns null when not owned', async () => {
-    mockNote.findFirst.mockResolvedValue(null);
+    mockNote.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await saveDraft('other', noteId, { body: validBody });
 
     expect(result).toBeNull();
-    expect(mockNote.update).not.toHaveBeenCalled();
+    expect(mockNote.findFirst).not.toHaveBeenCalled();
   });
 });
 
 describe('softDeleteNote', () => {
   it('sets deletedAt when owned', async () => {
-    const withTask = { ...baseNote, task: null };
-    mockNote.findFirst.mockResolvedValue(withTask as never);
-    mockNote.update.mockResolvedValue({ ...baseNote, deletedAt: new Date() } as never);
+    mockNote.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await softDeleteNote(userId, noteId);
 
-    expect(mockNote.update).toHaveBeenCalledWith({
-      where: { id: noteId },
-      data: { deletedAt: expect.any(Date) },
-    });
+    expect(mockNote.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: noteId, userId, deletedAt: null }),
+        data: { deletedAt: expect.any(Date) },
+      }),
+    );
     expect(result).toBe(true);
   });
 
   it('returns false when not owned', async () => {
-    mockNote.findFirst.mockResolvedValue(null);
+    mockNote.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await softDeleteNote('other', noteId);
 
     expect(result).toBe(false);
-    expect(mockNote.update).not.toHaveBeenCalled();
   });
 });
 
@@ -323,40 +323,45 @@ describe('getNotesByUserPaged', () => {
   const defaultFilters = noteFiltersSchema.parse({});
   const withTask = { ...baseNote, task: null };
 
-  function mockPagedTransaction(notes: object[], total: number) {
-    mockPrismaTransaction.mockResolvedValue([notes, total] as never);
+  function mockPagedQuery(notes: object[], total: number) {
+    mockNote.findMany.mockResolvedValue(notes as never);
+    mockNote.count.mockResolvedValue(total);
   }
 
   it('returns paged notes with total, page, pageSize, totalPages', async () => {
-    mockPagedTransaction([withTask], 1);
+    mockPagedQuery([withTask], 1);
 
     const result = await getNotesByUserPaged(userId, defaultFilters);
 
     expect(result.notes).toHaveLength(1);
     expect(result.total).toBe(1);
     expect(result.page).toBe(1);
-    expect(result.pageSize).toBe(20);
+    expect(result.pageSize).toBe(10);
     expect(result.totalPages).toBe(1);
   });
 
   it('applies tag filter', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     await getNotesByUserPaged(userId, noteFiltersSchema.parse({ tag: 'work' }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockNote.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ tags: { has: 'work' } }) }),
+    );
   });
 
   it('applies taskId filter', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     await getNotesByUserPaged(userId, noteFiltersSchema.parse({ taskId }));
 
-    expect(mockPrismaTransaction).toHaveBeenCalledTimes(1);
+    expect(mockNote.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ taskId }) }),
+    );
   });
 
   it('sorts by updatedAt desc by default', async () => {
-    mockPagedTransaction([withTask], 1);
+    mockPagedQuery([withTask], 1);
 
     const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ sortBy: 'updatedAt', sortOrder: 'desc' }));
 
@@ -364,7 +369,7 @@ describe('getNotesByUserPaged', () => {
   });
 
   it('sorts by createdAt desc', async () => {
-    mockPagedTransaction([withTask], 1);
+    mockPagedQuery([withTask], 1);
 
     const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ sortBy: 'createdAt', sortOrder: 'desc' }));
 
@@ -372,7 +377,7 @@ describe('getNotesByUserPaged', () => {
   });
 
   it('page 2 offsets correctly', async () => {
-    mockPagedTransaction([withTask], 25);
+    mockPagedQuery([withTask], 25);
 
     const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ page: 2, pageSize: 20 }));
 
@@ -382,7 +387,7 @@ describe('getNotesByUserPaged', () => {
   });
 
   it('totalPages rounds up — 21 items / 20 per page = 2 pages', async () => {
-    mockPagedTransaction([], 21);
+    mockPagedQuery([], 21);
 
     const result = await getNotesByUserPaged(userId, noteFiltersSchema.parse({ pageSize: 20 }));
 
@@ -390,7 +395,7 @@ describe('getNotesByUserPaged', () => {
   });
 
   it('totalPages is at minimum 1 when total is 0', async () => {
-    mockPagedTransaction([], 0);
+    mockPagedQuery([], 0);
 
     const result = await getNotesByUserPaged(userId, defaultFilters);
 

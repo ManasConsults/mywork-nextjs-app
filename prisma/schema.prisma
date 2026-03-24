@@ -148,6 +148,10 @@ model Task {
   notes        Note[]
   todoItems    TodoItem[]
 
+  @@index([userId, deletedAt, createdAt(sort: Desc)])
+  @@index([userId, deletedAt, dueDate(sort: Desc)])
+  @@index([userId, deletedAt, status])
+  @@index([userId, deletedAt, priority])
   @@map("tasks")
 }
 
@@ -170,6 +174,9 @@ model WorkLog {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, taskId])
+  @@index([userId, date(sort: Desc)])
   @@map("work_logs")
 }
 
@@ -188,6 +195,10 @@ model Achievement {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  @@index([userId, deletedAt, dateAchieved(sort: Desc)])
+  @@index([userId, deletedAt, createdAt(sort: Desc)])
+  @@index([userId, deletedAt, updatedAt(sort: Desc)])
+  @@index([userId, deletedAt, category])
   @@map("achievements")
 }
 
@@ -205,6 +216,8 @@ model Note {
   updatedAt DateTime  @updatedAt
 
   @@index([userId, deletedAt])
+  @@index([userId, deletedAt, updatedAt(sort: Desc)])
+  @@index([userId, deletedAt, createdAt(sort: Desc)])
   @@index([taskId])
   @@map("notes")
 }
@@ -222,6 +235,8 @@ model TodoItem {
   updatedAt DateTime  @updatedAt
 
   @@index([userId, isDone])
+  @@index([userId, isDone, createdAt(sort: Desc)])
+  @@index([userId, isDone, dueDate(sort: Asc)])
   @@index([taskId])
   @@map("todo_items")
 }

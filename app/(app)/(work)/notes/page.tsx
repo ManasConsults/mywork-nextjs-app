@@ -4,17 +4,38 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getNotesByUserPaged } from '@/lib/services/note.service';
 import { getTasksByUser } from '@/lib/services/task.service';
 import { noteFiltersSchema } from '@/lib/schemas/note.schema';
-import { NoteList } from './_components/NoteList';
 import { NoteFiltersBar } from './_components/NoteFiltersBar';
-import { NotePagination } from './_components/NotePagination';
+import { NoteListServer } from './_components/NoteListServer';
 
 export const metadata: Metadata = { title: 'MyWork — Notes' };
 
 interface NotesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function NoteListSkeleton(): React.JSX.Element {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="animate-pulse rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+        >
+          <div className="mb-2 h-4 w-1/2 rounded bg-zinc-100 dark:bg-zinc-800" />
+          <div className="space-y-1.5">
+            <div className="h-3 w-full rounded bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-3 w-3/4 rounded bg-zinc-100 dark:bg-zinc-800" />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <div className="h-4 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-4 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default async function NotesPage({ searchParams }: NotesPageProps): Promise<React.JSX.Element> {
@@ -31,20 +52,13 @@ export default async function NotesPage({ searchParams }: NotesPageProps): Promi
     pageSize: typeof params.pageSize === 'string' ? params.pageSize : undefined,
   });
 
-  const [{ notes, total, page, pageSize, totalPages }, tasks] = await Promise.all([
-    getNotesByUserPaged(userId, filters),
-    getTasksByUser(userId),
-  ]);
+  // Fast indexed lookup — needed for the task dropdown in filters
+  const tasks = await getTasksByUser(userId);
 
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Notes</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {total} {total === 1 ? 'note' : 'notes'}
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Notes</h1>
         <Link
           href="/notes/new"
           className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
@@ -64,10 +78,8 @@ export default async function NotesPage({ searchParams }: NotesPageProps): Promi
         />
       </Suspense>
 
-      <NoteList notes={notes} />
-
-      <Suspense>
-        <NotePagination page={page} totalPages={totalPages} total={total} pageSize={pageSize} />
+      <Suspense fallback={<NoteListSkeleton />}>
+        <NoteListServer userId={userId} filters={filters} />
       </Suspense>
     </div>
   );

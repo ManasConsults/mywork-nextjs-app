@@ -1,5 +1,7 @@
 import { createWorkLogAction, updateWorkLogAction, deleteWorkLogAction } from './work-log';
 
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
+
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
 }));

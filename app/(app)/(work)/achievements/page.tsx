@@ -5,19 +5,42 @@ import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
-import { getAchievementsByUserPaged } from '@/lib/services/achievement.service';
-import { currentFiscalYear, fiscalYearLabel } from '@/lib/utils/fiscal-year';
+import { currentFiscalYear } from '@/lib/utils/fiscal-year';
 import { achievementFiltersSchema } from '@/lib/schemas/achievement.schema';
 import { AchievementFilters } from './_components/AchievementFilters';
-import { AchievementList } from './_components/AchievementList';
-import { AchievementPagination } from './_components/AchievementPagination';
+import { AchievementListServer } from './_components/AchievementListServer';
 import { FiscalYearSettings } from './_components/FiscalYearSettings';
-import { ExportButtons } from './_components/ExportButtons';
 
 export const metadata: Metadata = { title: 'MyWork — Achievements' };
 
 interface AchievementsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function AchievementListSkeleton(): React.JSX.Element {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="animate-pulse rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"
+        >
+          <div className="mb-2 flex items-start justify-between gap-2">
+            <div className="flex gap-2">
+              <div className="h-4 w-40 rounded bg-zinc-100 dark:bg-zinc-800" />
+              <div className="h-4 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+            </div>
+            <div className="h-4 w-24 rounded bg-zinc-100 dark:bg-zinc-800" />
+          </div>
+          <div className="h-3 w-24 rounded bg-zinc-100 dark:bg-zinc-800 mb-2" />
+          <div className="space-y-1.5">
+            <div className="h-3 w-full rounded bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-3 w-4/5 rounded bg-zinc-100 dark:bg-zinc-800" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default async function AchievementsPage({ searchParams }: AchievementsPageProps): Promise<React.JSX.Element> {
@@ -26,6 +49,7 @@ export default async function AchievementsPage({ searchParams }: AchievementsPag
 
   const params = await searchParams;
 
+  // Fast PK lookup — needed for filter UI and AchievementListServer
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { fiscalYearStartMonth: true },
@@ -42,30 +66,11 @@ export default async function AchievementsPage({ searchParams }: AchievementsPag
     pageSize: typeof params.pageSize === 'string' ? params.pageSize : undefined,
   });
 
-  const { achievements, total, page, pageSize, totalPages } =
-    await getAchievementsByUserPaged(userId, filters, fiscalYearStartMonth);
-
-  const fyLabel = filters.reviewYear
-    ? fiscalYearLabel(filters.reviewYear, fiscalYearStartMonth)
-    : 'All years';
-
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Achievements</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {total} {total === 1 ? 'achievement' : 'achievements'}
-            {filters.reviewYear ? ` · ${fyLabel}` : ''}
-          </p>
-        </div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Achievements</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <ExportButtons
-            achievements={achievements}
-            reviewYear={filters.reviewYear}
-            fiscalYearStartMonth={fiscalYearStartMonth}
-            category={filters.category}
-          />
           <FiscalYearSettings currentMonth={fiscalYearStartMonth} />
           <Link
             href="/achievements/new"
@@ -88,10 +93,8 @@ export default async function AchievementsPage({ searchParams }: AchievementsPag
         />
       </Suspense>
 
-      <AchievementList achievements={achievements} />
-
-      <Suspense>
-        <AchievementPagination page={page} totalPages={totalPages} total={total} pageSize={pageSize} />
+      <Suspense fallback={<AchievementListSkeleton />}>
+        <AchievementListServer userId={userId} filters={filters} fiscalYearStartMonth={fiscalYearStartMonth} />
       </Suspense>
     </div>
   );

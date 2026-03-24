@@ -47,19 +47,12 @@ export async function updateFeedbackSubmissionStatus(
   id: string,
   status: FeedbackStatus,
 ): Promise<FeedbackSubmission | null> {
-  const existing = await prisma.feedbackSubmission.findUnique({ where: { id } });
-  if (!existing) return null;
-
-  return prisma.feedbackSubmission.update({
-    where: { id },
-    data: { status },
-  });
+  const result = await prisma.feedbackSubmission.updateMany({ where: { id }, data: { status } });
+  if (result.count === 0) return null;
+  return prisma.feedbackSubmission.findFirst({ where: { id } });
 }
 
 export async function deleteFeedbackSubmission(id: string): Promise<boolean> {
-  const existing = await prisma.feedbackSubmission.findUnique({ where: { id } });
-  if (!existing) return false;
-
-  await prisma.feedbackSubmission.delete({ where: { id } });
-  return true;
+  const result = await prisma.feedbackSubmission.deleteMany({ where: { id } });
+  return result.count > 0;
 }

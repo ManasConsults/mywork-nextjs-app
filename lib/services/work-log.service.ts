@@ -57,7 +57,7 @@ export async function getWorkLogsByUserPaged(
       : {}),
   };
 
-  const [logs, total, agg] = await prisma.$transaction([
+  const [logs, total, agg] = await Promise.all([
     prisma.workLog.findMany({
       where,
       include: { task: { select: { id: true, title: true } } },
@@ -98,21 +98,22 @@ export async function createWorkLog(
   });
 }
 
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
 export async function updateWorkLog(
   userId: string,
   workLogId: string,
   data: UpdateWorkLogInput,
 ): Promise<WorkLog | null> {
-  const existing = await prisma.workLog.findFirst({ where: { id: workLogId, userId } });
-  if (!existing) return null;
-
-  return prisma.workLog.update({ where: { id: workLogId }, data });
+  const result = await prisma.workLog.updateMany({
+    where: { id: workLogId, userId },
+    data,
+  });
+  if (result.count === 0) return null;
+  return prisma.workLog.findFirst({ where: { id: workLogId, userId } });
 }
 
+/** Eliminates the N+1 pre-flight SELECT by folding auth into the WHERE clause. */
 export async function deleteWorkLog(userId: string, workLogId: string): Promise<boolean> {
-  const existing = await prisma.workLog.findFirst({ where: { id: workLogId, userId } });
-  if (!existing) return false;
-
-  await prisma.workLog.delete({ where: { id: workLogId } });
-  return true;
+  const result = await prisma.workLog.deleteMany({ where: { id: workLogId, userId } });
+  return result.count > 0;
 }

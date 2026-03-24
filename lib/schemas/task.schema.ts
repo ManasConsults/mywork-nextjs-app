@@ -17,7 +17,7 @@ export const updateTaskSchema = createTaskSchema.partial();
 export const TASK_SORT_BY = ['createdAt', 'dueDate', 'status'] as const;
 export const TASK_SORT_ORDER = ['asc', 'desc'] as const;
 export const TASK_PAGE_SIZES = [10, 20, 50, 100] as const;
-export const TASK_DEFAULT_PAGE_SIZE = 20;
+export const TASK_DEFAULT_PAGE_SIZE = 10;
 
 export const taskFiltersSchema = z.object({
   status: z.enum(TASK_STATUSES).optional(),
