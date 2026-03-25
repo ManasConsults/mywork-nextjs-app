@@ -41,6 +41,13 @@ function StatusBadge({ status }: { status: string }): React.JSX.Element {
       </span>
     );
   }
+  if (status === 'DEFERRED') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+        Deferred
+      </span>
+    );
+  }
   if (status === 'RESOLVED') {
     return (
       <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
