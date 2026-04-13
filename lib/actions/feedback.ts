@@ -108,3 +108,24 @@ export async function deleteFeedbackSubmissionAction(
     return { success: false, error: { message: 'Failed to delete submission.' } };
   }
 }
+
+export async function deleteMyFeedbackAction(
+  id: string,
+): Promise<ActionResult<void>> {
+  const session = await getAuthSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    return { success: false, error: { message: 'You must be signed in.' } };
+  }
+
+  try {
+    const deleted = await deleteFeedbackSubmission(id, userId);
+    if (!deleted) {
+      return { success: false, error: { message: 'Submission not found.' } };
+    }
+    revalidatePath('/feedback');
+    return { success: true, data: undefined };
+  } catch {
+    return { success: false, error: { message: 'Failed to delete submission.' } };
+  }
+}

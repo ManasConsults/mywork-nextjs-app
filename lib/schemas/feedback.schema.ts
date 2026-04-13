@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const FEEDBACK_TYPES = ['FEATURE_REQUEST', 'BUG'] as const;
-export const FEEDBACK_STATUSES = ['OPEN', 'IN_REVIEW', 'RESOLVED'] as const;
+export const FEEDBACK_STATUSES = ['OPEN', 'IN_REVIEW', 'DEFERRED', 'RESOLVED'] as const;
 
 export const createFeedbackSchema = z.object({
   type: z.enum(FEEDBACK_TYPES, { error: 'Please select a type' }),

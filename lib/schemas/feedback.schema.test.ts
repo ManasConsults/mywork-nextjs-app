@@ -293,10 +293,11 @@ describe('FEEDBACK_TYPES constant', () => {
 });
 
 describe('FEEDBACK_STATUSES constant', () => {
-  it('should contain OPEN, IN_REVIEW, and RESOLVED', () => {
+  it('should contain OPEN, IN_REVIEW, DEFERRED, and RESOLVED', () => {
     expect(FEEDBACK_STATUSES).toContain('OPEN');
     expect(FEEDBACK_STATUSES).toContain('IN_REVIEW');
+    expect(FEEDBACK_STATUSES).toContain('DEFERRED');
     expect(FEEDBACK_STATUSES).toContain('RESOLVED');
-    expect(FEEDBACK_STATUSES).toHaveLength(3);
+    expect(FEEDBACK_STATUSES).toHaveLength(4);
   });
 });

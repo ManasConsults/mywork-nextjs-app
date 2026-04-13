@@ -17,6 +17,7 @@ const STATUS_FILTERS = [
   { value: null, label: 'All' },
   { value: 'OPEN', label: 'Open' },
   { value: 'IN_REVIEW', label: 'In Review' },
+  { value: 'DEFERRED', label: 'Deferred' },
   { value: 'RESOLVED', label: 'Resolved' },
 ] as const;
 
