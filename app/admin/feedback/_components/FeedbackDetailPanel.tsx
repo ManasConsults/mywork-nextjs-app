@@ -25,6 +25,7 @@ interface Props {
 const STATUS_OPTIONS = [
   { value: 'OPEN', label: 'Open' },
   { value: 'IN_REVIEW', label: 'In Review' },
+  { value: 'DEFERRED', label: 'Deferred' },
   { value: 'RESOLVED', label: 'Resolved' },
 ] as const;
 
@@ -50,6 +51,13 @@ function StatusBadge({ status }: { status: string }): React.JSX.Element {
     return (
       <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 transition-colors duration-200">
         In Review
+      </span>
+    );
+  }
+  if (status === 'DEFERRED') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 transition-colors duration-200">
+        Deferred
       </span>
     );
   }

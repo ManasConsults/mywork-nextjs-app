@@ -267,12 +267,31 @@ describe('deleteFeedbackSubmission', () => {
     expect(result).toBe(false);
   });
 
-  it('should hard-delete the submission and return true', async () => {
+  it('should hard-delete the submission and return true (admin: no userId)', async () => {
     mockFeedbackSubmission.deleteMany.mockResolvedValue({ count: 1 });
 
     const result = await deleteFeedbackSubmission(submissionId);
 
     expect(mockFeedbackSubmission.deleteMany).toHaveBeenCalledWith({ where: { id: submissionId } });
     expect(result).toBe(true);
+  });
+
+  it('should scope the delete to the owner when userId is provided', async () => {
+    mockFeedbackSubmission.deleteMany.mockResolvedValue({ count: 1 });
+
+    const result = await deleteFeedbackSubmission(submissionId, userId);
+
+    expect(mockFeedbackSubmission.deleteMany).toHaveBeenCalledWith({
+      where: { id: submissionId, userId },
+    });
+    expect(result).toBe(true);
+  });
+
+  it('should return false when userId does not own the submission', async () => {
+    mockFeedbackSubmission.deleteMany.mockResolvedValue({ count: 0 });
+
+    const result = await deleteFeedbackSubmission(submissionId, 'other-user');
+
+    expect(result).toBe(false);
   });
 });

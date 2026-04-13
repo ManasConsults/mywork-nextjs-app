@@ -32,10 +32,10 @@ export function AppShell({
   const hasPending = isAdmin && (pendingCount ?? 0) > 0;
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       <Sidebar user={user} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
         <div className="flex h-12 shrink-0 items-center justify-between px-4 md:justify-end">
           {/* Hamburger — mobile only */}

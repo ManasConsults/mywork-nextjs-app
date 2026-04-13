@@ -375,7 +375,7 @@ export function Sidebar({ user, mobileOpen, onMobileClose }: SidebarProps): Reac
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden shrink-0 flex-col border-r border-zinc-200 bg-white transition-all duration-200 dark:border-zinc-800 dark:bg-zinc-900 md:flex ${
+        className={`hidden shrink-0 flex-col border-r border-zinc-200 bg-white transition-all duration-200 dark:border-zinc-800 dark:bg-zinc-900 md:flex overflow-y-auto ${
           collapsed ? 'w-12' : 'w-56'
         }`}
         aria-label="Sidebar navigation"

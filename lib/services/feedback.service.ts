@@ -52,7 +52,8 @@ export async function updateFeedbackSubmissionStatus(
   return prisma.feedbackSubmission.findFirst({ where: { id } });
 }
 
-export async function deleteFeedbackSubmission(id: string): Promise<boolean> {
-  const result = await prisma.feedbackSubmission.deleteMany({ where: { id } });
+export async function deleteFeedbackSubmission(id: string, userId?: string): Promise<boolean> {
+  const where = userId ? { id, userId } : { id };
+  const result = await prisma.feedbackSubmission.deleteMany({ where });
   return result.count > 0;
 }

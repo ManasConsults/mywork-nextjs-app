@@ -87,6 +87,7 @@ enum FeedbackType {
 enum FeedbackStatus {
   OPEN
   IN_REVIEW
+  DEFERRED
   RESOLVED
 }
 
