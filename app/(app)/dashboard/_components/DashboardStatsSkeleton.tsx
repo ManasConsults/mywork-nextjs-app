@@ -7,7 +7,7 @@ export function DashboardStatsSkeleton(): React.JSX.Element {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+              className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
             >
               <div className="h-3 w-16 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
               <div className="mt-2 h-8 w-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
@@ -22,7 +22,7 @@ export function DashboardStatsSkeleton(): React.JSX.Element {
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+              className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
             >
               <div className="h-3 w-20 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
               <div className="mt-2 h-8 w-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
@@ -37,7 +37,7 @@ export function DashboardStatsSkeleton(): React.JSX.Element {
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+              className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
             >
               <div className="h-3 w-16 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
               <div className="mt-2 h-8 w-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
