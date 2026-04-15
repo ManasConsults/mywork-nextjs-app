@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+
 import { deleteTransactionAction } from '@/lib/actions/finance/transaction';
+import { Button } from '@/components/ui/button';
 
 interface DeleteTransactionButtonProps {
   id: string;
@@ -25,31 +27,20 @@ export function DeleteTransactionButton({ id }: DeleteTransactionButtonProps): R
   if (confirming) {
     return (
       <span className="inline-flex items-center gap-2">
-        <button
-          onClick={handleDelete}
-          disabled={isPending}
-          className="rounded px-2 py-0.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors"
-        >
+        <Button size="sm" variant="destructive" onClick={handleDelete} disabled={isPending}>
           {isPending ? 'Deleting…' : 'Confirm'}
-        </button>
-        <button
-          onClick={() => { setConfirming(false); setError(null); }}
-          disabled={isPending}
-          className="rounded px-2 py-0.5 text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-50"
-        >
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => { setConfirming(false); setError(null); }} disabled={isPending}>
           Cancel
-        </button>
+        </Button>
         {error && <span className="text-xs text-red-500">{error}</span>}
       </span>
     );
   }
 
   return (
-    <button
-      onClick={() => setConfirming(true)}
-      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium"
-    >
+    <Button variant="ghost" size="sm" onClick={() => setConfirming(true)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
       Delete
-    </button>
+    </Button>
   );
 }

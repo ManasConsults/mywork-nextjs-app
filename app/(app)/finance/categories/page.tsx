@@ -76,13 +76,10 @@ export default async function CategoriesPage({
     <div className="mx-auto max-w-3xl">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Categories
-        </h1>
         {!showAddForm && (
           <Link
             href="/finance/categories?add=1"
-            className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
           >
             New Category
           </Link>
@@ -91,14 +88,14 @@ export default async function CategoriesPage({
 
       {/* Inline add form */}
       {showAddForm && (
-        <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mb-8 rounded-xl border border-border bg-card p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+            <h2 className="text-base font-semibold text-foreground">
               New Category
             </h2>
             <Link
               href="/finance/categories"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Link>
@@ -122,20 +119,20 @@ export default async function CategoriesPage({
                 >
                   {meta.label}
                 </span>
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                <span className="text-xs text-muted-foreground">
                   {categories.length} {categories.length === 1 ? 'category' : 'categories'}
                 </span>
               </div>
 
               {categories.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-6 text-center dark:border-zinc-700 dark:bg-zinc-900">
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
+                  <p className="text-sm text-muted-foreground">
                     No {meta.label.toLowerCase()} categories yet.
                   </p>
                   {!showAddForm && (
                     <Link
                       href="/finance/categories?add=1"
-                      className="mt-2 inline-block text-sm font-medium text-teal-600 underline underline-offset-2 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+                      className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-2 hover:text-primary"
                     >
                       Add category
                     </Link>
@@ -144,7 +141,7 @@ export default async function CategoriesPage({
               ) : (
                 <ul
                   role="list"
-                  className="divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900"
+                  className="divide-y divide-border/60 rounded-xl border border-border bg-card"
                 >
                   {categories.map((cat) => (
                     <li
@@ -160,11 +157,11 @@ export default async function CategoriesPage({
                         />
 
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                          <p className="truncate text-sm font-medium text-foreground">
                             {cat.name}
                           </p>
                           {cat.children.length > 0 && (
-                            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                            <p className="text-xs text-muted-foreground">
                               {cat.children.length}{' '}
                               {cat.children.length === 1
                                 ? 'subcategory'

@@ -34,13 +34,13 @@ const STATUS_OPTIONS = [
 function TypeBadge({ type }: { type: string }): React.JSX.Element {
   if (type === 'BUG') {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+      <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
         Bug
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+    <span className="inline-flex items-center rounded-full bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary">
       Feature Request
     </span>
   );
@@ -49,27 +49,27 @@ function TypeBadge({ type }: { type: string }): React.JSX.Element {
 function StatusBadge({ status }: { status: string }): React.JSX.Element {
   if (status === 'IN_REVIEW') {
     return (
-      <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 transition-colors duration-200">
+      <span className="inline-flex items-center rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning transition-colors duration-200">
         In Review
       </span>
     );
   }
   if (status === 'DEFERRED') {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 transition-colors duration-200">
+      <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary transition-colors duration-200">
         Deferred
       </span>
     );
   }
   if (status === 'RESOLVED') {
     return (
-      <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 transition-colors duration-200">
+      <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success transition-colors duration-200">
         Resolved
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 transition-colors duration-200">
+    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors duration-200">
       Open
     </span>
   );
@@ -153,19 +153,19 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-detail-title"
-        className="fixed z-50 bg-white dark:bg-zinc-900 shadow-xl
+        className="fixed z-50 bg-card shadow-xl
           bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-2xl
           md:bottom-auto md:top-0 md:right-0 md:left-auto md:h-full md:w-120 md:rounded-none md:rounded-l-2xl md:max-h-none"
       >
         {/* Drag handle — mobile only */}
-        <div className="mx-auto mb-4 mt-3 h-1 w-10 rounded-full bg-zinc-200 dark:bg-zinc-700 md:hidden" aria-hidden="true" />
+        <div className="mx-auto mb-4 mt-3 h-1 w-10 rounded-full bg-muted md:hidden" aria-hidden="true" />
 
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+        <div className="flex items-start justify-between border-b border-border px-5 py-4">
           <div className="min-w-0 pr-4">
             <h2
               id="feedback-detail-title"
-              className="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50"
+              className="text-base font-semibold leading-snug text-foreground"
             >
               {submission.title}
             </h2>
@@ -176,7 +176,7 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
           </div>
           <button
             onClick={onClose}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             aria-label="Close detail panel"
           >
             <X size={16} aria-hidden="true" />
@@ -189,39 +189,39 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Avatar */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
               {initials}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                {submission.user.name ?? <span className="italic text-zinc-400">No name</span>}
+              <p className="truncate text-sm font-medium text-foreground">
+                {submission.user.name ?? <span className="italic text-muted-foreground">No name</span>}
               </p>
-              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="truncate text-xs text-muted-foreground">
                 {submission.user.email}
               </p>
             </div>
-            <span className="ml-auto inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            <span className="ml-auto inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
               {submission.module}
             </span>
-            <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs tabular-nums text-muted-foreground">
               {formatDate(submission.createdAt)}
             </span>
           </div>
 
-          <hr className="border-zinc-200 dark:border-zinc-800" />
+          <hr className="border-border" />
 
           {/* Description */}
           <section>
-            <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
+            <p className="whitespace-pre-wrap text-sm text-foreground">
               {submission.description}
             </p>
           </section>
 
-          <hr className="border-zinc-200 dark:border-zinc-800" />
+          <hr className="border-border" />
 
           {/* Status update */}
           <section>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Update Status
             </p>
             <div className="flex flex-wrap gap-2">
@@ -236,8 +236,8 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
                     onClick={() => handleStatusChange(opt.value)}
                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-200 disabled:opacity-60 ${
                       isActive
-                        ? 'bg-teal-600 text-white dark:bg-zinc-50 dark:text-zinc-900'
-                        : 'border border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                     }`}
                     aria-pressed={isActive}
                   >
@@ -250,7 +250,7 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
               })}
             </div>
             {statusError && (
-              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400" role="alert">
+              <p className="mt-1.5 text-xs text-destructive" role="alert">
                 {statusError}
               </p>
             )}
@@ -258,9 +258,9 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
         </div>
 
         {/* Footer — delete */}
-        <div className="border-t border-zinc-200 px-5 py-4 dark:border-zinc-800">
+        <div className="border-t border-border px-5 py-4">
           {deleteError && (
-            <p className="mb-2 text-xs text-red-600 dark:text-red-400" role="alert">
+            <p className="mb-2 text-xs text-destructive" role="alert">
               {deleteError}
             </p>
           )}
@@ -268,7 +268,7 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
             type="button"
             onClick={handleDelete}
             disabled={deleting}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/20"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
           >
             {deleting
               ? <Loader2 size={14} className="animate-spin" aria-hidden="true" />

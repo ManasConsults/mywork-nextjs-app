@@ -6,6 +6,11 @@ import Link from 'next/link';
 import type { Client } from '@prisma/client';
 
 import { createInvoiceAction } from '@/lib/actions/finance/invoice';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const TAX_RATES: { label: string; value: number }[] = [
   { label: '0%', value: 0 },
@@ -43,16 +48,18 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [clientId, setClientId] = useState('');
+  const [paymentAccountId, setPaymentAccountId] = useState('');
+  const [taxRate, setTaxRate] = useState('0');
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const today = new Date().toISOString().split('T')[0];
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
-    const clientId = (fd.get('clientId') as string).trim();
-    const paymentAccountId = (fd.get('paymentAccountId') as string).trim() || undefined;
     const issueDateRaw = fd.get('issueDate') as string;
     const dueDateRaw = fd.get('dueDate') as string;
-    const taxRateRaw = fd.get('taxRate') as string;
     const notes = (fd.get('notes') as string).trim() || undefined;
 
     const errors: FieldErrors = {};
@@ -65,10 +72,10 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
 
     const input = {
       clientId,
-      paymentAccountId,
+      paymentAccountId: paymentAccountId || undefined,
       issueDate: new Date(issueDateRaw),
       dueDate: dueDateRaw ? new Date(dueDateRaw) : undefined,
-      taxRate: parseInt(taxRateRaw, 10),
+      taxRate: parseInt(taxRate, 10),
       notes,
     };
 
@@ -90,103 +97,97 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
     });
   }
 
-  const today = new Date().toISOString().split('T')[0];
-
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {rootError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
-      <Field label="Client" error={fieldErrors.clientId?.[0]} required>
-        <select name="clientId" defaultValue="" className={inputCls(!!fieldErrors.clientId)} required>
-          <option value="" disabled>
-            Select a client
-          </option>
-          {clients.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <div className="space-y-1.5">
+        <Label>Client <span className="text-red-500">*</span></Label>
+        <Select value={clientId} onValueChange={setClientId} disabled={isPending}>
+          <SelectTrigger aria-invalid={!!fieldErrors.clientId}>
+            <SelectValue placeholder="Select a client" />
+          </SelectTrigger>
+          <SelectContent>
+            {clients.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {fieldErrors.clientId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.clientId[0]}</p>}
+      </div>
 
-      <Field label="Payment Account" error={fieldErrors.paymentAccountId?.[0]}>
-        <select name="paymentAccountId" defaultValue="" className={inputCls(!!fieldErrors.paymentAccountId)}>
-          <option value="">None (no payment details on invoice)</option>
-          {paymentAccounts.map((a) => {
-            const detail = [a.bankName, a.bsb, a.accountNumber, a.iban].filter(Boolean).join(' · ');
-            return (
-              <option key={a.id} value={a.id}>
-                {a.name}{detail ? ` — ${detail}` : ''}
-              </option>
-            );
-          })}
-        </select>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="space-y-1.5">
+        <Label>Payment Account</Label>
+        <Select value={paymentAccountId} onValueChange={setPaymentAccountId} disabled={isPending}>
+          <SelectTrigger aria-invalid={!!fieldErrors.paymentAccountId}>
+            <SelectValue placeholder="None (no payment details on invoice)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_none">None (no payment details on invoice)</SelectItem>
+            {paymentAccounts.map((a) => {
+              const detail = [a.bankName, a.bsb, a.accountNumber, a.iban].filter(Boolean).join(' · ');
+              return (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name}{detail ? ` — ${detail}` : ''}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
           Payment details will appear on the PDF so clients know where to pay
         </p>
-      </Field>
+        {fieldErrors.paymentAccountId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.paymentAccountId[0]}</p>}
+      </div>
 
-      <Field label="Issue Date" error={fieldErrors.issueDate?.[0]} required>
-        <input
-          name="issueDate"
-          type="date"
-          defaultValue={today}
-          required
-          className={inputCls(!!fieldErrors.issueDate)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="issueDate">Issue Date <span className="text-red-500">*</span></Label>
+        <Input id="issueDate" name="issueDate" type="date" defaultValue={today} required disabled={isPending} aria-invalid={!!fieldErrors.issueDate} />
+        {fieldErrors.issueDate?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.issueDate[0]}</p>}
+      </div>
 
-      <Field label="Due Date" error={fieldErrors.dueDate?.[0]}>
-        <input
-          name="dueDate"
-          type="date"
-          className={inputCls(!!fieldErrors.dueDate)}
-        />
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Optional</p>
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="dueDate">Due Date</Label>
+        <Input id="dueDate" name="dueDate" type="date" disabled={isPending} aria-invalid={!!fieldErrors.dueDate} />
+        <p className="text-xs text-muted-foreground">Optional</p>
+        {fieldErrors.dueDate?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.dueDate[0]}</p>}
+      </div>
 
-      <Field label="Tax Rate" error={fieldErrors.taxRate?.[0]}>
-        <select name="taxRate" defaultValue="0" className={inputCls(!!fieldErrors.taxRate)}>
-          {TAX_RATES.map((rate) => (
-            <option key={rate.value} value={rate.value}>
-              {rate.label}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="space-y-1.5">
+        <Label>Tax Rate</Label>
+        <Select value={taxRate} onValueChange={setTaxRate} disabled={isPending}>
+          <SelectTrigger aria-invalid={!!fieldErrors.taxRate}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TAX_RATES.map((rate) => (
+              <SelectItem key={rate.value} value={String(rate.value)}>{rate.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
           Tax is applied to the subtotal when the invoice is sent
         </p>
-      </Field>
+        {fieldErrors.taxRate?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.taxRate[0]}</p>}
+      </div>
 
-      <Field label="Notes" error={fieldErrors.notes?.[0]}>
-        <textarea
-          name="notes"
-          rows={4}
-          placeholder="Optional notes for the client"
-          maxLength={2000}
-          className={inputCls(!!fieldErrors.notes)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea id="notes" name="notes" rows={4} placeholder="Optional notes for the client" maxLength={2000} disabled={isPending} aria-invalid={!!fieldErrors.notes} />
+        {fieldErrors.notes?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.notes[0]}</p>}
+      </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isPending || clients.length === 0}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isPending || clients.length === 0}>
           {isPending ? 'Creating…' : 'Create Invoice'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/finance/invoices')}
-          className="rounded-lg px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => router.push('/finance/invoices')}>
           Cancel
-        </button>
+        </Button>
       </div>
 
       {clients.length === 0 && (
@@ -200,37 +201,4 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
       )}
     </form>
   );
-}
-
-function Field({
-  label,
-  error,
-  required,
-  children,
-}: {
-  label: string;
-  error?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
-    </div>
-  );
-}
-
-function inputCls(hasError: boolean): string {
-  return [
-    'block w-full rounded-lg border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500',
-    'bg-white dark:bg-zinc-900 dark:text-zinc-50',
-    hasError
-      ? 'border-red-500 dark:border-red-500'
-      : 'border-zinc-300 dark:border-zinc-700',
-  ].join(' ');
 }

@@ -94,7 +94,7 @@ const NAV_GROUPS: NavGroup[] = [
 ];
 
 function UserAvatar({ user, size }: { user: SidebarUser; size: 'sm' | 'md' }): React.JSX.Element {
-  const dim = size === 'sm' ? 'h-5 w-5 text-[10px]' : 'h-7 w-7 text-xs';
+  const dim = size === 'sm' ? 'size-5 text-[10px]' : 'size-7 text-xs';
   const initial = (user.name ?? user.email ?? '?')[0]?.toUpperCase() ?? '?';
 
   if (user.image) {
@@ -107,7 +107,7 @@ function UserAvatar({ user, size }: { user: SidebarUser; size: 'sm' | 'md' }): R
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-full bg-teal-100 font-semibold text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+        'inline-flex shrink-0 items-center justify-center rounded-full bg-primary/15 font-semibold text-primary',
         dim,
       )}
     >
@@ -148,9 +148,9 @@ function NavContent({
 
           return (
             <div key={group.id}>
-              {groupIdx > 0 && <div className="mb-3 border-t border-zinc-200 dark:border-zinc-800" />}
+              {groupIdx > 0 && <div className="mb-3 border-t border-border/60" />}
               {!collapsed && (
-                <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
                   {group.label}
                 </p>
               )}
@@ -171,11 +171,11 @@ function NavContent({
                         'flex min-h-9 items-center rounded-lg px-2 py-1.5 text-sm font-medium transition-colors',
                         collapsed ? 'justify-center' : 'gap-3',
                         isActive
-                          ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300'
-                          : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50',
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
                       )}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon className="size-4 shrink-0" />
                       {!collapsed && label}
                     </Link>
                   );
@@ -188,40 +188,40 @@ function NavContent({
 
       {/* Admin */}
       {user.role === 'ADMIN' && (
-        <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
+        <div className="border-t border-border/60 p-2">
           <Link
             href="/admin"
             onClick={onLinkClick}
             title={collapsed ? 'Admin' : undefined}
             className={cn(
-              'flex min-h-9 items-center rounded-lg px-2 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50',
+              'flex min-h-9 items-center rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
               collapsed ? 'justify-center' : 'gap-3',
             )}
           >
-            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <ShieldCheck className="size-4 shrink-0" />
             {!collapsed && 'Admin'}
           </Link>
         </div>
       )}
 
       {/* User footer */}
-      <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
+      <div className="border-t border-border/60 p-2">
         {collapsed ? (
           <div className="flex flex-col items-center gap-1">
             <Link
               href="/profile"
               title="Profile"
               onClick={onLinkClick}
-              className="flex min-h-9 w-full items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="flex min-h-9 w-full items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-accent"
             >
               <UserAvatar user={user} size="sm" />
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               title="Sign out"
-              className="flex min-h-9 w-full items-center justify-center rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+              className="flex min-h-9 w-full items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="size-4" />
             </button>
           </div>
         ) : (
@@ -229,23 +229,23 @@ function NavContent({
             <Link
               href="/profile"
               onClick={onLinkClick}
-              className="flex items-center gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="flex items-center gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-accent"
             >
               <UserAvatar user={user} size="md" />
               <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-50">
+                <p className="truncate text-xs font-semibold text-foreground">
                   {user.name ?? user.email}
                 </p>
                 {user.name && (
-                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                 )}
               </div>
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="mt-1 flex min-h-9 w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+              className="mt-1 flex min-h-9 w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
-              <LogOut className="h-4 w-4 shrink-0" />
+              <LogOut className="size-4 shrink-0" />
               Sign out
             </button>
           </>
@@ -275,55 +275,76 @@ export function Sidebar({ user, mobileOpen, onMobileClose }: SidebarProps): Reac
         />
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — floats off edges */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-zinc-200 bg-white shadow-xl transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-900 md:hidden',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          'fixed inset-y-3 left-3 z-40 flex w-72 flex-col md:hidden',
+          'rounded-2xl overflow-hidden',
+          'bg-background/90 backdrop-blur-sm border border-border/60',
+          'shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)]',
+          'dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_1px_4px_rgba(0,0,0,0.25)]',
+          'transition-transform duration-200',
+          mobileOpen ? 'translate-x-0' : '-translate-x-[calc(100%+12px)]',
         )}
         aria-label="Mobile navigation"
       >
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 px-4 dark:border-zinc-800">
-          <span className="text-base font-semibold tracking-tight text-teal-600 dark:text-teal-400">
-            MyWork
-          </span>
-          <button
-            onClick={onMobileClose}
-            className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-            aria-label="Close navigation"
-          >
-            <X className="h-4 w-4" />
-          </button>
+        {/* Mobile logo bar */}
+        <div className="px-2 pt-2 pb-1 shrink-0">
+          <div className="flex h-12 items-center justify-between rounded-xl bg-muted/40 px-3">
+            <span className="text-base font-semibold tracking-tight text-primary">
+              MyWork
+            </span>
+            <button
+              onClick={onMobileClose}
+              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              aria-label="Close navigation"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
         </div>
         <NavContent user={user} collapsed={false} onLinkClick={onMobileClose} />
       </aside>
 
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar — floats off edges */}
       <aside
         className={cn(
-          'hidden shrink-0 flex-col border-r border-zinc-200 bg-white shadow-sm transition-all duration-200 dark:border-zinc-800 dark:bg-zinc-900 md:flex',
-          collapsed ? 'w-12' : 'w-56',
+          'hidden shrink-0 flex-col md:flex',
+          'my-3 ml-3 rounded-2xl overflow-hidden',
+          'bg-background/90 backdrop-blur-sm border border-border/60',
+          'shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)]',
+          'dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_1px_4px_rgba(0,0,0,0.25)]',
+          'transition-all duration-200',
+          collapsed ? 'w-14' : 'w-56',
         )}
         aria-label="Sidebar navigation"
       >
-        <div className="flex h-14 shrink-0 items-center border-b border-zinc-200 px-3 dark:border-zinc-800">
-          {!collapsed && (
-            <span className="flex-1 text-base font-semibold tracking-tight text-teal-600 dark:text-teal-400">
-              MyWork
-            </span>
-          )}
-          <button
-            onClick={() => setCollapsed((c) => !c)}
+        {/* Floating logo bar */}
+        <div className="px-2 pt-2 pb-1 shrink-0">
+          <div
             className={cn(
-              'rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
-              collapsed && 'mx-auto',
+              'flex h-12 items-center rounded-xl bg-muted/40 px-3',
+              collapsed ? 'justify-center' : '',
             )}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {collapsed
-              ? <ChevronRight className="h-4 w-4" />
-              : <ChevronLeft className="h-4 w-4" />}
-          </button>
+            {!collapsed && (
+              <span className="flex-1 text-base font-semibold tracking-tight text-primary">
+                MyWork
+              </span>
+            )}
+            <button
+              onClick={() => setCollapsed((c) => !c)}
+              className={cn(
+                'rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
+                collapsed && 'mx-auto',
+              )}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed
+                ? <ChevronRight className="size-4" />
+                : <ChevronLeft className="size-4" />}
+            </button>
+          </div>
         </div>
         <NavContent user={user} collapsed={collapsed} />
       </aside>

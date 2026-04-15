@@ -26,10 +26,8 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Profile &amp; Settings</h1>
-
       {/* Avatar + identity summary */}
-      <div style={{ marginTop: '1.5rem' }} className="flex items-center gap-4 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      <div style={{ marginTop: '1.5rem' }} className="flex items-center gap-4 rounded-lg border border-border bg-card p-6">
         {user.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -38,16 +36,16 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
             className="h-16 w-16 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-teal-100 text-xl font-semibold text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-xl font-semibold text-primary">
             {initials}
           </div>
         )}
         <div>
-          <p className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          <p className="text-lg font-medium text-foreground">
             {user.name ?? 'No name set'}
           </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">{user.email}</p>
-          <span className="mt-1 inline-block rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">{user.email}</p>
+          <span className="mt-1 inline-block rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-muted-foreground">
             {ROLE_LABELS[user.role] ?? user.role}
           </span>
         </div>
@@ -63,6 +61,7 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
           isActive={user.isActive}
           fiscalYearStartMonth={user.fiscalYearStartMonth}
           currency={user.currency}
+          themeColor={user.themeColor}
           hasPassword={!!user.passwordHash}
           createdAt={user.createdAt.toISOString()}
           employmentType={user.employmentType}

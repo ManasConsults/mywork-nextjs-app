@@ -7,6 +7,11 @@ import type { Account } from '@prisma/client';
 import { createAccountAction, updateAccountAction } from '@/lib/actions/finance/account';
 import { toMinorUnit } from '@/lib/utils/money';
 import { useFinance } from '@/app/(app)/finance/_components/FinanceProvider';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CHECKING: 'Checking',
@@ -41,10 +46,12 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [accountType, setAccountType] = useState(account?.type ?? 'CHECKING');
 
   const isEdit = !!account;
+  const defaultBalance = account?.openingBalance != null ? (account.openingBalance / 100).toFixed(2) : '0.00';
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
@@ -55,15 +62,14 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
       return;
     }
 
-    const typeRaw = fd.get('type') as string;
-    if (!isAccountType(typeRaw)) {
+    if (!isAccountType(accountType)) {
       setFieldErrors({ type: ['Invalid account type selected'] });
       return;
     }
 
     const input = {
       name: (fd.get('name') as string).trim(),
-      type: typeRaw,
+      type: accountType,
       openingBalance: toMinorUnit(balanceDecimal),
       currency,
       description: (fd.get('description') as string).trim() || undefined,
@@ -85,134 +91,82 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
 
       if (!result.success) {
         setRootError(result.error.message);
-        if (result.error.fields) {
-          setFieldErrors(result.error.fields as FieldErrors);
-        }
+        if (result.error.fields) setFieldErrors(result.error.fields as FieldErrors);
         return;
       }
       router.push('/finance/accounts');
     });
   }
 
-  const defaultBalance =
-    account?.openingBalance != null ? (account.openingBalance / 100).toFixed(2) : '0.00';
-
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {rootError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
-      <Field label="Account name" error={fieldErrors.name?.[0]} required>
-        <input
-          name="name"
-          type="text"
-          defaultValue={account?.name ?? ''}
-          placeholder="e.g. Main Current Account"
-          required
-          className={inputCls(!!fieldErrors.name)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="name">Account name <span className="text-red-500">*</span></Label>
+        <Input id="name" name="name" type="text" defaultValue={account?.name ?? ''} placeholder="e.g. Main Current Account" required disabled={isPending} aria-invalid={!!fieldErrors.name} />
+        {fieldErrors.name?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.name[0]}</p>}
+      </div>
 
-      <Field label="Account type" error={fieldErrors.type?.[0]} required>
-        <select
-          name="type"
-          defaultValue={account?.type ?? 'CHECKING'}
-          className={inputCls(!!fieldErrors.type)}
-        >
-          {ACCOUNT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {ACCOUNT_TYPE_LABELS[t]}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <div className="space-y-1.5">
+        <Label>Account type <span className="text-red-500">*</span></Label>
+        <Select value={accountType} onValueChange={(v) => setAccountType(v as typeof accountType)} disabled={isPending}>
+          <SelectTrigger aria-invalid={!!fieldErrors.type}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ACCOUNT_TYPES.map((t) => (
+              <SelectItem key={t} value={t}>{ACCOUNT_TYPE_LABELS[t]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {fieldErrors.type?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.type[0]}</p>}
+      </div>
 
-      <Field label="Opening balance" error={fieldErrors.openingBalance?.[0]}>
-        <input
-          name="openingBalance"
-          type="number"
-          step="0.01"
-          min="0"
-          defaultValue={defaultBalance}
-          placeholder="0.00"
-          className={inputCls(!!fieldErrors.openingBalance)}
-        />
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Enter the starting balance as a decimal, e.g. 1250.00
-        </p>
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="openingBalance">Opening balance</Label>
+        <Input id="openingBalance" name="openingBalance" type="number" step="0.01" min="0" defaultValue={defaultBalance} placeholder="0.00" disabled={isPending} aria-invalid={!!fieldErrors.openingBalance} />
+        {fieldErrors.openingBalance?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.openingBalance[0]}</p>}
+        <p className="text-xs text-muted-foreground">Enter the starting balance as a decimal, e.g. 1250.00</p>
+      </div>
 
-      <Field label="Description" error={fieldErrors.description?.[0]}>
-        <textarea
-          name="description"
-          defaultValue={account?.description ?? ''}
-          rows={3}
-          placeholder="Optional description"
-          className={inputCls(!!fieldErrors.description)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description</Label>
+        <Textarea id="description" name="description" defaultValue={account?.description ?? ''} rows={3} placeholder="Optional description" disabled={isPending} aria-invalid={!!fieldErrors.description} />
+        {fieldErrors.description?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>}
+      </div>
 
-      {/* Payment / banking details — used on invoices */}
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <div className="rounded-lg border border-border bg-muted/50 p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Payment details (shown on invoices)
         </p>
         <div className="space-y-4">
-          <Field label="Bank name">
-            <input
-              name="bankName"
-              type="text"
-              maxLength={100}
-              defaultValue={account?.bankName ?? ''}
-              placeholder="e.g. Commonwealth Bank"
-              className={inputCls(false)}
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="BSB">
-              <input
-                name="bsb"
-                type="text"
-                maxLength={20}
-                defaultValue={account?.bsb ?? ''}
-                placeholder="e.g. 062-000"
-                className={inputCls(false)}
-              />
-            </Field>
-            <Field label="Account number">
-              <input
-                name="accountNumber"
-                type="text"
-                maxLength={50}
-                defaultValue={account?.accountNumber ?? ''}
-                placeholder="e.g. 12345678"
-                className={inputCls(false)}
-              />
-            </Field>
+          <div className="space-y-1.5">
+            <Label htmlFor="bankName">Bank name</Label>
+            <Input id="bankName" name="bankName" type="text" maxLength={100} defaultValue={account?.bankName ?? ''} placeholder="e.g. Commonwealth Bank" disabled={isPending} />
           </div>
-          <Field label="IBAN">
-            <input
-              name="iban"
-              type="text"
-              maxLength={34}
-              defaultValue={account?.iban ?? ''}
-              placeholder="e.g. GB29NWBK60161331926819"
-              className={inputCls(false)}
-            />
-          </Field>
-          <Field label="SWIFT / BIC">
-            <input
-              name="swiftBic"
-              type="text"
-              maxLength={11}
-              defaultValue={account?.swiftBic ?? ''}
-              placeholder="e.g. BARCGB22"
-              className={inputCls(false)}
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="bsb">BSB</Label>
+              <Input id="bsb" name="bsb" type="text" maxLength={20} defaultValue={account?.bsb ?? ''} placeholder="e.g. 062-000" disabled={isPending} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="accountNumber">Account number</Label>
+              <Input id="accountNumber" name="accountNumber" type="text" maxLength={50} defaultValue={account?.accountNumber ?? ''} placeholder="e.g. 12345678" disabled={isPending} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="iban">IBAN</Label>
+            <Input id="iban" name="iban" type="text" maxLength={34} defaultValue={account?.iban ?? ''} placeholder="e.g. GB29NWBK60161331926819" disabled={isPending} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="swiftBic">SWIFT / BIC</Label>
+            <Input id="swiftBic" name="swiftBic" type="text" maxLength={11} defaultValue={account?.swiftBic ?? ''} placeholder="e.g. BARCGB22" disabled={isPending} />
+          </div>
         </div>
       </div>
 
@@ -222,65 +176,19 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
           name="isDefault"
           type="checkbox"
           defaultChecked={account?.isDefault ?? false}
-          className="h-4 w-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500 dark:border-zinc-600 dark:bg-zinc-800"
+          className="h-4 w-4 rounded border-border text-primary focus:ring-ring dark:border-zinc-600"
         />
-        <label
-          htmlFor="isDefault"
-          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-        >
-          Set as default account
-        </label>
+        <Label htmlFor="isDefault">Set as default account</Label>
       </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
-        >
-          {isPending ? 'Saving…' : isEdit ? 'Save account' : 'Save account'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/finance/accounts')}
-          className="rounded-lg px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Saving…' : 'Save account'}
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => router.push('/finance/accounts')}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
-}
-
-function Field({
-  label,
-  error,
-  required,
-  children,
-}: {
-  label: string;
-  error?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
-    </div>
-  );
-}
-
-function inputCls(hasError: boolean): string {
-  return [
-    'block w-full rounded-lg border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500',
-    'bg-white dark:bg-zinc-900 dark:text-zinc-50',
-    hasError
-      ? 'border-red-500 dark:border-red-500'
-      : 'border-zinc-300 dark:border-zinc-700',
-  ].join(' ');
 }

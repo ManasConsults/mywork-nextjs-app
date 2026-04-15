@@ -19,7 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_BADGE_CLS: Record<string, string> = {
-  DRAFT: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+  DRAFT: 'bg-accent text-muted-foreground',
   SENT: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   OVERDUE: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
   PAID: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -71,17 +71,16 @@ export default async function InvoicesPage({
     <div className="mx-auto max-w-6xl">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Invoices</h1>
         <Link
           href="/finance/invoices/new"
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
         >
           + New Invoice
         </Link>
       </div>
 
       {/* Filter tabs */}
-      <div className="mb-6 flex gap-1 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="mb-6 flex gap-1 border-b border-border">
         {FILTER_TABS.map((tab) => {
           const isActive = (statusParam ?? undefined) === tab.value;
           const href = tab.value ? `/finance/invoices?status=${tab.value}` : '/finance/invoices';
@@ -92,8 +91,8 @@ export default async function InvoicesPage({
               className={[
                 'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
                 isActive
-                  ? 'border-teal-600 text-teal-700 dark:text-teal-400'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50',
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
               ].join(' ')}
             >
               {tab.label}
@@ -104,60 +103,60 @@ export default async function InvoicesPage({
 
       {/* Invoice table */}
       {filteredInvoices.length === 0 ? (
-        <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <p className="text-sm text-muted-foreground">
             No invoices found.{' '}
-            <Link href="/finance/invoices/new" className="text-teal-600 hover:underline">
+            <Link href="/finance/invoices/new" className="text-primary hover:underline">
               Create your first invoice.
             </Link>
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Invoice #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Client
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Issue Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Due Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Status
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Total
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-border/60">
               {filteredInvoices.map((invoice) => {
                 const resolved = resolveInvoiceStatus(invoice);
                 return (
                   <tr
                     key={invoice.id}
-                    className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                    className="transition-colors hover:bg-accent/40"
                   >
-                    <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-50">
+                    <td className="px-4 py-3 font-medium text-foreground">
                       {invoice.invoiceNumber}
                     </td>
-                    <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
+                    <td className="px-4 py-3 text-foreground">
                       {invoice.client.name}
                     </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(invoice.issueDate)}
                     </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(invoice.dueDate)}
                     </td>
                     <td className="px-4 py-3">
@@ -170,14 +169,14 @@ export default async function InvoicesPage({
                         {STATUS_LABELS[resolved] ?? resolved}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-zinc-900 dark:text-zinc-50">
+                    <td className="px-4 py-3 text-right font-medium text-foreground">
                       {fromMinorUnit(invoice.total, invoice.currency)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="inline-flex items-center justify-end gap-2">
                         <Link
                           href={`/finance/invoices/${invoice.id}`}
-                          className="rounded-lg border border-zinc-200 px-3 py-1 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                          className="rounded-lg border border-border px-3 py-1 text-xs text-zinc-600 transition-colors hover:bg-accent/40 dark:text-zinc-400"
                         >
                           View
                         </Link>

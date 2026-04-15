@@ -1,29 +1,51 @@
+import {
+  SquareCheckBig,
+  Ban,
+  Clock,
+  FileText,
+  Timer,
+  AlertTriangle,
+  CalendarClock,
+} from 'lucide-react';
 import { prisma } from '@/lib/db/prisma';
+import type { LucideIcon } from 'lucide-react';
+
+type Accent = 'blue' | 'teal' | 'amber' | 'red' | 'purple' | 'emerald';
+
+const ACCENT: Record<Accent, { ring: string; iconBg: string; icon: string; value: string }> = {
+  blue:    { ring: 'border-blue-100 dark:border-blue-900/40',   iconBg: 'bg-blue-50 dark:bg-blue-950/50',    icon: 'text-blue-500',    value: 'text-blue-600 dark:text-blue-400' },
+  teal:    { ring: 'border-teal-100 dark:border-teal-900/40',   iconBg: 'bg-teal-50 dark:bg-teal-950/50',    icon: 'text-teal-500',    value: 'text-teal-600 dark:text-teal-400' },
+  amber:   { ring: 'border-amber-100 dark:border-amber-900/40', iconBg: 'bg-amber-50 dark:bg-amber-950/50',  icon: 'text-amber-500',   value: 'text-amber-600 dark:text-amber-400' },
+  red:     { ring: 'border-red-100 dark:border-red-900/40',     iconBg: 'bg-red-50 dark:bg-red-950/50',      icon: 'text-red-500',     value: 'text-red-600 dark:text-red-400' },
+  purple:  { ring: 'border-purple-100 dark:border-purple-900/40', iconBg: 'bg-purple-50 dark:bg-purple-950/50', icon: 'text-purple-500', value: 'text-purple-600 dark:text-purple-400' },
+  emerald: { ring: 'border-emerald-100 dark:border-emerald-900/40', iconBg: 'bg-emerald-50 dark:bg-emerald-950/50', icon: 'text-emerald-500', value: 'text-emerald-600 dark:text-emerald-400' },
+};
 
 function StatCard({
   label,
   value,
   suffix,
-  accent,
+  accent = 'blue',
+  icon: Icon,
 }: {
   label: string;
   value: number;
   suffix?: string;
-  accent?: 'red' | 'amber';
+  accent?: Accent;
+  icon: LucideIcon;
 }): React.JSX.Element {
-  const valueClass =
-    accent === 'red'
-      ? 'text-red-600 dark:text-red-400'
-      : accent === 'amber'
-        ? 'text-amber-600 dark:text-amber-400'
-        : 'text-zinc-900 dark:text-zinc-50';
-
+  const a = ACCENT[accent];
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{label}</p>
-      <p className={`mt-2 text-3xl font-semibold tracking-tight ${valueClass}`}>
+    <div className={`rounded-xl border ${a.ring} bg-card p-5 shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.03)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.09),0_2px_6px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 dark:shadow-[0_4px_12px_rgba(0,0,0,0.3)]`}>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <div className={`rounded-lg p-2 ${a.iconBg}`}>
+          <Icon className={`size-4 ${a.icon}`} />
+        </div>
+      </div>
+      <p className={`mt-3 text-3xl font-bold tracking-tight ${a.value}`}>
         {value}
-        {suffix && <span className="ml-0.5 text-lg font-medium">{suffix}</span>}
+        {suffix && <span className="ml-0.5 text-lg font-semibold">{suffix}</span>}
       </p>
     </div>
   );
@@ -54,12 +76,7 @@ export async function DashboardStatsServer({
         _count: { id: true },
       }),
       prisma.task.count({
-        where: {
-          userId,
-          deletedAt: null,
-          dueDate: { gte: todayStart, lt: todayEnd },
-          status: { not: 'DONE' },
-        },
+        where: { userId, deletedAt: null, dueDate: { gte: todayStart, lt: todayEnd }, status: { not: 'DONE' } },
       }),
       prisma.workLog.aggregate({
         where: { userId, date: { gte: weekStart, lte: weekEnd } },
@@ -82,34 +99,28 @@ export async function DashboardStatsServer({
 
   return (
     <>
-      <section className="mt-10">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-          Tasks
-        </h2>
+      <section className="mt-8">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tasks</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <StatCard label="Open" value={totalOpen} />
-          <StatCard label="Blocked" value={blocked} accent="red" />
-          <StatCard label="Due today" value={dueTodayTaskCount} accent="amber" />
+          <StatCard label="Open" value={totalOpen} accent="blue" icon={SquareCheckBig} />
+          <StatCard label="Blocked" value={blocked} accent="red" icon={Ban} />
+          <StatCard label="Due today" value={dueTodayTaskCount} accent="amber" icon={Clock} />
         </div>
       </section>
 
-      <section className="mt-10">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-          Work Logs — this week
-        </h2>
+      <section className="mt-8">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Work Logs — this week</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatCard label="Log entries" value={weekLogCount} />
-          <StatCard label="Hours logged" value={weekHours} suffix="h" />
+          <StatCard label="Log entries" value={weekLogCount} accent="purple" icon={FileText} />
+          <StatCard label="Hours logged" value={weekHours} suffix="h" accent="teal" icon={Timer} />
         </div>
       </section>
 
-      <section className="mt-10">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-          To-dos
-        </h2>
+      <section className="mt-8">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">To-dos</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatCard label="Overdue" value={overdueCount} accent="red" />
-          <StatCard label="Due today" value={todayTodosCount} accent="amber" />
+          <StatCard label="Overdue" value={overdueCount} accent="red" icon={AlertTriangle} />
+          <StatCard label="Due today" value={todayTodosCount} accent="amber" icon={CalendarClock} />
         </div>
       </section>
     </>

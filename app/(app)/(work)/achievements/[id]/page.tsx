@@ -28,11 +28,8 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Edit achievement
-      </h1>
       <AchievementForm achievement={achievement} tasks={tasks} />
-      <div className="mt-6 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+      <div className="mt-6 border-t border-border pt-6">
         <DeleteButton id={achievement.id} title={achievement.title} action={deleteAchievementAction} />
       </div>
     </div>

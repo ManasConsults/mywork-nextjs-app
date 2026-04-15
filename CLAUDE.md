@@ -104,40 +104,153 @@ export const authOptions: NextAuthOptions = {
 ### Principles
 - **Mobile-first always** — base styles target 375px; add breakpoints only when layout must change.
 - **Modern and clean** — purposeful whitespace, clear typographic hierarchy, no decorative noise.
-- **Depth via shadows** — cards use `shadow-sm` by default; interactive cards lift to `shadow-md` on hover.
-- **Dark mode required** — every colour class must have a `dark:` counterpart. No exceptions.
+- **Dark mode required** — every colour must use a semantic token; never raw `zinc-*` / `teal-*` for text/bg.
 - **WCAG 2.1 AA** — accessible by default: keyboard nav, focus rings, ARIA labels, colour + text/icon pairs.
+- **Floating chrome** — header and sidebar float off screen edges with `rounded-2xl` + layered shadow.
+- **Card elevation** — baked into `components/ui/card.tsx`; never override with `shadow-none` or `hover:shadow-none`.
 
-### Colour Tokens (globals.css CSS variables)
-```css
---primary: #0d9488;        /* teal-600 */
---primary-hover: #0f766e;  /* teal-700 */
---primary-fg: #ffffff;
-```
+### Semantic Color Tokens — always use these, never raw Tailwind
+| Token | Use for |
+|---|---|
+| `text-primary` / `bg-primary` | Brand / accent (theme colour) |
+| `text-destructive` | Errors, overspent, overdue, high priority |
+| `text-success` / `bg-success` | Income, completed, on-track |
+| `text-warning` / `bg-warning` | Caution, near-limit, medium priority |
+| `text-muted-foreground` | Secondary labels, meta text |
+| `bg-muted` | Subtle backgrounds |
+| `text-foreground` / `bg-background` | Primary text / page background |
+| `bg-card` / `text-card-foreground` | Card surfaces |
+| `border-border` | All borders |
+| `bg-accent` / `text-accent-foreground` | Hover states |
 
-### Tailwind Palette
-| Role | Light | Dark |
-|------|-------|------|
-| Page background | `bg-zinc-50` | `dark:bg-zinc-950` |
-| Card / surface | `bg-white` | `dark:bg-zinc-900` |
-| Border | `border-zinc-200` | `dark:border-zinc-800` |
-| Body text | `text-zinc-900` | `dark:text-zinc-50` |
-| Muted text | `text-zinc-500` | `dark:text-zinc-400` |
-| Primary action | `bg-teal-600 hover:bg-teal-700 text-white` | `dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200` |
-| Destructive | `text-red-600` | `dark:text-red-400` |
+**Never use raw colour names** (`zinc-*`, `teal-*`, `blue-*`) for text or backgrounds — always semantic tokens. Exception: coloured stat card accents (e.g. `border-blue-100`, `bg-blue-50`) which are intentionally decorative.
 
-### Card Pattern
+### Component Conventions
+- `size-*` shorthand — never `w-* h-*` for square elements (icons, avatars, badges)
+- `flex flex-col gap-*` — prefer over `space-y-*`
+- Conditional classes — always `cn()`, never template literal ternaries
+- Icons inside `Button` — no size classes on the icon; shadcn handles sizing
+- `variant="outline"` buttons — always `border border-border`; never bare `border` or `dark:border-input` override (bare `border` falls back to `currentColor` which appears dark)
+
+### Card Elevation (automatic via `card.tsx`)
+- **Default:** `shadow-[0_4px_12px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)]`
+- **Hover:** shadow expands + card lifts `-translate-y-1`, `transition-all duration-200`
+- **Dark:** higher opacity shadows
+- Never add `shadow-none` or override the card shadow
+
+### Floating Shell Chrome
+Sidebar and header share identical visual treatment — same background, border, and shadow.
+
+#### Header + Sidebar (identical)
 ```tsx
-<div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+bg-background/90 backdrop-blur-sm
+border border-border/60
+shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)]
+dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_1px_4px_rgba(0,0,0,0.25)]
+rounded-2xl
 ```
+
+#### Header wrapper
+```tsx
+<div className="shrink-0 px-3 pt-3 pb-1">
+  <header className="h-14 rounded-2xl border border-border/60 bg-background/90 backdrop-blur-sm
+    shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)]
+    dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_1px_4px_rgba(0,0,0,0.25)]">
+  </header>
+</div>
+```
+
+#### Desktop Sidebar
+```tsx
+<aside className="my-3 ml-3 rounded-2xl overflow-hidden
+  bg-background/90 backdrop-blur-sm border border-border/60
+  shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)]
+  dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_1px_4px_rgba(0,0,0,0.25)]">
+```
+
+#### Sidebar Logo Bar (inner)
+```tsx
+<div className="px-2 pt-2 pb-1">
+  <div className="h-12 rounded-xl bg-muted/40">
+  </div>
+</div>
+```
+No border on the logo bar — the sidebar's outer border provides enough visual separation.
+
+**Rules:** `rounded-2xl` on all floating chrome · `border` all-round (never `border-b` only) · sidebar never uses `bg-sidebar` — uses `bg-background/90` to match the header
+
+### Text Color Values
+| Token | Light | Dark |
+|---|---|---|
+| `--foreground` | `oklch(0.145 0 0)` | `oklch(0.930 0 0)` |
+| `--card-foreground` | `oklch(0.145 0 0)` | `oklch(0.930 0 0)` |
+| `--popover-foreground` | `oklch(0.145 0 0)` | `oklch(0.930 0 0)` |
+| `--muted-foreground` | `oklch(0.420 0 0)` | `oklch(0.590 0 0)` |
+
+- These are intentionally darker than shadcn defaults for better legibility
+- Never override with raw `zinc-*` or `gray-*` — always use `text-foreground` / `text-muted-foreground`
+
+### Borders — Light, Not Heavy
+- `--border: oklch(0.912 0.008 <hue>)` light mode — teal-tinted, softer than zinc-200
+- `--input: oklch(0.905 0.008 <hue>)` light mode — for form elements
+- `--border: oklch(1 0 0 / 10%)` dark mode
+- `--input: oklch(1 0 0 / 14%)` dark mode
+- The hue tracks the active theme colour (set by `lib/theme.ts`)
+- Never use `border-zinc-200 dark:border-zinc-700` — always `border-border` or `border-input`
+
+### Mode / Segmented Selector Pattern
+Used for the ThemeToggle (Light / Dark / Auto) and any other pill-group toggle in the header.
+
+```tsx
+<div role="group" className="flex items-center gap-0.5 rounded-xl border border-border/60 bg-muted/50 p-1 backdrop-blur-sm">
+  <button
+    className={cn(
+      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97]',
+      isActive
+        ? 'bg-background text-foreground shadow-sm shadow-black/8 dark:shadow-black/30'
+        : 'text-foreground/60 hover:bg-accent/60 hover:text-foreground',
+    )}
+  >
+    {icon}
+    <span className="hidden sm:inline">{label}</span>
+  </button>
+</div>
+```
+
+- Outer pill: `rounded-xl border border-border/60 bg-muted/50 p-1`
+- Active item: `bg-background` with subtle shadow lifts it off the pill
+- Inactive item: `text-foreground/60` (not `text-muted-foreground`) for legibility
+- Labels hidden on mobile (`hidden sm:inline`) to keep the header compact
+
+### Motion — Every Interactive Element
+- Buttons: `transition-all duration-150 active:scale-[0.97]` — baked into `button.tsx`
+- Inputs: `transition-all duration-150 hover:border-ring/40` — baked into `input.tsx`
+- Select triggers: `transition-all duration-150 hover:border-ring/40 hover:bg-accent/40 active:scale-[0.98]` — baked into `select.tsx`
+- Select dropdowns: CSS `@keyframes popoverOpen` in `globals.css` — fires on `data-state="open"`, no `tailwindcss-animate` needed
+- No `framer-motion` in this project — use Tailwind transitions + CSS keyframes
+
+### Select Dropdown
+- `SelectContent` uses `bg-card` (never `bg-transparent` or `bg-popover` — too similar to page bg)
+- `SelectTrigger` uses `bg-background` (never `bg-transparent`)
+- Dropdown shadow: `shadow-[0_8px_24px_rgba(0,0,0,0.10),0_2px_8px_rgba(0,0,0,0.06)]`
+- `rounded-xl border border-border/60` — lighter, rounded corners
+
+### Theme Colour System
+Users choose their theme colour in **Profile → Settings**. The choice is stored as `themeColor` on the `User` model and applied globally via a `<style>` tag injected in `app/(app)/layout.tsx`.
+
+- **Source of truth:** `lib/theme.ts` — exports `THEMES`, `THEME_COLORS`, `ThemeColor`, and `getThemeCSS()`
+- **Themes:** `teal` (default) · `blue` · `indigo` · `purple` · `rose` · `orange` · `green`
+- **`getThemeCSS(themeColor)`** returns a `:root { … } .dark { … }` block overriding all hue-dependent CSS variables: `--primary`, `--ring`, `--background`, `--secondary`, `--muted`, `--accent`, `--border`, `--input`, `--sidebar`
+- **Applying:** `AppLayout` calls `getThemeCSS` server-side; `SettingsForm` calls `router.refresh()` after save so the layout re-renders immediately
+- **Never hard-code a hue** (e.g. `text-teal-600`) for primary UI elements — use `text-primary` so it tracks the user's chosen colour
 
 ### Typography Scale
 | Use | Classes |
 |-----|---------|
-| Page title | `text-2xl font-semibold text-zinc-900 dark:text-zinc-50` |
-| Section heading | `text-base font-medium text-zinc-700 dark:text-zinc-300` |
-| Body | `text-sm text-zinc-700 dark:text-zinc-300` |
-| Caption / meta | `text-xs text-zinc-500 dark:text-zinc-400` |
+| Page title | `text-2xl font-semibold text-foreground` |
+| Section heading | `text-base font-medium text-foreground` |
+| Body | `text-sm text-foreground` |
+| Caption / meta | `text-xs text-muted-foreground` |
 
 ### Responsive Breakpoints
 | Prefix | Min-width | Use for |
@@ -151,14 +264,7 @@ export const authOptions: NextAuthOptions = {
 - Page max-width: `max-w-2xl mx-auto px-4 sm:px-6` (forms/lists) or `max-w-5xl` (dashboards/tables)
 - Stat grids: `grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6`
 - Tables: always wrapped in `overflow-x-auto`
-- Sidebar: full on `lg:`, icon-only or hamburger below
 - Touch targets: `min-h-[44px] min-w-[44px]` on all interactive elements
-
-### Interactive Elements
-- **Button primary:** `rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-teal-700 active:scale-[0.97] disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200`
-- **Button secondary:** `rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 active:scale-[0.97] dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800`
-- **Input / select / textarea:** `rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50`
-- All buttons and interactive containers must have `transition-colors` or `transition-[transform,box-shadow]`.
 
 ---
 

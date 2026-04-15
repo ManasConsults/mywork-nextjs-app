@@ -80,6 +80,7 @@ export const authOptions: NextAuthOptions = {
           token.moduleFinance = dbUser?.moduleFinance ?? true;
           token.employmentType = dbUser?.employmentType ?? 'EMPLOYED';
           token.currency = dbUser?.currency ?? 'GBP';
+          token.themeColor = dbUser?.themeColor ?? 'teal';
         } else {
           token.id = user.id;
           token.role = (user as User & { role?: string }).role ?? 'MEMBER';
@@ -87,6 +88,7 @@ export const authOptions: NextAuthOptions = {
           token.moduleFinance = (user as User & { moduleFinance?: boolean }).moduleFinance ?? true;
           token.employmentType = (user as User & { employmentType?: string }).employmentType ?? 'EMPLOYED';
           token.currency = (user as User & { currency?: string }).currency ?? 'GBP';
+          token.themeColor = (user as User & { themeColor?: string }).themeColor ?? 'teal';
         }
       }
 
@@ -94,11 +96,12 @@ export const authOptions: NextAuthOptions = {
       if (trigger === 'update' && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { currency: true, fiscalYearStartMonth: true, employmentType: true },
+          select: { currency: true, fiscalYearStartMonth: true, employmentType: true, themeColor: true },
         });
         if (dbUser) {
           token.currency = dbUser.currency;
           token.employmentType = dbUser.employmentType;
+          token.themeColor = dbUser.themeColor;
         }
       }
 
@@ -112,6 +115,7 @@ export const authOptions: NextAuthOptions = {
         session.user.moduleFinance = token.moduleFinance as boolean;
         session.user.employmentType = token.employmentType as string;
         session.user.currency = token.currency as string;
+        session.user.themeColor = (token.themeColor ?? 'teal') as string;
       }
       return session;
     },

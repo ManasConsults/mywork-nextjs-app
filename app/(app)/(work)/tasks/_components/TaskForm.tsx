@@ -6,6 +6,11 @@ import type { Task } from '@prisma/client';
 
 import { createTaskSchema, updateTaskSchema, TASK_STATUSES, TASK_PRIORITIES } from '@/lib/schemas/task.schema';
 import { createTaskAction, updateTaskAction } from '@/lib/actions/task';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const STATUS_LABELS: Record<string, string> = {
   BACKLOG: 'To Do',
@@ -40,18 +45,22 @@ export function TaskForm({ task, returnTo = '/tasks' }: TaskFormProps): React.JS
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [status, setStatus] = useState(task?.status ?? 'BACKLOG');
+  const [priority, setPriority] = useState(task?.priority ?? 'MEDIUM');
 
   const isEdit = !!task;
+  const defaultDueDate = task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+  const defaultTags = task?.tags.join(', ') ?? '';
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
     const raw = {
       title: fd.get('title') as string,
       description: (fd.get('description') as string) || undefined,
-      status: fd.get('status') as string,
-      priority: fd.get('priority') as string,
+      status,
+      priority,
       dueDate: (fd.get('dueDate') as string) || undefined,
       tags: (fd.get('tags') as string)
         .split(',')
@@ -82,108 +91,123 @@ export function TaskForm({ task, returnTo = '/tasks' }: TaskFormProps): React.JS
     });
   }
 
-  const defaultDueDate = task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
-  const defaultTags = task?.tags.join(', ') ?? '';
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {rootError && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
-        </p>
+        </div>
       )}
 
-      <Field label="Title" error={fieldErrors.title?.[0]}>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
           name="title"
           defaultValue={task?.title ?? ''}
           placeholder="Task title"
-          className={inputCls(!!fieldErrors.title)}
+          aria-invalid={!!fieldErrors.title}
+          disabled={isPending}
         />
-      </Field>
+        {fieldErrors.title?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.title[0]}</p>
+        )}
+      </div>
 
-      <Field label="Description" error={fieldErrors.description?.[0]}>
-        <textarea
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
           name="description"
           defaultValue={task?.description ?? ''}
           rows={3}
           placeholder="Optional description"
-          className={inputCls(!!fieldErrors.description)}
+          aria-invalid={!!fieldErrors.description}
+          disabled={isPending}
         />
-      </Field>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Status" error={fieldErrors.status?.[0]}>
-          <select name="status" defaultValue={task?.status ?? 'BACKLOG'} className={inputCls(false)}>
-            {TASK_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_LABELS[s]}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Priority" error={fieldErrors.priority?.[0]}>
-          <select name="priority" defaultValue={task?.priority ?? 'MEDIUM'} className={inputCls(false)}>
-            {TASK_PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {PRIORITY_LABELS[p]}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {fieldErrors.description?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>
+        )}
       </div>
 
-      <Field label="Due date" error={fieldErrors.dueDate?.[0]}>
-        <input name="dueDate" type="date" defaultValue={defaultDueDate} className={inputCls(!!fieldErrors.dueDate)} />
-      </Field>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Status</Label>
+          <Select value={status} onValueChange={(v) => setStatus(v as typeof status)} disabled={isPending}>
+            <SelectTrigger aria-invalid={!!fieldErrors.status}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TASK_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {STATUS_LABELS[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldErrors.status?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.status[0]}</p>
+          )}
+        </div>
 
-      <Field label="Tags (comma-separated)" error={fieldErrors.tags?.[0]}>
-        <input name="tags" defaultValue={defaultTags} placeholder="e.g. bug, auth, urgent" className={inputCls(!!fieldErrors.tags)} />
-      </Field>
+        <div className="space-y-1.5">
+          <Label>Priority</Label>
+          <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)} disabled={isPending}>
+            <SelectTrigger aria-invalid={!!fieldErrors.priority}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TASK_PRIORITIES.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {PRIORITY_LABELS[p]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldErrors.priority?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.priority[0]}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="dueDate">Due date</Label>
+        <Input
+          id="dueDate"
+          name="dueDate"
+          type="date"
+          defaultValue={defaultDueDate}
+          aria-invalid={!!fieldErrors.dueDate}
+          disabled={isPending}
+        />
+        {fieldErrors.dueDate?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.dueDate[0]}</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="tags">Tags (comma-separated)</Label>
+        <Input
+          id="tags"
+          name="tags"
+          defaultValue={defaultTags}
+          placeholder="e.g. bug, auth, urgent"
+          aria-invalid={!!fieldErrors.tags}
+          disabled={isPending}
+        />
+        {fieldErrors.tags?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.tags[0]}</p>
+        )}
+      </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Create task'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push(returnTo)}
-          className="rounded-md px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => router.push(returnTo)}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
-    </div>
-  );
-}
-
-function inputCls(hasError: boolean) {
-  return `w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-teal-500/30 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-zinc-50/20 ${
-    hasError
-      ? 'border-red-500 dark:border-red-500'
-      : 'border-zinc-200 dark:border-zinc-700'
-  }`;
 }

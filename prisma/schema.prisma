@@ -111,6 +111,7 @@ model User {
   updatedAt    DateTime  @updatedAt
   fiscalYearStartMonth Int      @default(4)
   currency        String    @default("GBP")
+  themeColor      String    @default("teal")
   businessName    String?
   abn             String?
   businessEmail   String?

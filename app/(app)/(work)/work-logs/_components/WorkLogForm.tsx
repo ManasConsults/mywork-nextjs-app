@@ -6,6 +6,11 @@ import type { Task, WorkLog } from '@prisma/client';
 
 import { createWorkLogSchema, updateWorkLogSchema } from '@/lib/schemas/work-log.schema';
 import { createWorkLogAction, updateWorkLogAction } from '@/lib/actions/work-log';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FieldErrors {
   taskId?: string[];
@@ -23,32 +28,6 @@ interface WorkLogFormProps {
   onSuccess?: () => void;
 }
 
-function inputCls(hasError: boolean) {
-  return `w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-teal-500/30 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-zinc-50/20 ${
-    hasError ? 'border-red-500 dark:border-red-500' : 'border-zinc-200 dark:border-zinc-700'
-  }`;
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
-    </div>
-  );
-}
-
 export function WorkLogForm({
   tasks,
   workLog,
@@ -59,13 +38,14 @@ export function WorkLogForm({
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [taskId, setTaskId] = useState(defaultTaskId ?? '');
 
   const isEdit = !!workLog;
   const defaultDate = workLog?.date
     ? new Date(workLog.date).toISOString().split('T')[0]
     : new Date().toISOString().split('T')[0];
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
@@ -96,7 +76,7 @@ export function WorkLogForm({
       });
     } else {
       const raw = {
-        taskId: fd.get('taskId') as string,
+        taskId,
         date: fd.get('date') as string,
         description: fd.get('description') as string,
         timeSpent: fd.get('timeSpent') ? Number(fd.get('timeSpent')) : undefined,
@@ -126,42 +106,52 @@ export function WorkLogForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {rootError && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
-        </p>
+        </div>
       )}
 
       {!isEdit && (
-        <Field label="Task" error={fieldErrors.taskId?.[0]}>
-          <select
-            name="taskId"
-            defaultValue={defaultTaskId ?? ''}
-            className={inputCls(!!fieldErrors.taskId)}
-          >
-            <option value="" disabled>
-              Select a task…
-            </option>
-            {tasks.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <div className="space-y-1.5">
+          <Label>Task</Label>
+          <Select value={taskId} onValueChange={setTaskId} disabled={isPending}>
+            <SelectTrigger aria-invalid={!!fieldErrors.taskId}>
+              <SelectValue placeholder="Select a task…" />
+            </SelectTrigger>
+            <SelectContent>
+              {tasks.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldErrors.taskId?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.taskId[0]}</p>
+          )}
+        </div>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Date" error={fieldErrors.date?.[0]}>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="date">Date</Label>
+          <Input
+            id="date"
             name="date"
             type="date"
             defaultValue={defaultDate}
-            className={inputCls(!!fieldErrors.date)}
+            aria-invalid={!!fieldErrors.date}
+            disabled={isPending}
           />
-        </Field>
+          {fieldErrors.date?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.date[0]}</p>
+          )}
+        </div>
 
-        <Field label="Time spent (hours)" error={fieldErrors.timeSpent?.[0]}>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="timeSpent">Time spent (hours)</Label>
+          <Input
+            id="timeSpent"
             name="timeSpent"
             type="number"
             step="0.25"
@@ -169,45 +159,53 @@ export function WorkLogForm({
             max="24"
             defaultValue={workLog?.timeSpent ?? ''}
             placeholder="e.g. 1.5"
-            className={inputCls(!!fieldErrors.timeSpent)}
+            aria-invalid={!!fieldErrors.timeSpent}
+            disabled={isPending}
           />
-        </Field>
+          {fieldErrors.timeSpent?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.timeSpent[0]}</p>
+          )}
+        </div>
       </div>
 
-      <Field label="Description" error={fieldErrors.description?.[0]}>
-        <textarea
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
           name="description"
           defaultValue={workLog?.description ?? ''}
           rows={4}
           placeholder="What did you work on? (min 10 characters)"
-          className={inputCls(!!fieldErrors.description)}
+          aria-invalid={!!fieldErrors.description}
+          disabled={isPending}
         />
-      </Field>
+        {fieldErrors.description?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>
+        )}
+      </div>
 
-      <Field label="Outcome (optional)" error={fieldErrors.outcome?.[0]}>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="outcome">Outcome (optional)</Label>
+        <Input
+          id="outcome"
           name="outcome"
           defaultValue={workLog?.outcome ?? ''}
           placeholder="What was the result or outcome?"
-          className={inputCls(!!fieldErrors.outcome)}
+          aria-invalid={!!fieldErrors.outcome}
+          disabled={isPending}
         />
-      </Field>
+        {fieldErrors.outcome?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.outcome[0]}</p>
+        )}
+      </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Log work'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/work-logs')}
-          className="rounded-md px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => router.push('/work-logs')}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

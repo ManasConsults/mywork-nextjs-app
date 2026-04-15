@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { ACHIEVEMENT_CATEGORIES, ACHIEVEMENT_SORT_BY, ACHIEVEMENT_PAGE_SIZES } from '@/lib/schemas/achievement.schema';
 import { fiscalYearLabel } from '@/lib/utils/fiscal-year';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AchievementFiltersProps {
   currentCategory?: string;
@@ -20,9 +21,6 @@ const SORT_BY_LABELS: Record<string, string> = {
   updatedAt: 'Updated date',
 };
 
-const SELECT_CLS =
-  'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
-
 export function AchievementFilters({
   currentCategory,
   currentReviewYear,
@@ -35,7 +33,7 @@ export function AchievementFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  function updateParam(key: string, value: string, resetPage = true) {
+  function updateParam(key: string, value: string, resetPage = true): void {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
       params.set(key, value);
@@ -50,68 +48,67 @@ export function AchievementFilters({
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      <select
-        value={currentCategory ?? ''}
-        onChange={(e) => updateParam('category', e.target.value)}
-        className={SELECT_CLS}
-      >
-        <option value="">All categories</option>
-        {ACHIEVEMENT_CATEGORIES.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
-        ))}
-      </select>
+      <Select value={currentCategory ?? ''} onValueChange={(v) => updateParam('category', v === '_all' ? '' : v)}>
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="All categories" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All categories</SelectItem>
+          {ACHIEVEMENT_CATEGORIES.map((c) => (
+            <SelectItem key={c} value={c}>{c}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      <select
-        value={currentReviewYear ?? ''}
-        onChange={(e) => updateParam('reviewYear', e.target.value)}
-        className={SELECT_CLS}
+      <Select
+        value={currentReviewYear != null ? String(currentReviewYear) : ''}
+        onValueChange={(v) => updateParam('reviewYear', v === '_all' ? '' : v)}
       >
-        <option value="">All years</option>
-        {yearOptions.map((y) => (
-          <option key={y} value={y}>
-            {fiscalYearLabel(y, fiscalYearStartMonth)}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger className="w-36">
+          <SelectValue placeholder="All years" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All years</SelectItem>
+          {yearOptions.map((y) => (
+            <SelectItem key={y} value={String(y)}>
+              {fiscalYearLabel(y, fiscalYearStartMonth)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <div className="ml-auto flex items-center gap-2">
-        <select
-          value={currentSortBy}
-          onChange={(e) => updateParam('sortBy', e.target.value, false)}
-          className={SELECT_CLS}
-          aria-label="Sort by"
-        >
-          {ACHIEVEMENT_SORT_BY.map((s) => (
-            <option key={s} value={s}>
-              {SORT_BY_LABELS[s]}
-            </option>
-          ))}
-        </select>
+        <Select value={currentSortBy} onValueChange={(v) => updateParam('sortBy', v, false)}>
+          <SelectTrigger className="w-36" aria-label="Sort by">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ACHIEVEMENT_SORT_BY.map((s) => (
+              <SelectItem key={s} value={s}>{SORT_BY_LABELS[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
-          value={currentSortOrder}
-          onChange={(e) => updateParam('sortOrder', e.target.value, false)}
-          className={SELECT_CLS}
-          aria-label="Sort order"
-        >
-          <option value="desc">Newest first</option>
-          <option value="asc">Oldest first</option>
-        </select>
+        <Select value={currentSortOrder} onValueChange={(v) => updateParam('sortOrder', v, false)}>
+          <SelectTrigger className="w-32" aria-label="Sort order">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Newest first</SelectItem>
+            <SelectItem value="asc">Oldest first</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <select
-          value={currentPageSize}
-          onChange={(e) => updateParam('pageSize', e.target.value)}
-          className={SELECT_CLS}
-          aria-label="Items per page"
-        >
-          {ACHIEVEMENT_PAGE_SIZES.map((n) => (
-            <option key={n} value={n}>
-              {n} per page
-            </option>
-          ))}
-        </select>
+        <Select value={String(currentPageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
+          <SelectTrigger className="w-28" aria-label="Items per page">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ACHIEVEMENT_PAGE_SIZES.map((n) => (
+              <SelectItem key={n} value={String(n)}>{n} per page</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

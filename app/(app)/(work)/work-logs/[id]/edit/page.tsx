@@ -28,7 +28,6 @@ export default async function EditWorkLogPage({ params }: EditWorkLogPageProps):
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Edit work log</h1>
       <WorkLogForm tasks={tasks} workLog={workLog} />
     </div>
   );

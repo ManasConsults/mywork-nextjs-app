@@ -10,6 +10,11 @@ import {
   updateAchievementSchema,
 } from '@/lib/schemas/achievement.schema';
 import { createAchievementAction, updateAchievementAction } from '@/lib/actions/achievement';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FieldErrors {
   title?: string[];
@@ -32,32 +37,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   Collaboration: 'Collaboration',
   Learning: 'Learning',
 };
-
-function inputCls(hasError: boolean) {
-  return `w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-teal-500/30 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-zinc-50/20 ${
-    hasError ? 'border-red-500 dark:border-red-500' : 'border-zinc-200 dark:border-zinc-700'
-  }`;
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
-    </div>
-  );
-}
 
 function StarRating({
   value,
@@ -100,23 +79,25 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
   const [rootError, setRootError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [impactRating, setImpactRating] = useState<number | null>(achievement?.impactRating ?? null);
+  const [category, setCategory] = useState(achievement?.category ?? '');
+  const [taskId, setTaskId] = useState(achievement?.taskId ?? '');
 
   const isEdit = !!achievement;
   const defaultDate = achievement?.dateAchieved
     ? new Date(achievement.dateAchieved).toISOString().split('T')[0]
     : '';
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
     const raw = {
       title: fd.get('title') as string,
       description: fd.get('description') as string,
-      category: (fd.get('category') as string) || undefined,
+      category: category || undefined,
       dateAchieved: (fd.get('dateAchieved') as string) || undefined,
       impactRating: impactRating ?? undefined,
-      taskId: (fd.get('taskId') as string) || undefined,
+      taskId: taskId || undefined,
     };
 
     const schema = isEdit ? updateAchievementSchema : createAchievementSchema;
@@ -145,92 +126,116 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {rootError && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
-        </p>
+        </div>
       )}
 
-      <Field label="Title" error={fieldErrors.title?.[0]}>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
           name="title"
           defaultValue={achievement?.title ?? ''}
           placeholder="What did you achieve?"
-          className={inputCls(!!fieldErrors.title)}
+          aria-invalid={!!fieldErrors.title}
+          disabled={isPending}
         />
-      </Field>
+        {fieldErrors.title?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.title[0]}</p>
+        )}
+      </div>
 
-      <Field label="Description" error={fieldErrors.description?.[0]}>
-        <textarea
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
           name="description"
           defaultValue={achievement?.description ?? ''}
           rows={5}
           placeholder="Describe the achievement in detail…"
-          className={inputCls(!!fieldErrors.description)}
+          aria-invalid={!!fieldErrors.description}
+          disabled={isPending}
         />
-      </Field>
+        {fieldErrors.description?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Category" error={fieldErrors.category?.[0]}>
-          <select
-            name="category"
-            defaultValue={achievement?.category ?? ''}
-            className={inputCls(false)}
-          >
-            <option value="">No category</option>
-            {ACHIEVEMENT_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABELS[c]}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <div className="space-y-1.5">
+          <Label>Category</Label>
+          <Select value={category} onValueChange={setCategory} disabled={isPending}>
+            <SelectTrigger aria-invalid={!!fieldErrors.category}>
+              <SelectValue placeholder="No category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">No category</SelectItem>
+              {ACHIEVEMENT_CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {CATEGORY_LABELS[c]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldErrors.category?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.category[0]}</p>
+          )}
+        </div>
 
-        <Field label="Date achieved" error={fieldErrors.dateAchieved?.[0]}>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="dateAchieved">Date achieved</Label>
+          <Input
+            id="dateAchieved"
             name="dateAchieved"
             type="date"
             defaultValue={defaultDate}
-            className={inputCls(!!fieldErrors.dateAchieved)}
+            aria-invalid={!!fieldErrors.dateAchieved}
+            disabled={isPending}
           />
-        </Field>
+          {fieldErrors.dateAchieved?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.dateAchieved[0]}</p>
+          )}
+        </div>
       </div>
 
-      <Field label="Impact rating" error={fieldErrors.impactRating?.[0]}>
+      <div className="space-y-1.5">
+        <Label>Impact rating</Label>
         <StarRating value={impactRating} onChange={setImpactRating} />
-      </Field>
+        {fieldErrors.impactRating?.[0] && (
+          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.impactRating[0]}</p>
+        )}
+      </div>
 
       {tasks.length > 0 && (
-        <Field label="Linked task (optional)" error={fieldErrors.taskId?.[0]}>
-          <select
-            name="taskId"
-            defaultValue={achievement?.taskId ?? ''}
-            className={inputCls(!!fieldErrors.taskId)}
-          >
-            <option value="">No linked task</option>
-            {tasks.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <div className="space-y-1.5">
+          <Label>Linked task (optional)</Label>
+          <Select value={taskId} onValueChange={setTaskId} disabled={isPending}>
+            <SelectTrigger aria-invalid={!!fieldErrors.taskId}>
+              <SelectValue placeholder="No linked task" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">No linked task</SelectItem>
+              {tasks.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldErrors.taskId?.[0] && (
+            <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.taskId[0]}</p>
+          )}
+        </div>
       )}
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Save achievement'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/achievements')}
-          className="rounded-md px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => router.push('/achievements')}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

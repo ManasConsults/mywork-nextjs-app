@@ -150,7 +150,6 @@ export default async function TimesheetsPage({
     <div className="mx-auto max-w-5xl">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Timesheets</h1>
         {clients.length > 0 && <AddTimesheetEntryForm clients={clientOptions} />}
       </div>
 
@@ -174,10 +173,10 @@ export default async function TimesheetsPage({
 
       {/* Content */}
       {clientGroups.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No timesheet entries found for the selected filters.</p>
+        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+          <p className="text-sm text-muted-foreground">No timesheet entries found for the selected filters.</p>
           {clients.length > 0 && (
-            <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-500">
+            <p className="mt-2 text-xs text-muted-foreground">
               Use the &ldquo;+ New Entry&rdquo; button above to log time against a client.
             </p>
           )}
@@ -189,15 +188,15 @@ export default async function TimesheetsPage({
           ))}
 
           {/* Grand total row */}
-          <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-teal-50 px-5 py-4 dark:border-zinc-800 dark:bg-teal-900/20">
-            <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+          <div className="flex items-center justify-between rounded-xl border border-primary/30/60 bg-primary/5 px-5 py-4">
+            <span className="text-sm font-semibold text-foreground">
               Grand Total
             </span>
             <div className="flex items-center gap-6">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              <span className="text-sm text-muted-foreground">
                 {grandTotalHours.toFixed(2)} hrs total
               </span>
-              <span className="text-base font-bold text-teal-700 dark:text-teal-400">
+              <span className="text-base font-bold text-primary">
                 {fromMinorUnit(grandTotalValue, currency)} unbilled
               </span>
             </div>
@@ -218,14 +217,14 @@ function ClientTimesheetGroup({
   currency: string;
 }): React.JSX.Element {
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
       {/* Client header */}
-      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-foreground">
           {group.clientName}
         </h2>
         <div className="flex items-center gap-4">
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             <span className="text-amber-600 dark:text-amber-400">
               {group.totalUnbilledHours.toFixed(2)} hrs
             </span>{' '}
@@ -242,7 +241,7 @@ function ClientTimesheetGroup({
           )}
           <Link
             href={`/finance/invoices/new?clientId=${group.clientId}`}
-            className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 transition-colors hover:bg-teal-100 dark:border-teal-800/60 dark:bg-teal-900/20 dark:text-teal-400 dark:hover:bg-teal-900/40"
+            className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
           >
             Create Invoice
           </Link>
@@ -250,33 +249,33 @@ function ClientTimesheetGroup({
       </div>
 
       {/* Work log rows */}
-      <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+      <table className="min-w-full divide-y divide-border">
         <thead>
           <tr>
-            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Date
             </th>
-            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Description
             </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Hours
             </th>
-            <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 sm:table-cell">
+            <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
               Rate/hr
             </th>
-            <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 sm:table-cell">
+            <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
               Value
             </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Status
             </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <tbody className="divide-y divide-border/60">
           {group.rows.map((log) => {
             const hours = hoursFromMinutes(log.timeSpent);
             const rate = log.client?.defaultRate ?? 0;
@@ -307,18 +306,18 @@ function ClientTimesheetGroup({
         </tbody>
         {/* Subtotal row */}
         <tfoot>
-          <tr className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/40">
+          <tr className="border-t border-border bg-accent/40">
             <td
               colSpan={2}
-              className="px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+              className="px-4 py-2.5 text-sm font-semibold text-foreground"
             >
               Subtotal
             </td>
-            <td className="px-4 py-2.5 text-right text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+            <td className="px-4 py-2.5 text-right text-sm font-semibold text-foreground">
               {(group.totalUnbilledHours + group.totalBilledHours).toFixed(2)}
             </td>
             <td className="hidden sm:table-cell" />
-            <td className="hidden px-4 py-2.5 text-right text-sm font-semibold text-teal-600 dark:text-teal-400 sm:table-cell">
+            <td className="hidden px-4 py-2.5 text-right text-sm font-semibold text-primary sm:table-cell">
               {fromMinorUnit(group.totalUnbilledValue, currency)}
             </td>
             <td />

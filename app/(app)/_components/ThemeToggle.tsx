@@ -2,6 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore } from 'react';
+import { cn } from '@/lib/utils';
 
 const THEMES = [
   {
@@ -45,14 +46,14 @@ export function ThemeToggle(): React.JSX.Element {
   );
 
   if (!mounted) {
-    return <div className="h-8 w-[104px] rounded-md bg-zinc-100 dark:bg-zinc-800" />;
+    return <div className="h-8 w-[104px] rounded-md bg-zinc-100" />;
   }
 
   return (
     <div
       role="group"
       aria-label="Select theme"
-      className="flex items-center rounded-md border border-zinc-200 bg-white p-0.5 dark:border-zinc-700 dark:bg-zinc-900"
+      className="flex items-center gap-0.5 rounded-xl border border-border/60 bg-muted/50 p-1 backdrop-blur-sm"
     >
       {THEMES.map(({ value, label, icon }) => {
         const isActive = theme === value;
@@ -62,14 +63,15 @@ export function ThemeToggle(): React.JSX.Element {
             onClick={() => setTheme(value)}
             aria-pressed={isActive}
             title={label}
-            className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium transition-colors ${
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97]',
               isActive
-                ? 'bg-teal-600 text-white dark:bg-zinc-50 dark:text-zinc-900'
-                : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
-            }`}
+                ? 'bg-background text-foreground shadow-sm shadow-black/8 dark:shadow-black/30'
+                : 'text-foreground/60 hover:bg-accent/60 hover:text-foreground',
+            )}
           >
             {icon}
-            <span>{label}</span>
+            <span className="hidden sm:inline">{label}</span>
           </button>
         );
       })}

@@ -82,7 +82,7 @@ export default function HomePage(): React.JSX.Element {
       {/* ── Nav ── */}
       <header className="border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-xl font-bold tracking-tight text-teal-600 dark:text-teal-400">MyWork</span>
+          <span className="text-xl font-bold tracking-tight text-primary">MyWork</span>
           <nav className="flex items-center gap-2">
             <Link
               href="/login"
@@ -92,7 +92,7 @@ export default function HomePage(): React.JSX.Element {
             </Link>
             <Link
               href="/register"
-              className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               Get started
             </Link>
@@ -103,12 +103,12 @@ export default function HomePage(): React.JSX.Element {
       {/* ── Hero ── */}
       <section className="mx-auto max-w-6xl px-6 py-24 text-center">
         <div className="mx-auto max-w-3xl">
-          <span className="inline-block rounded-full bg-teal-50 dark:bg-teal-900/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-teal-600 dark:text-teal-400 mb-6">
+          <span className="inline-block rounded-full bg-primary/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary mb-6">
             Personal work management
           </span>
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl lg:text-6xl">
             Everything you need to<br />
-            <span className="text-teal-600 dark:text-teal-400">stay on top of your work</span>
+            <span className="text-primary">stay on top of your work</span>
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-zinc-500 dark:text-zinc-400">
             Tasks, work logs, achievements, notes, and daily planning — all in one place.
@@ -117,7 +117,7 @@ export default function HomePage(): React.JSX.Element {
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Link
               href="/register"
-              className="rounded-lg bg-teal-600 px-8 py-3 text-base font-semibold text-white hover:bg-teal-700 transition-colors dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className="rounded-lg bg-primary px-8 py-3 text-base font-semibold text-white hover:bg-primary/90 transition-colors dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               Create an account
             </Link>
@@ -144,13 +144,13 @@ export default function HomePage(): React.JSX.Element {
                 key={f.title}
                 className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6"
               >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/5 text-primary">
                   {f.icon}
                 </div>
                 <h3 className="mb-2 text-base font-semibold text-zinc-900 dark:text-zinc-50">{f.title}</h3>
                 <p className="mb-4 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{f.description}</p>
                 <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                  <span className="font-semibold text-teal-600 dark:text-teal-400">How to use: </span>{f.how}
+                  <span className="font-semibold text-primary">How to use: </span>{f.how}
                 </p>
               </div>
             ))}
@@ -169,11 +169,11 @@ export default function HomePage(): React.JSX.Element {
             {steps.map((s, i) => (
               <li key={s.step} className="flex gap-5">
                 <div className="shrink-0 flex flex-col items-center">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 dark:bg-teal-700 text-sm font-bold text-white">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
                     {s.step}
                   </div>
                   {i < steps.length - 1 && (
-                    <div className="mt-2 w-px flex-1 bg-teal-100 dark:bg-teal-900/40" style={{ minHeight: '2rem' }} />
+                    <div className="mt-2 w-px flex-1 bg-primary/10" style={{ minHeight: '2rem' }} />
                   )}
                 </div>
                 <div className="pb-2 pt-1">
@@ -187,22 +187,22 @@ export default function HomePage(): React.JSX.Element {
       </section>
 
       {/* ── CTA banner ── */}
-      <section className="bg-teal-600 dark:bg-teal-800 py-16">
+      <section className="bg-primary py-16">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <h2 className="text-3xl font-bold text-white">Ready to get organised?</h2>
-          <p className="mt-3 text-teal-100">
+          <p className="mt-3 text-primary-foreground">
             Request an account today and start tracking your work the right way.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/register"
-              className="rounded-lg bg-white px-8 py-3 text-base font-semibold text-teal-700 hover:bg-teal-50 transition-colors"
+              className="rounded-lg bg-white px-8 py-3 text-base font-semibold text-primary hover:bg-primary/5 transition-colors"
             >
               Create an account
             </Link>
             <Link
               href="/login"
-              className="rounded-lg border border-teal-400 dark:border-teal-600 px-8 py-3 text-base font-semibold text-white hover:bg-teal-700 dark:hover:bg-teal-900 transition-colors"
+              className="rounded-lg border border-primary dark:border-primary px-8 py-3 text-base font-semibold text-white hover:bg-primary/90 transition-colors"
             >
               Sign in
             </Link>

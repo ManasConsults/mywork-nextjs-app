@@ -28,12 +28,11 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps): P
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Edit task</h1>
       <TaskForm task={task} />
-      <div className="mt-6 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+      <div className="mt-6 border-t border-border pt-6">
         <DeleteTaskButton taskId={task.id} />
       </div>
-      <div className="mt-8 border-t border-zinc-200 pt-8 dark:border-zinc-800">
+      <div className="mt-8 border-t border-border pt-8">
         <WorkLogSection taskId={task.id} initialLogs={workLogs} />
       </div>
     </div>

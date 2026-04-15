@@ -46,8 +46,8 @@ function ToolbarButton({ label, title, isActive, onClick }: ToolbarButtonProps):
       onClick={onClick}
       className={`rounded px-2 py-1 text-sm font-medium transition-colors ${
         isActive
-          ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
-          : 'text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
+          ? 'bg-primary/10 text-primary'
+          : 'text-zinc-500 hover:bg-zinc-100 dark:text-muted-foreground'
       }`}
     >
       {label}
@@ -203,7 +203,7 @@ export function NoteEditor({
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Note title (optional)"
         maxLength={200}
-        className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-lg font-medium text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-600"
+        className="w-full rounded-md border border-border bg-card px-3 py-2 text-lg font-medium text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-ring dark:text-zinc-50 dark:placeholder-zinc-600"
       />
 
       {/* Task + Tags row */}
@@ -211,7 +211,7 @@ export function NoteEditor({
         <select
           value={taskId}
           onChange={(e) => setTaskId(e.target.value)}
-          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground"
         >
           <option value="">No linked task</option>
           {tasks.map((t) => (
@@ -222,17 +222,17 @@ export function NoteEditor({
         </select>
 
         {/* Tag chips + input */}
-        <div className="flex flex-wrap items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-1.5 dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5">
           {tags.map((tag) => (
             <span
               key={tag}
-              className="flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300"
+              className="flex items-center gap-1 rounded-full bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => removeTag(tag)}
-                className="ml-0.5 leading-none text-teal-500 hover:text-teal-700 dark:text-teal-400"
+                className="ml-0.5 leading-none text-primary hover:text-primary"
                 aria-label={`Remove tag ${tag}`}
               >
                 ×
@@ -252,7 +252,7 @@ export function NoteEditor({
       </div>
 
       {/* Editor toolbar */}
-      <div className="flex flex-wrap gap-1 rounded-t-md border border-b-0 border-zinc-200 bg-zinc-50 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="flex flex-wrap gap-1 rounded-t-md border border-b-0 border-border bg-accent/40 px-2 py-1">
         <ToolbarButton
           label="B"
           title="Bold"
@@ -277,7 +277,7 @@ export function NoteEditor({
           isActive={editor?.isActive('code') ?? false}
           onClick={() => editor?.chain().focus().toggleCode().run()}
         />
-        <span className="mx-1 border-l border-zinc-200 dark:border-zinc-700" />
+        <span className="mx-1 border-l border-border" />
         <ToolbarButton
           label="H2"
           title="Heading 2"
@@ -290,7 +290,7 @@ export function NoteEditor({
           isActive={editor?.isActive('heading', { level: 3 }) ?? false}
           onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
         />
-        <span className="mx-1 border-l border-zinc-200 dark:border-zinc-700" />
+        <span className="mx-1 border-l border-border" />
         <ToolbarButton
           label="• —"
           title="Bullet list"
@@ -309,7 +309,7 @@ export function NoteEditor({
           isActive={editor?.isActive('blockquote') ?? false}
           onClick={() => editor?.chain().focus().toggleBlockquote().run()}
         />
-        <span className="mx-1 border-l border-zinc-200 dark:border-zinc-700" />
+        <span className="mx-1 border-l border-border" />
         <ToolbarButton
           label="🔗"
           title="Insert link"
@@ -321,12 +321,12 @@ export function NoteEditor({
       {/* Editor content */}
       <EditorContent
         editor={editor}
-        className="min-h-[320px] rounded-b-md border border-zinc-200 px-4 py-3 text-sm text-zinc-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-teal-500 dark:border-zinc-700 dark:text-zinc-200 [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-zinc-400 [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-zinc-300 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_h2]:text-lg [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-zinc-100 [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-xs [&_.ProseMirror_a]:text-teal-600 [&_.ProseMirror_a]:underline dark:[&_.ProseMirror_code]:bg-zinc-800"
+        className="min-h-[320px] rounded-b-md border border-border bg-card px-4 py-3 text-sm text-foreground focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 [&_.ProseMirror]:min-h-70 [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-zinc-400 [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-zinc-300 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_h2]:text-lg [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-zinc-100 [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-xs [&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline dark:[&_.ProseMirror_code]:bg-zinc-800"
       />
 
       {/* Footer: last saved + actions */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="text-xs text-muted-foreground">
           {lastSavedLabel ?? (noteId ? 'Not saved yet' : '')}
         </span>
         <div className="flex items-center gap-3">
@@ -349,7 +349,7 @@ export function NoteEditor({
           <button
             type="button"
             onClick={() => router.push(noteId ? `/notes/${noteId}` : '/notes')}
-            className="rounded-md px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            className="rounded-md px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-muted-foreground"
           >
             {noteId ? 'View note' : 'Cancel'}
           </button>
@@ -357,7 +357,7 @@ export function NoteEditor({
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="rounded-md bg-teal-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50 dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
             {isPending ? 'Saving…' : noteId ? 'Save changes' : 'Create note'}
           </button>

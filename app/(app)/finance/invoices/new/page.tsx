@@ -41,15 +41,13 @@ export default async function NewInvoicePage(): Promise<React.JSX.Element> {
       <div className="mb-6 flex items-center gap-3">
         <Link
           href="/finance/invoices"
-          className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+          className="text-sm text-muted-foreground hover:text-foreground"
         >
           Invoices
         </Link>
-        <span className="text-zinc-300 dark:text-zinc-700">/</span>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">New Invoice</h1>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-xl border border-border bg-card p-6">
         <InvoiceForm clients={clientList} paymentAccounts={paymentAccounts} />
       </div>
     </div>

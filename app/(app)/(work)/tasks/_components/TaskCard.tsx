@@ -6,9 +6,11 @@ import type { Task } from '@prisma/client';
 
 import { TASK_STATUSES } from '@/lib/schemas/task.schema';
 import { updateTaskAction } from '@/lib/actions/task';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const PRIORITY_BADGE: Record<string, string> = {
-  LOW: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400',
+const PRIORITY_BADGE_VARIANT: Record<string, string> = {
+  LOW: 'bg-muted text-muted-foreground',
   MEDIUM: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
   HIGH: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
   CRITICAL: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
@@ -38,7 +40,7 @@ export function TaskCard({ task }: { task: Task }): React.JSX.Element {
   }
 
   return (
-    <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="rounded-md border border-border bg-card p-3 shadow-sm">
       <div className="mb-2 flex items-start justify-between gap-2">
         <Link
           href={`/tasks/${task.id}`}
@@ -46,29 +48,29 @@ export function TaskCard({ task }: { task: Task }): React.JSX.Element {
         >
           {task.title}
         </Link>
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_BADGE[task.priority]}`}>
+        <Badge className={`shrink-0 ${PRIORITY_BADGE_VARIANT[task.priority]}`}>
           {PRIORITY_LABELS[task.priority]}
-        </span>
+        </Badge>
       </div>
 
       {task.dueDate && (
-        <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mb-2 text-xs text-muted-foreground">
           Due {new Date(task.dueDate).toLocaleDateString()}
         </p>
       )}
 
-      <select
-        value={task.status}
-        onChange={(e) => handleStatusChange(e.target.value)}
-        disabled={isPending}
-        className="w-full rounded border border-zinc-200 bg-transparent px-2 py-1 text-xs text-zinc-600 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-400"
-      >
-        {TASK_STATUSES.map((s) => (
-          <option key={s} value={s}>
-            {STATUS_LABELS[s]}
-          </option>
-        ))}
-      </select>
+      <Select value={task.status} onValueChange={handleStatusChange} disabled={isPending}>
+        <SelectTrigger className="h-7 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {TASK_STATUSES.map((s) => (
+            <SelectItem key={s} value={s} className="text-xs">
+              {STATUS_LABELS[s]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

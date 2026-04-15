@@ -2,6 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
 interface ClientOption {
   id: string;
   name: string;
@@ -14,12 +18,6 @@ interface TimesheetFiltersProps {
   currentTo?: string;
   currentStatus?: string;
 }
-
-const selectCls =
-  'rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
-
-const inputCls =
-  'rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
 
 const STATUS_OPTIONS = [
   { value: 'unbilled', label: 'Unbilled' },
@@ -59,66 +57,43 @@ export function TimesheetFilters({
 
   return (
     <div className="mb-5 flex flex-wrap items-center gap-3">
-      {/* Client filter */}
-      <select
-        value={currentClientId ?? ''}
-        onChange={(e) => updateParam('clientId', e.target.value)}
-        className={selectCls}
-        aria-label="Filter by client"
-      >
-        <option value="">All clients</option>
-        {clients.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
+      <Select value={currentClientId ?? ''} onValueChange={(v) => updateParam('clientId', v === '_all' ? '' : v)}>
+        <SelectTrigger className="w-40" aria-label="Filter by client">
+          <SelectValue placeholder="All clients" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All clients</SelectItem>
+          {clients.map((c) => (
+            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      {/* Date range */}
       <div className="flex items-center gap-2">
-        <label className="text-sm text-zinc-500 dark:text-zinc-400">From</label>
-        <input
-          type="date"
-          value={currentFrom ?? ''}
-          onChange={(e) => updateParam('from', e.target.value)}
-          className={inputCls}
-          aria-label="From date"
-        />
+        <span className="text-sm text-muted-foreground">From</span>
+        <Input type="date" value={currentFrom ?? ''} onChange={(e) => updateParam('from', e.target.value)} className="w-36" aria-label="From date" />
       </div>
 
       <div className="flex items-center gap-2">
-        <label className="text-sm text-zinc-500 dark:text-zinc-400">To</label>
-        <input
-          type="date"
-          value={currentTo ?? ''}
-          onChange={(e) => updateParam('to', e.target.value)}
-          className={inputCls}
-          aria-label="To date"
-        />
+        <span className="text-sm text-muted-foreground">To</span>
+        <Input type="date" value={currentTo ?? ''} onChange={(e) => updateParam('to', e.target.value)} className="w-36" aria-label="To date" />
       </div>
 
-      {/* Billing status */}
-      <select
-        value={currentStatus ?? 'unbilled'}
-        onChange={(e) => updateParam('status', e.target.value)}
-        className={selectCls}
-        aria-label="Filter by billing status"
-      >
-        {STATUS_OPTIONS.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <Select value={currentStatus ?? 'unbilled'} onValueChange={(v) => updateParam('status', v)}>
+        <SelectTrigger className="w-36" aria-label="Filter by billing status">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {hasActiveFilters && (
-        <button
-          type="button"
-          onClick={clearFilters}
-          className="text-sm text-zinc-400 underline underline-offset-2 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
           Clear filters
-        </button>
+        </Button>
       )}
     </div>
   );
