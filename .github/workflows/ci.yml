@@ -55,6 +55,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npx prisma generate
+      - run: npx next build
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
 
