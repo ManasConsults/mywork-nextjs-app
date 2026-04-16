@@ -1,15 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-import { TEST_USERS } from './global-setup';
-
 test.describe('ThemeToggle (mode selector)', () => {
   test.beforeEach(async ({ page }) => {
-    // Sign in so the app shell (and header) is rendered
-    await page.goto('/login');
-    await page.fill('#email', TEST_USERS.active.email);
-    await page.fill('#password', TEST_USERS.active.password);
-    await page.getByRole('button', { name: 'Sign in' }).click();
-    await expect(page).toHaveURL('/dashboard', { timeout: 15_000 });
+    await page.goto('/dashboard');
   });
 
   test('renders all three mode buttons', async ({ page }) => {
@@ -36,7 +29,7 @@ test.describe('ThemeToggle (mode selector)', () => {
     await expect(group.getByTitle('Auto')).toHaveAttribute('aria-pressed', 'false');
 
     // next-themes adds .dark to <html>
-    await expect(page.locator('html')).toHaveClass(/dark/, { timeout: 2_000 });
+    await expect(page.locator('html')).toHaveClass(/dark/);
   });
 
   test('clicking Light marks it active and removes .dark from html', async ({ page }) => {
@@ -44,11 +37,11 @@ test.describe('ThemeToggle (mode selector)', () => {
 
     // Start from dark so the transition is observable
     await group.getByTitle('Dark').click();
-    await expect(page.locator('html')).toHaveClass(/dark/, { timeout: 2_000 });
+    await expect(page.locator('html')).toHaveClass(/dark/);
 
     await group.getByTitle('Light').click();
     await expect(group.getByTitle('Light')).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('html')).not.toHaveClass(/dark/, { timeout: 2_000 });
+    await expect(page.locator('html')).not.toHaveClass(/dark/);
   });
 
   test('clicking Auto sets aria-pressed on Auto and deactivates others', async ({ page }) => {
@@ -64,15 +57,13 @@ test.describe('ThemeToggle (mode selector)', () => {
     const group = page.getByRole('group', { name: 'Select theme' });
     await group.getByTitle('Dark').click();
 
-    const darkBtn = group.getByTitle('Dark');
-    await expect(darkBtn).toHaveClass(/bg-background/);
+    await expect(group.getByTitle('Dark')).toHaveClass(/bg-background/);
   });
 
   test('inactive buttons do not have bg-background class', async ({ page }) => {
     const group = page.getByRole('group', { name: 'Select theme' });
     await group.getByTitle('Dark').click();
 
-    const lightBtn = group.getByTitle('Light');
-    await expect(lightBtn).not.toHaveClass(/bg-background/);
+    await expect(group.getByTitle('Light')).not.toHaveClass(/bg-background/);
   });
 });

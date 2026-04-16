@@ -1,22 +1,9 @@
-import { test, expect, type Page } from '@playwright/test';
-
-import { TEST_USERS } from './global-setup';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-async function loginAsActive(page: Page): Promise<void> {
-  await page.goto('/login');
-  await page.fill('#email', TEST_USERS.active.email);
-  await page.fill('#password', TEST_USERS.active.password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL('/dashboard', { timeout: 15_000 });
-}
+import { test, expect } from '@playwright/test';
 
 // ─── Invoices list page ───────────────────────────────────────────────────────
 
 test.describe('Finance — Invoices', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsActive(page);
     await page.goto('/finance/invoices');
   });
 
@@ -37,7 +24,6 @@ test.describe('Finance — Invoices', () => {
 
 test.describe('Finance — Invoices — New Invoice form', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsActive(page);
     await page.goto('/finance/invoices/new');
   });
 
@@ -50,7 +36,6 @@ test.describe('Finance — Invoices — New Invoice form', () => {
   test('shows client, issue date and tax rate fields', async ({ page }) => {
     await expect(page.locator('select[name="clientId"]')).toBeVisible();
     await expect(page.locator('input[name="issueDate"]')).toBeVisible();
-    // taxRate is a <select>, not an <input>
     await expect(page.locator('select[name="taxRate"]')).toBeVisible();
   });
 
@@ -65,7 +50,6 @@ test.describe('Finance — Invoices — New Invoice form', () => {
   });
 
   test('Create Invoice button is present on the form', async ({ page }) => {
-    // Button exists (may be disabled when no clients — that is expected behaviour)
     await expect(
       page.getByRole('button', { name: /create invoice/i }),
     ).toBeVisible();
@@ -75,10 +59,6 @@ test.describe('Finance — Invoices — New Invoice form', () => {
 // ─── Invoice detail page ──────────────────────────────────────────────────────
 
 test.describe('Finance — Invoice detail', () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsActive(page);
-  });
-
   test('invoice list page loads without error', async ({ page }) => {
     await page.goto('/finance/invoices');
     await expect(page.getByRole('heading', { name: 'Invoices' })).toBeVisible();
@@ -122,7 +102,6 @@ test.describe('Finance — Invoice detail', () => {
 
 test.describe('Finance — Invoice status badge colours', () => {
   test('invoice list renders status badges', async ({ page }) => {
-    await loginAsActive(page);
     await page.goto('/finance/invoices');
     await expect(page.getByRole('heading', { name: 'Invoices' })).toBeVisible();
 

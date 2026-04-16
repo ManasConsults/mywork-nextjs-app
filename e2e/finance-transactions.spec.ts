@@ -1,22 +1,9 @@
-import { test, expect, type Page } from '@playwright/test';
-
-import { TEST_USERS } from './global-setup';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-async function loginAsActive(page: Page): Promise<void> {
-  await page.goto('/login');
-  await page.fill('#email', TEST_USERS.active.email);
-  await page.fill('#password', TEST_USERS.active.password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL('/dashboard', { timeout: 15_000 });
-}
+import { test, expect } from '@playwright/test';
 
 // ─── Transactions list page ───────────────────────────────────────────────────
 
 test.describe('Finance — Transactions', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsActive(page);
     await page.goto('/finance/transactions');
   });
 
@@ -43,7 +30,6 @@ test.describe('Finance — Transactions', () => {
 
 test.describe('Finance — Transactions — New Transaction form', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsActive(page);
     await page.goto('/finance/transactions/new');
   });
 
@@ -94,7 +80,6 @@ test.describe('Finance — Transactions — New Transaction form', () => {
   });
 
   test('stays on form and shows error when submitted without amount', async ({ page }) => {
-    // Clear the amount and submit
     await page.locator('input[name="amount"]').fill('');
     await page.getByRole('button', { name: /create transaction/i }).click();
     await expect(page).toHaveURL('/finance/transactions/new');
@@ -110,11 +95,8 @@ test.describe('Finance — Transactions — New Transaction form', () => {
 
 test.describe('Finance — Transactions — Recurring badge', () => {
   test('transaction list page loads without error', async ({ page }) => {
-    await loginAsActive(page);
     await page.goto('/finance/transactions');
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
-    // If any recurring transactions exist, the recurring badge should be present
-    // (This test validates page rendering, not data state)
     await expect(page).not.toHaveURL('/error', { timeout: 3_000 });
   });
 });
