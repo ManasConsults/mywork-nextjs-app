@@ -7,8 +7,9 @@ test.describe('Finance — Accounts', () => {
     await page.goto('/finance/accounts');
   });
 
-  test('renders the Accounts heading', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Accounts' })).toBeVisible();
+  test('renders the Accounts page', async ({ page }) => {
+    // No <h1> on this page — assert the "New Account" link as the page anchor
+    await expect(page.getByRole('link', { name: 'New Account' }).first()).toBeVisible();
   });
 
   test('shows the "New Account" or "Add Account" button', async ({ page }) => {
@@ -36,14 +37,14 @@ test.describe('Finance — Accounts — New Account form', () => {
   });
 
   test('renders the new account form', async ({ page }) => {
-    await expect(
-      page.getByRole('heading', { name: /new account|add account/i }),
-    ).toBeVisible();
+    // No heading on this page — assert the submit button as the form anchor
+    await expect(page.getByRole('button', { name: /save account/i })).toBeVisible();
   });
 
   test('shows account name and type fields', async ({ page }) => {
     await expect(page.locator('input[name="name"]')).toBeVisible();
-    await expect(page.locator('select[name="type"]')).toBeVisible();
+    // Account type uses shadcn Select (combobox), not a native <select>
+    await expect(page.getByRole('combobox').first()).toBeVisible();
   });
 
   test('shows payment details section', async ({ page }) => {
@@ -93,8 +94,9 @@ test.describe('Finance — Invoices — Payment Account', () => {
   });
 
   test('renders the new invoice form', async ({ page }) => {
+    // No heading on this page — assert the submit button as the form anchor
     await expect(
-      page.getByRole('heading', { name: /new invoice/i }),
+      page.getByRole('button', { name: /create invoice/i }),
     ).toBeVisible();
   });
 
@@ -106,7 +108,8 @@ test.describe('Finance — Invoices — Payment Account', () => {
       const optionCount = await select.locator('option').count();
       expect(optionCount).toBeGreaterThan(0);
     } else {
-      await expect(page.getByRole('heading', { name: /new invoice/i })).toBeVisible();
+      // No heading on this page — confirm the form rendered without error
+      await expect(page.getByRole('button', { name: /create invoice/i })).toBeVisible();
     }
   });
 

@@ -7,12 +7,14 @@ test.describe('Finance — Timesheets', () => {
     await page.goto('/finance/timesheets');
   });
 
-  test('renders the Timesheets heading', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Timesheets' })).toBeVisible();
+  test('renders the Timesheets page', async ({ page }) => {
+    // No <h1> on this page — billing status filter is always rendered
+    await expect(page.getByRole('combobox', { name: 'Filter by billing status' })).toBeVisible();
   });
 
   test('shows the filter controls', async ({ page }) => {
-    await expect(page.locator('select[aria-label="Filter by billing status"]')).toBeVisible();
+    // Filters use shadcn Select (combobox), not native <select>
+    await expect(page.getByRole('combobox', { name: 'Filter by billing status' })).toBeVisible();
   });
 
   test('shows empty state when no entries match filters', async ({ page }) => {
@@ -149,7 +151,7 @@ test.describe('Finance — Timesheets — Billed rows', () => {
   test('billed rows do not show Edit or Delete buttons', async ({ page }) => {
     const rows = page.locator('tbody tr');
     const count = await rows.count();
-    if (count === 0) return; // no billed entries — nothing to check
+    if (count === 0) return;
 
     await expect(page.getByRole('button', { name: 'Edit' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Delete' })).toHaveCount(0);
