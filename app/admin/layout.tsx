@@ -12,6 +12,8 @@ const NAV_LINKS = [
   { href: '/admin/feedback', label: 'Feedback' },
 ] as const;
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminLayout({ children }: { children: ReactNode }): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login');

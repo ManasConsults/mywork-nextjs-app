@@ -7,6 +7,9 @@ import { prisma } from '@/lib/db/prisma';
 import { getThemeCSS } from '@/lib/theme';
 import { AppShell } from './_components/AppShell';
 
+// All (app) pages are authenticated and user-specific — never pre-render during build.
+export const dynamic = 'force-dynamic';
+
 export default async function AppLayout({ children }: { children: ReactNode }): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login');
