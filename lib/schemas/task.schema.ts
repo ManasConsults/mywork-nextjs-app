@@ -22,8 +22,8 @@ export const TASK_DEFAULT_PAGE_SIZE = 10;
 export const taskFiltersSchema = z.object({
   status: z.enum(TASK_STATUSES).optional(),
   priority: z.enum(TASK_PRIORITIES).optional(),
-  sortBy: z.enum(TASK_SORT_BY).default('createdAt'),
-  sortOrder: z.enum(TASK_SORT_ORDER).default('desc'),
+  sortBy: z.enum(TASK_SORT_BY).default('dueDate'),
+  sortOrder: z.enum(TASK_SORT_ORDER).default('asc'),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce
     .number()

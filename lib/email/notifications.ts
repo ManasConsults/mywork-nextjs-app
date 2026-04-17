@@ -98,20 +98,25 @@ export async function sendInvoiceEmail(
     invoiceNumber: string;
     senderName: string | null;
     clientName: string;
+    contactName: string | null;
     total: number;
     currency: string;
     pdfBuffer: Buffer;
+    cc?: string;
   },
 ): Promise<{ sent: boolean; error?: string }> {
   if (!resend) return { sent: false, error: 'Email service is not configured.' };
+
+  const recipient = params.contactName ?? params.clientName;
 
   try {
     await resend.emails.send({
       from: FROM,
       to,
+      ...(params.cc ? { cc: [params.cc] } : {}),
       subject: `Invoice ${params.invoiceNumber} from ${params.senderName ?? 'MyWork'}`,
       html: `
-        <p>Dear ${params.clientName},</p>
+        <p>Dear ${recipient},</p>
         <p>Please find your invoice <strong>${params.invoiceNumber}</strong> for
         <strong>${fmtCurrency(params.total, params.currency)}</strong> attached.</p>
         <p>Please do not hesitate to get in touch if you have any questions.</p>
@@ -136,21 +141,26 @@ export async function sendPaymentReminderEmail(
     invoiceNumber: string;
     senderName: string | null;
     clientName: string;
+    contactName: string | null;
     issueDate: Date;
     dueDate: Date;
     total: number;
     currency: string;
     pdfBuffer: Buffer;
+    cc?: string;
   },
 ): Promise<void> {
   if (!resend) throw new Error('Email service is not configured.');
 
+  const recipient = params.contactName ?? params.clientName;
+
   await resend.emails.send({
     from: FROM,
     to,
+    ...(params.cc ? { cc: [params.cc] } : {}),
     subject: `Payment reminder: Invoice ${params.invoiceNumber}`,
     html: `
-      <p>Dear ${params.clientName},</p>
+      <p>Dear ${recipient},</p>
       <p>This is a friendly reminder that invoice <strong>${params.invoiceNumber}</strong>,
       issued on ${fmtDate(params.issueDate)}, was due on
       <strong>${fmtDate(params.dueDate)}</strong>.</p>

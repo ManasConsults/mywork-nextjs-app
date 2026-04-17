@@ -38,8 +38,14 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
   const userId = session!.user.id;
 
   const params = await searchParams;
+
+  // 'status=_all' means the user explicitly cleared the filter (show everything).
+  // Absent 'status' param means first visit — default to IN_PROGRESS.
+  const rawStatus = typeof params.status === 'string' ? params.status : undefined;
+  const statusFilter = rawStatus === '_all' ? undefined : (rawStatus ?? 'IN_PROGRESS');
+
   const filters = taskFiltersSchema.parse({
-    status: typeof params.status === 'string' ? params.status : undefined,
+    status: statusFilter,
     priority: typeof params.priority === 'string' ? params.priority : undefined,
     sortBy: typeof params.sortBy === 'string' ? params.sortBy : undefined,
     sortOrder: typeof params.sortOrder === 'string' ? params.sortOrder : undefined,

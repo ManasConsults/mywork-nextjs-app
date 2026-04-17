@@ -28,7 +28,7 @@ export async function fetchAndGeneratePdfBuffer(
   const invoice = await prisma.invoice.findFirst({
     where: { id: invoiceId, userId },
     include: {
-      client: { select: { name: true, email: true, address: true } },
+      client: { select: { name: true, contactName: true, email: true, address: true } },
       user: { select: { name: true, email: true, businessName: true, abn: true, businessEmail: true, businessPhone: true, businessAddress: true } },
       paymentAccount: { select: { name: true, bankName: true, accountNumber: true, bsb: true, iban: true, swiftBic: true } },
       lineItems: {

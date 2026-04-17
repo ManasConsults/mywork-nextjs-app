@@ -316,6 +316,7 @@ model Client {
   id          String    @id @default(uuid())
   userId      String
   name        String
+  contactName String?
   email       String?
   phone       String?
   address     String?

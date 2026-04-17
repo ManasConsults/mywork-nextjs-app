@@ -17,6 +17,7 @@ interface ClientFormProps {
 
 interface FieldErrors {
   name?: string[];
+  contactName?: string[];
   email?: string[];
   phone?: string[];
   address?: string[];
@@ -50,6 +51,7 @@ export function ClientForm({ client }: ClientFormProps): React.JSX.Element {
 
     const input = {
       name: (fd.get('name') as string).trim(),
+      contactName: (fd.get('contactName') as string).trim() || undefined,
       email: (fd.get('email') as string).trim() || undefined,
       phone: (fd.get('phone') as string).trim() || undefined,
       address: (fd.get('address') as string).trim() || undefined,
@@ -91,6 +93,13 @@ export function ClientForm({ client }: ClientFormProps): React.JSX.Element {
         <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
         <Input id="name" name="name" type="text" defaultValue={client?.name ?? ''} placeholder="e.g. Acme Corp" required disabled={isPending} aria-invalid={!!fieldErrors.name} />
         {fieldErrors.name?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.name[0]}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="contactName">Point of Contact</Label>
+        <Input id="contactName" name="contactName" type="text" defaultValue={client?.contactName ?? ''} placeholder="e.g. Jane Smith" disabled={isPending} aria-invalid={!!fieldErrors.contactName} />
+        {fieldErrors.contactName?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.contactName[0]}</p>}
+        <p className="text-xs text-muted-foreground">The person invoices are addressed to at this business.</p>
       </div>
 
       <div className="space-y-1.5">
