@@ -6,13 +6,14 @@ import { useTransition } from 'react';
 import type { Achievement } from '@prisma/client';
 
 import { deleteAchievementAction } from '@/lib/actions/achievement';
+import { Button } from '@/components/ui/button';
 
 type AchievementWithTask = Achievement & { task: { id: string; title: string } | null };
 
 const CATEGORY_BADGE: Record<string, string> = {
   Leadership: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   Delivery: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  Innovation: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
+  Innovation: 'bg-primary/10 text-primary',
   Collaboration: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   Learning: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
 };
@@ -48,11 +49,11 @@ export function AchievementList({
 
   if (achievements.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-700">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">No achievements recorded yet.</p>
+      <div className="rounded-lg border border-dashed border-border py-12 text-center">
+        <p className="text-sm text-muted-foreground">No achievements recorded yet.</p>
         <Link
           href="/achievements/new"
-          className="mt-3 inline-block text-sm font-medium text-teal-600 underline dark:text-teal-400"
+          className="mt-3 inline-block text-sm font-medium text-primary underline"
         >
           Record your first achievement
         </Link>
@@ -65,7 +66,7 @@ export function AchievementList({
       {achievements.map((a) => (
         <li
           key={a.id}
-          className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded-lg border border-border bg-card p-4"
         >
           <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -91,18 +92,20 @@ export function AchievementList({
               >
                 Edit
               </Link>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => handleDelete(a.id, a.title)}
                 disabled={isPending}
-                className="text-xs text-red-500 underline hover:text-red-700 disabled:opacity-50 dark:text-red-400"
+                className="h-auto p-0 text-xs text-red-500 underline hover:text-red-700 hover:bg-transparent dark:text-red-400"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
 
           {a.dateAchieved && (
-            <p className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mb-1 text-xs text-muted-foreground">
               {new Date(a.dateAchieved).toLocaleDateString(undefined, {
                 year: 'numeric',
                 month: 'long',
@@ -111,16 +114,16 @@ export function AchievementList({
             </p>
           )}
 
-          <p className="line-clamp-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <p className="line-clamp-2 text-sm text-foreground">
             {a.description}
           </p>
 
           {a.task && (
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-2 text-xs text-muted-foreground">
               Linked to:{' '}
               <Link
                 href={`/tasks/${a.task.id}`}
-                className="text-teal-600 hover:underline dark:text-teal-400"
+                className="text-primary hover:underline"
               >
                 {a.task.title}
               </Link>

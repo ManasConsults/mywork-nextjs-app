@@ -3,14 +3,14 @@ import Link from 'next/link';
 import type { TaskListItem } from '@/lib/services/task.service';
 
 const STATUS_BADGE: Record<string, string> = {
-  BACKLOG: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
+  BACKLOG: 'bg-zinc-100 text-foreground',
   IN_PROGRESS: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   BLOCKED: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
   DONE: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
-  LOW: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+  LOW: 'bg-zinc-100 text-muted-foreground',
   MEDIUM: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
   HIGH: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
   CRITICAL: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
@@ -33,11 +33,11 @@ const PRIORITY_LABELS: Record<string, string> = {
 export function TaskList({ tasks }: { tasks: TaskListItem[] }): React.JSX.Element {
   if (tasks.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-700">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">No tasks found.</p>
+      <div className="rounded-lg border border-dashed border-border py-12 text-center">
+        <p className="text-sm text-muted-foreground">No tasks found.</p>
         <Link
           href="/tasks/new"
-          className="mt-3 inline-block text-sm font-medium text-teal-600 underline dark:text-zinc-50"
+          className="mt-3 inline-block text-sm font-medium text-primary underline dark:text-zinc-50"
         >
           Create your first task
         </Link>
@@ -46,19 +46,19 @@ export function TaskList({ tasks }: { tasks: TaskListItem[] }): React.JSX.Elemen
   }
 
   return (
-    <ul className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+    <ul className="divide-y divide-border/60 rounded-lg border border-border bg-card">
       {tasks.map((task) => (
         <li key={task.id}>
           <Link
             href={`/tasks/${task.id}`}
-            className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+            className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-accent/40/50"
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+              <p className="truncate text-sm font-medium text-foreground">
                 {task.title}
               </p>
               {task.dueDate && (
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="text-xs text-muted-foreground">
                   Due {new Date(task.dueDate).toLocaleDateString()}
                 </p>
               )}

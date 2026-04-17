@@ -41,8 +41,8 @@ const TYPE_LABELS: Record<string, string> = {
 const TYPE_BADGE_CLS: Record<string, string> = {
   INCOME: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
   EXPENSE: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
-  TRANSFER_OUT: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
-  TRANSFER_IN: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+  TRANSFER_OUT: 'bg-accent text-muted-foreground',
+  TRANSFER_IN: 'bg-accent text-muted-foreground',
 };
 
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER_OUT', 'TRANSFER_IN'] as const;
@@ -89,12 +89,9 @@ export default async function TransactionsPage({
     <div className="mx-auto max-w-5xl">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Transactions
-        </h1>
         <Link
           href="/finance/transactions/new"
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
         >
           New Transaction
         </Link>
@@ -115,43 +112,43 @@ export default async function TransactionsPage({
 
       {/* Transaction table */}
       {transactions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+          <p className="text-sm text-muted-foreground">
             No transactions found.
           </p>
           <Link
             href="/finance/transactions/new"
-            className="mt-3 inline-block text-sm font-medium text-teal-600 underline underline-offset-2 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+            className="mt-3 inline-block text-sm font-medium text-primary underline underline-offset-2 hover:text-primary"
           >
             Add your first transaction
           </Link>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <table className="min-w-full divide-y divide-border">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Description
                 </th>
-                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 sm:table-cell">
+                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
                   Category
                 </th>
-                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 md:table-cell">
+                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground md:table-cell">
                   Account
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Amount
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-border/60">
               {transactions.map((tx) => {
                 const isIncome =
                   tx.type === 'INCOME' || tx.type === 'TRANSFER_IN';
@@ -161,29 +158,29 @@ export default async function TransactionsPage({
                 return (
                   <tr
                     key={tx.id}
-                    className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                    className="hover:bg-accent/40"
                   >
-                    <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">
+                    <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground">
                       {new Date(tx.date).toLocaleDateString('en-GB', {
                         day: '2-digit',
                         month: 'short',
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">
+                    <td className="px-4 py-3 text-sm text-foreground">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span>
                           {tx.description ?? (
-                            <span className="italic text-zinc-400 dark:text-zinc-600">—</span>
+                            <span className="italic text-foreground">—</span>
                           )}
                         </span>
                         {tx.isRecurring && tx.recurFrequency && (
-                          <span className="inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-700 dark:bg-teal-900/40 dark:text-teal-400">
+                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
                             ↻ {FREQ_LABELS[tx.recurFrequency] ?? tx.recurFrequency}
                           </span>
                         )}
                         {!tx.isRecurring && tx.recurringId && (
-                          <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                          <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-foreground">
                             Series
                           </span>
                         )}
@@ -191,7 +188,7 @@ export default async function TransactionsPage({
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 sm:table-cell">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                        <span className="text-sm text-foreground">
                           {tx.category.name}
                         </span>
                         <span
@@ -201,7 +198,7 @@ export default async function TransactionsPage({
                         </span>
                       </div>
                     </td>
-                    <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 md:table-cell">
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-muted-foreground md:table-cell">
                       {tx.account.name}
                     </td>
                     <td
@@ -218,7 +215,7 @@ export default async function TransactionsPage({
                       <span className="inline-flex items-center gap-3">
                         <Link
                           href={`/finance/transactions/${tx.id}/edit`}
-                          className="text-teal-600 underline underline-offset-2 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+                          className="text-primary underline underline-offset-2 hover:text-primary"
                         >
                           Edit
                         </Link>

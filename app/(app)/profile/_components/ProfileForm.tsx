@@ -3,6 +3,9 @@
 import { useState, useTransition } from 'react';
 
 import { updateProfileAction } from '@/lib/actions/user';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface ProfileFormProps {
   initialName: string | null;
@@ -17,7 +20,7 @@ export function ProfileForm({ initialName, initialImage, email }: ProfileFormPro
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     setError(null);
     setSuccess(false);
@@ -38,55 +41,44 @@ export function ProfileForm({ initialName, initialImage, email }: ProfileFormPro
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
         </div>
       )}
       {success && (
-        <div className="rounded-md bg-teal-50 px-4 py-3 text-sm text-teal-700 dark:bg-teal-900/20 dark:text-teal-400">
+        <div className="rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary">
           Profile updated successfully.
         </div>
       )}
 
-      <div>
-        <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Email
-        </label>
-        <input
-          type="email"
-          value={email}
-          disabled
-          className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
-        />
-        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Email cannot be changed.</p>
+      <div className="space-y-1.5">
+        <Label>Email</Label>
+        <Input type="email" value={email} disabled />
+        <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
       </div>
 
-      <div>
-        <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Display name
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="name">Display name</Label>
+        <Input
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={100}
           placeholder="Your name"
-          className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-600"
+          disabled={isPending}
         />
       </div>
 
-      <div>
-        <label htmlFor="image" className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Avatar URL
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="image">Avatar URL</Label>
+        <Input
           id="image"
           type="url"
           value={image}
           onChange={(e) => setImage(e.target.value)}
           placeholder="https://example.com/avatar.jpg"
-          className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-600"
+          disabled={isPending}
         />
         {image && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -102,13 +94,9 @@ export function ProfileForm({ initialName, initialImage, email }: ProfileFormPro
       </div>
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending ? 'Saving…' : 'Save profile'}
-        </button>
+        </Button>
       </div>
     </form>
   );

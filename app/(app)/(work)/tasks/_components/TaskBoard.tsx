@@ -8,7 +8,7 @@ import { TaskCard } from './TaskCard';
 const COLUMN_CONFIG: Record<string, { label: string; headerClass: string }> = {
   BACKLOG: {
     label: 'To Do',
-    headerClass: 'border-zinc-300 bg-zinc-50 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-300',
+    headerClass: 'border-zinc-300 bg-accent/40 text-foreground',
   },
   IN_PROGRESS: {
     label: 'In Progress',
@@ -35,7 +35,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }): React.JSX.Element {
         const { label, headerClass } = COLUMN_CONFIG[status];
         const columnTasks = tasksByStatus[status];
         return (
-          <div key={status} className="flex w-64 shrink-0 flex-col rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div key={status} className="flex w-64 shrink-0 flex-col rounded-lg border border-border">
             <div className={`rounded-t-lg border-b px-3 py-2 ${headerClass}`}>
               <span className="text-sm font-medium">{label}</span>
               <span className="ml-2 text-xs opacity-70">({columnTasks.length})</span>

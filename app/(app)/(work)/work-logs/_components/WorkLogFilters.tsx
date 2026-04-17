@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { Task } from '@prisma/client';
 
 import { WORK_LOG_PAGE_SIZES } from '@/lib/schemas/work-log.schema';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 interface WorkLogFiltersProps {
   tasks: Task[];
@@ -13,9 +15,6 @@ interface WorkLogFiltersProps {
   currentSortOrder: string;
   currentPageSize: number;
 }
-
-const SELECT_CLS =
-  'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
 
 export function WorkLogFilters({
   tasks,
@@ -28,7 +27,7 @@ export function WorkLogFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  function updateParam(key: string, value: string, resetPage = true) {
+  function updateParam(key: string, value: string, resetPage = true): void {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
       params.set(key, value);
@@ -41,62 +40,63 @@ export function WorkLogFilters({
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      <select
-        value={currentTaskId ?? ''}
-        onChange={(e) => updateParam('taskId', e.target.value)}
-        className={SELECT_CLS}
-      >
-        <option value="">All tasks</option>
-        {tasks.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.title}
-          </option>
-        ))}
-      </select>
+      <Select value={currentTaskId ?? ''} onValueChange={(v) => updateParam('taskId', v === '_all' ? '' : v)}>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="All tasks" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All tasks</SelectItem>
+          {tasks.map((t) => (
+            <SelectItem key={t.id} value={t.id}>
+              {t.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <div className="flex items-center gap-2">
-        <label className="text-sm text-zinc-500 dark:text-zinc-400">From</label>
-        <input
+        <span className="text-sm text-muted-foreground">From</span>
+        <Input
           type="date"
           value={currentDateFrom ?? ''}
           onChange={(e) => updateParam('dateFrom', e.target.value)}
-          className={SELECT_CLS}
+          className="w-36"
         />
       </div>
 
       <div className="flex items-center gap-2">
-        <label className="text-sm text-zinc-500 dark:text-zinc-400">To</label>
-        <input
+        <span className="text-sm text-muted-foreground">To</span>
+        <Input
           type="date"
           value={currentDateTo ?? ''}
           onChange={(e) => updateParam('dateTo', e.target.value)}
-          className={SELECT_CLS}
+          className="w-36"
         />
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <select
-          value={currentSortOrder}
-          onChange={(e) => updateParam('sortOrder', e.target.value, false)}
-          className={SELECT_CLS}
-          aria-label="Sort order"
-        >
-          <option value="desc">Newest first</option>
-          <option value="asc">Oldest first</option>
-        </select>
+        <Select value={currentSortOrder} onValueChange={(v) => updateParam('sortOrder', v, false)}>
+          <SelectTrigger className="w-32" aria-label="Sort order">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Newest first</SelectItem>
+            <SelectItem value="asc">Oldest first</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <select
-          value={currentPageSize}
-          onChange={(e) => updateParam('pageSize', e.target.value)}
-          className={SELECT_CLS}
-          aria-label="Items per page"
-        >
-          {WORK_LOG_PAGE_SIZES.map((n) => (
-            <option key={n} value={n}>
-              {n} per page
-            </option>
-          ))}
-        </select>
+        <Select value={String(currentPageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
+          <SelectTrigger className="w-28" aria-label="Items per page">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {WORK_LOG_PAGE_SIZES.map((n) => (
+              <SelectItem key={n} value={String(n)}>
+                {n} per page
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

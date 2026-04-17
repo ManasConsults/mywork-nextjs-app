@@ -14,9 +14,6 @@ export default async function NewAchievementPage(): Promise<React.JSX.Element> {
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        New achievement
-      </h1>
       <AchievementForm tasks={tasks} />
     </div>
   );

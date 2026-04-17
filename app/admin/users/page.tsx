@@ -37,16 +37,9 @@ export default async function AdminUsersPage(): Promise<React.JSX.Element> {
 
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
-          {pendingCount > 0 && (
-            <p className="mt-1 text-sm text-red-600">{pendingCount} pending approval</p>
-          )}
-        </div>
-        <span className="shrink-0 text-sm text-gray-500">{users.length} total</span>
-      </div>
-
+      {pendingCount > 0 && (
+        <p className="mb-4 text-sm text-destructive">{pendingCount} pending approval</p>
+      )}
       <UserTable users={serialized} currentUserId={currentUserId} />
     </div>
   );

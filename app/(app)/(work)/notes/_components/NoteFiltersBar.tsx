@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { NOTE_SORT_BY, NOTE_PAGE_SIZES } from '@/lib/schemas/note.schema';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface TaskOption {
   id: string;
@@ -24,9 +27,6 @@ const SORT_BY_LABELS: Record<string, string> = {
   updatedAt: 'Updated date',
 };
 
-const SELECT_CLS =
-  'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
-
 export function NoteFiltersBar({
   tasks,
   currentTag,
@@ -39,7 +39,7 @@ export function NoteFiltersBar({
   const searchParams = useSearchParams();
   const [tagInput, setTagInput] = useState('');
 
-  function updateParams(updates: Record<string, string | undefined>, resetPage = true) {
+  function updateParams(updates: Record<string, string | undefined>, resetPage = true): void {
     const params = new URLSearchParams(searchParams.toString());
     for (const [key, value] of Object.entries(updates)) {
       if (value) {
@@ -52,7 +52,7 @@ export function NoteFiltersBar({
     router.push(`/notes?${params.toString()}`);
   }
 
-  function handleTagSubmit(e: React.FormEvent) {
+  function handleTagSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const tag = tagInput.trim();
     if (tag) {
@@ -61,7 +61,7 @@ export function NoteFiltersBar({
     }
   }
 
-  function clearAllFilters() {
+  function clearAllFilters(): void {
     const params = new URLSearchParams();
     if (searchParams.get('sortBy')) params.set('sortBy', searchParams.get('sortBy')!);
     if (searchParams.get('sortOrder')) params.set('sortOrder', searchParams.get('sortOrder')!);
@@ -73,101 +73,96 @@ export function NoteFiltersBar({
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      {/* Tag filter */}
       {currentTag ? (
-        <span className="flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+        <span className="flex items-center gap-1 rounded-full bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
           #{currentTag}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => updateParams({ tag: undefined })}
-            className="ml-1 text-teal-500 hover:text-teal-700"
+            className="ml-1 h-auto p-0 text-primary hover:text-primary hover:bg-transparent"
             aria-label="Remove tag filter"
           >
             ×
-          </button>
+          </Button>
         </span>
       ) : (
         <form onSubmit={handleTagSubmit} className="flex items-center gap-2">
-          <input
+          <Input
             type="text"
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             placeholder="Filter by tag…"
-            className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+            className="w-36"
           />
           {tagInput.trim() && (
-            <button
-              type="submit"
-              className="rounded-md bg-teal-50 px-2 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-100 dark:bg-teal-900/30 dark:text-teal-300"
-            >
+            <Button type="submit" variant="secondary" size="sm">
               Filter
-            </button>
+            </Button>
           )}
         </form>
       )}
 
-      {/* Task filter */}
-      <select
+      <Select
         value={currentTaskId ?? ''}
-        onChange={(e) => updateParams({ taskId: e.target.value || undefined })}
-        className={SELECT_CLS}
+        onValueChange={(v) => updateParams({ taskId: v === '_all' ? undefined : v })}
       >
-        <option value="">All tasks</option>
-        {tasks.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.title}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="All tasks" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All tasks</SelectItem>
+          {tasks.map((t) => (
+            <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      {/* Clear filters */}
       {hasFilters && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={clearAllFilters}
-          className="text-sm text-zinc-400 underline hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+          className="h-auto p-0 text-sm text-zinc-400 underline hover:text-zinc-600 hover:bg-transparent dark:text-zinc-500 dark:hover:text-zinc-300"
         >
           Clear filters
-        </button>
+        </Button>
       )}
 
-      {/* Sort + page size */}
       <div className="ml-auto flex items-center gap-2">
-        <select
-          value={currentSortBy}
-          onChange={(e) => updateParams({ sortBy: e.target.value }, false)}
-          className={SELECT_CLS}
-          aria-label="Sort by"
-        >
-          {NOTE_SORT_BY.map((s) => (
-            <option key={s} value={s}>
-              {SORT_BY_LABELS[s]}
-            </option>
-          ))}
-        </select>
+        <Select value={currentSortBy} onValueChange={(v) => updateParams({ sortBy: v }, false)}>
+          <SelectTrigger className="w-36" aria-label="Sort by">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {NOTE_SORT_BY.map((s) => (
+              <SelectItem key={s} value={s}>{SORT_BY_LABELS[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
-          value={currentSortOrder}
-          onChange={(e) => updateParams({ sortOrder: e.target.value }, false)}
-          className={SELECT_CLS}
-          aria-label="Sort order"
-        >
-          <option value="desc">Newest first</option>
-          <option value="asc">Oldest first</option>
-        </select>
+        <Select value={currentSortOrder} onValueChange={(v) => updateParams({ sortOrder: v }, false)}>
+          <SelectTrigger className="w-32" aria-label="Sort order">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Newest first</SelectItem>
+            <SelectItem value="asc">Oldest first</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <select
-          value={currentPageSize}
-          onChange={(e) => updateParams({ pageSize: e.target.value })}
-          className={SELECT_CLS}
-          aria-label="Items per page"
-        >
-          {NOTE_PAGE_SIZES.map((n) => (
-            <option key={n} value={n}>
-              {n} per page
-            </option>
-          ))}
-        </select>
+        <Select value={String(currentPageSize)} onValueChange={(v) => updateParams({ pageSize: v })}>
+          <SelectTrigger className="w-28" aria-label="Items per page">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {NOTE_PAGE_SIZES.map((n) => (
+              <SelectItem key={n} value={String(n)}>{n} per page</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

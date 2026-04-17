@@ -17,13 +17,13 @@ interface TodoPageProps {
 
 function TodoListSkeleton(): React.JSX.Element {
   return (
-    <div className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="divide-y divide-border/60 rounded-lg border border-border bg-card">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex animate-pulse items-center gap-3 px-4 py-3">
-          <div className="h-5 w-5 shrink-0 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+          <div className="h-5 w-5 shrink-0 rounded-full bg-zinc-100" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-4 w-2/3 rounded bg-zinc-100 dark:bg-zinc-800" />
-            <div className="h-3 w-1/4 rounded bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-4 w-2/3 rounded bg-zinc-100" />
+            <div className="h-3 w-1/4 rounded bg-zinc-100" />
           </div>
         </div>
       ))}
@@ -52,23 +52,22 @@ export default async function TodoPage({ searchParams }: TodoPageProps): Promise
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">To-do</h1>
         {/* Legend */}
         <div className="hidden items-center gap-3 sm:flex">
-          <span className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#0d9488', flexShrink: 0 }} />Upcoming
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#eab308', flexShrink: 0 }} />Due today
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444', flexShrink: 0 }} />Overdue
           </span>
         </div>
       </div>
 
       {/* Add form */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-xl border border-border bg-card p-4">
         <AddTodoForm tasks={taskOptions} />
       </div>
 

@@ -14,7 +14,6 @@ export default async function NewNotePage(): Promise<React.JSX.Element> {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">New note</h1>
       <NoteEditor tasks={tasks.map((t) => ({ id: t.id, title: t.title }))} />
     </div>
   );

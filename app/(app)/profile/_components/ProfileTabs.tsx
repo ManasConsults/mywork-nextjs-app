@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { ProfileForm } from './ProfileForm';
 import { SettingsForm } from './SettingsForm';
 import { ChangePasswordForm } from './ChangePasswordForm';
@@ -27,8 +29,9 @@ interface ProfileTabsProps {
   isActive: boolean;
   fiscalYearStartMonth: number;
   currency: string;
+  themeColor: string;
   hasPassword: boolean;
-  createdAt: string; // ISO string (serialisable from RSC)
+  createdAt: string;
   employmentType: string;
   businessName: string | null;
   abn: string | null;
@@ -39,11 +42,6 @@ interface ProfileTabsProps {
 
 type TabId = 'profile' | 'settings' | 'security' | 'account' | 'employment' | 'business';
 
-interface Tab {
-  id: TabId;
-  label: string;
-}
-
 export function ProfileTabs({
   name,
   image,
@@ -52,6 +50,7 @@ export function ProfileTabs({
   isActive,
   fiscalYearStartMonth,
   currency,
+  themeColor,
   hasPassword,
   createdAt,
   employmentType,
@@ -63,7 +62,7 @@ export function ProfileTabs({
 }: ProfileTabsProps): React.JSX.Element {
   const isSoleTrader = employmentType === 'SOLE_TRADER' || employmentType === 'BOTH';
 
-  const tabs: Tab[] = [
+  const tabs: { id: TabId; label: string }[] = [
     { id: 'profile', label: 'Profile' },
     { id: 'settings', label: 'Settings' },
     { id: 'employment', label: 'Employment' },
@@ -72,77 +71,68 @@ export function ProfileTabs({
     { id: 'account', label: 'Account' },
   ];
 
-  const [activeTab, setActiveTab] = useState<TabId>(tabs[0].id);
-
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-      {/* Segmented tab control */}
-      <div className="mb-6 flex gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800/60">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
-              activeTab === tab.id
-                ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50'
-                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <div className="rounded-xl border border-border bg-card p-6">
+      <Tabs defaultValue={tabs[0].id}>
+        <TabsList className="mb-6 w-full">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.id} className="flex-1">
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      {/* Tab panels */}
-      <div>
-        {activeTab === 'profile' && (
+        <TabsContent value="profile">
           <ProfileForm initialName={name} initialImage={image} email={email} />
-        )}
+        </TabsContent>
 
-        {activeTab === 'settings' && (
-          <SettingsForm initialFiscalYearStartMonth={fiscalYearStartMonth} initialCurrency={currency} />
-        )}
+        <TabsContent value="settings">
+          <SettingsForm initialFiscalYearStartMonth={fiscalYearStartMonth} initialCurrency={currency} initialThemeColor={themeColor} />
+        </TabsContent>
 
-        {activeTab === 'employment' && (
+        <TabsContent value="employment">
           <EmploymentTypeForm initialEmploymentType={employmentType} />
+        </TabsContent>
+
+        {isSoleTrader && (
+          <TabsContent value="business">
+            <BusinessDetailsForm
+              initialBusinessName={businessName}
+              initialAbn={abn}
+              initialBusinessEmail={businessEmail}
+              initialBusinessPhone={businessPhone}
+              initialBusinessAddress={businessAddress}
+            />
+          </TabsContent>
         )}
 
-        {activeTab === 'business' && isSoleTrader && (
-          <BusinessDetailsForm
-            initialBusinessName={businessName}
-            initialAbn={abn}
-            initialBusinessEmail={businessEmail}
-            initialBusinessPhone={businessPhone}
-            initialBusinessAddress={businessAddress}
-          />
+        {hasPassword && (
+          <TabsContent value="security">
+            <ChangePasswordForm />
+          </TabsContent>
         )}
 
-        {activeTab === 'security' && hasPassword && (
-          <ChangePasswordForm />
-        )}
-
-        {activeTab === 'account' && (
+        <TabsContent value="account">
           <dl className="space-y-4 text-sm">
             <div className="flex justify-between">
-              <dt className="text-zinc-500 dark:text-zinc-400">Role</dt>
-              <dd className="font-medium text-zinc-900 dark:text-zinc-50">
+              <dt className="text-muted-foreground">Role</dt>
+              <dd className="font-medium text-foreground">
                 {ROLE_LABELS[role] ?? role}
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-zinc-500 dark:text-zinc-400">Fiscal year starts</dt>
-              <dd className="font-medium text-zinc-900 dark:text-zinc-50">
+              <dt className="text-muted-foreground">Fiscal year starts</dt>
+              <dd className="font-medium text-foreground">
                 {MONTH_NAMES[fiscalYearStartMonth - 1]}
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-zinc-500 dark:text-zinc-400">Default currency</dt>
-              <dd className="font-medium text-zinc-900 dark:text-zinc-50">{currency}</dd>
+              <dt className="text-muted-foreground">Default currency</dt>
+              <dd className="font-medium text-foreground">{currency}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-zinc-500 dark:text-zinc-400">Member since</dt>
-              <dd className="font-medium text-zinc-900 dark:text-zinc-50">
+              <dt className="text-muted-foreground">Member since</dt>
+              <dd className="font-medium text-foreground">
                 {new Date(createdAt).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'short',
@@ -151,22 +141,16 @@ export function ProfileTabs({
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-zinc-500 dark:text-zinc-400">Account status</dt>
+              <dt className="text-muted-foreground">Account status</dt>
               <dd>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    isActive
-                      ? 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                      : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                  }`}
-                >
+                <Badge variant={isActive ? 'default' : 'destructive'} className={isActive ? 'bg-primary/5 text-primary' : ''}>
                   {isActive ? 'Active' : 'Suspended'}
-                </span>
+                </Badge>
               </dd>
             </div>
           </dl>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

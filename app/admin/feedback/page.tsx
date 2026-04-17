@@ -50,20 +50,9 @@ export default async function AdminFeedbackPage({ searchParams }: PageProps): Pr
 
   const activeType = filters.type ?? null;
   const activeStatus = filters.status ?? null;
-  const total = submissions.length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Feedback</h1>
-          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-            {total} submission{total !== 1 ? 's' : ''}
-          </p>
-        </div>
-      </div>
-
+    <div className="space-y-6">
       {/* Filter bar — client component, needs Suspense for useSearchParams */}
       <Suspense>
         <FeedbackFiltersBar activeType={activeType} activeStatus={activeStatus} />

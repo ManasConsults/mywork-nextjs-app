@@ -29,9 +29,6 @@ export default async function NoteEditPage({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        {noteDisplayTitle(note)}
-      </h1>
       <NoteEditor
         noteId={note.id}
         initialTitle={note.title ?? ''}
@@ -41,7 +38,7 @@ export default async function NoteEditPage({
         tasks={tasks.map((t) => ({ id: t.id, title: t.title }))}
         updatedAt={note.updatedAt.toISOString()}
       />
-      <div className="mt-6 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+      <div className="mt-6 border-t border-border pt-6">
         <DeleteNoteButton id={note.id} title={noteDisplayTitle(note)} action={deleteNoteAction} />
       </div>
     </div>

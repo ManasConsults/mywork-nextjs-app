@@ -7,6 +7,7 @@ import type { Note } from '@prisma/client';
 
 import { deleteNoteAction } from '@/lib/actions/note';
 import { noteDisplayTitle, noteBodyPreview } from '@/lib/utils/note-helpers';
+import { Button } from '@/components/ui/button';
 
 type NoteWithTask = Note & { task: { id: string; title: string } | null };
 
@@ -33,11 +34,11 @@ export function NoteList({ notes }: { notes: NoteWithTask[] }): React.JSX.Elemen
 
   if (notes.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-700">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">No notes found.</p>
+      <div className="rounded-lg border border-dashed border-border py-12 text-center">
+        <p className="text-sm text-muted-foreground">No notes found.</p>
         <Link
           href="/notes/new"
-          className="mt-3 inline-block text-sm font-medium text-teal-600 underline dark:text-teal-400"
+          className="mt-3 inline-block text-sm font-medium text-primary underline"
         >
           Create your first note
         </Link>
@@ -54,18 +55,18 @@ export function NoteList({ notes }: { notes: NoteWithTask[] }): React.JSX.Elemen
         return (
           <li
             key={note.id}
-            className="rounded-lg border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-sm"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/notes/${note.id}`}
-                  className="block font-medium text-zinc-900 hover:text-teal-600 dark:text-zinc-50 dark:hover:text-teal-400"
+                  className="block font-medium text-zinc-900 hover:text-primary dark:text-zinc-50"
                 >
                   {title}
                 </Link>
                 {preview && (
-                  <p className="mt-1 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {preview}
                   </p>
                 )}
@@ -73,7 +74,7 @@ export function NoteList({ notes }: { notes: NoteWithTask[] }): React.JSX.Elemen
                   {note.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300"
+                      className="rounded-full bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary"
                     >
                       {tag}
                     </span>
@@ -86,7 +87,7 @@ export function NoteList({ notes }: { notes: NoteWithTask[] }): React.JSX.Elemen
                       ↗ {note.task.title}
                     </Link>
                   )}
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                  <span className="text-xs text-muted-foreground">
                     {formatRelativeDate(new Date(note.updatedAt))}
                   </span>
                 </div>
@@ -98,13 +99,15 @@ export function NoteList({ notes }: { notes: NoteWithTask[] }): React.JSX.Elemen
                 >
                   Edit
                 </Link>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleDelete(note.id, title)}
                   disabled={isPending}
-                  className="text-xs text-red-500 underline hover:text-red-700 disabled:opacity-50 dark:text-red-400"
+                  className="h-auto p-0 text-xs text-red-500 underline hover:text-red-700 hover:bg-transparent dark:text-red-400"
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
           </li>

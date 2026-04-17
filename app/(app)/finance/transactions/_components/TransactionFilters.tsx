@@ -2,6 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
 const TRANSACTION_TYPES = [
   { value: 'INCOME', label: 'Income' },
   { value: 'EXPENSE', label: 'Expense' },
@@ -30,9 +34,6 @@ interface TransactionFiltersProps {
   currentTo?: string;
 }
 
-const selectCls =
-  'rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
-
 export function TransactionFilters({
   accounts,
   categories,
@@ -60,90 +61,66 @@ export function TransactionFilters({
   }
 
   const hasActiveFilters =
-    !!currentAccountId ||
-    !!currentCategoryId ||
-    !!currentType ||
-    !!currentFrom ||
-    !!currentTo;
+    !!currentAccountId || !!currentCategoryId || !!currentType || !!currentFrom || !!currentTo;
 
   return (
     <div className="mb-5 flex flex-wrap items-center gap-3">
-      {/* Account filter */}
-      <select
-        value={currentAccountId ?? ''}
-        onChange={(e) => updateFilter('accountId', e.target.value)}
-        className={selectCls}
-        aria-label="Filter by account"
-      >
-        <option value="">All accounts</option>
-        {accounts.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.name}
-          </option>
-        ))}
-      </select>
+      <Select value={currentAccountId ?? ''} onValueChange={(v) => updateFilter('accountId', v === '_all' ? '' : v)}>
+        <SelectTrigger className="w-40" aria-label="Filter by account">
+          <SelectValue placeholder="All accounts" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All accounts</SelectItem>
+          {accounts.map((a) => (
+            <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      {/* Category filter */}
-      <select
-        value={currentCategoryId ?? ''}
-        onChange={(e) => updateFilter('categoryId', e.target.value)}
-        className={selectCls}
-        aria-label="Filter by category"
-      >
-        <option value="">All categories</option>
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
+      <Select value={currentCategoryId ?? ''} onValueChange={(v) => updateFilter('categoryId', v === '_all' ? '' : v)}>
+        <SelectTrigger className="w-40" aria-label="Filter by category">
+          <SelectValue placeholder="All categories" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All categories</SelectItem>
+          {categories.map((c) => (
+            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      {/* Type filter */}
-      <select
-        value={currentType ?? ''}
-        onChange={(e) => updateFilter('type', e.target.value)}
-        className={selectCls}
-        aria-label="Filter by type"
-      >
-        <option value="">All types</option>
-        {TRANSACTION_TYPES.map((t) => (
-          <option key={t.value} value={t.value}>
-            {t.label}
-          </option>
-        ))}
-      </select>
+      <Select value={currentType ?? ''} onValueChange={(v) => updateFilter('type', v === '_all' ? '' : v)}>
+        <SelectTrigger className="w-36" aria-label="Filter by type">
+          <SelectValue placeholder="All types" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_all">All types</SelectItem>
+          {TRANSACTION_TYPES.map((t) => (
+            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      {/* Date range */}
       <div className="flex items-center gap-2">
-        <label className="text-sm text-zinc-500 dark:text-zinc-400">From</label>
-        <input
-          type="date"
-          value={currentFrom ?? ''}
-          onChange={(e) => updateFilter('from', e.target.value)}
-          className={selectCls}
-          aria-label="From date"
-        />
+        <span className="text-sm text-muted-foreground">From</span>
+        <Input type="date" value={currentFrom ?? ''} onChange={(e) => updateFilter('from', e.target.value)} className="w-36" aria-label="From date" />
       </div>
 
       <div className="flex items-center gap-2">
-        <label className="text-sm text-zinc-500 dark:text-zinc-400">To</label>
-        <input
-          type="date"
-          value={currentTo ?? ''}
-          onChange={(e) => updateFilter('to', e.target.value)}
-          className={selectCls}
-          aria-label="To date"
-        />
+        <span className="text-sm text-muted-foreground">To</span>
+        <Input type="date" value={currentTo ?? ''} onChange={(e) => updateFilter('to', e.target.value)} className="w-36" aria-label="To date" />
       </div>
 
       {hasActiveFilters && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={clearFilters}
-          className="text-sm text-zinc-400 underline underline-offset-2 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+          className="h-auto p-0 text-sm text-muted-foreground underline underline-offset-2"
         >
           Clear filters
-        </button>
+        </Button>
       )}
     </div>
   );

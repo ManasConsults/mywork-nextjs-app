@@ -5,6 +5,9 @@ import Link from 'next/link';
 
 import { updateTodoAction, deleteTodoAction } from '@/lib/actions/todo';
 import type { TodoItemWithTask } from '@/lib/services/todo.service';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type DueStatus = 'done' | 'overdue' | 'today' | 'upcoming' | 'none';
 
@@ -19,8 +22,6 @@ function getDueStatus(dueDate: Date | string | null, isDone: boolean): DueStatus
   if (due.getTime() === today.getTime()) return 'today';
   return 'upcoming';
 }
-
-
 
 function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -99,8 +100,8 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
 
   if (optimisticTodos.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-200 py-16 text-center dark:border-zinc-700">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">No to-dos yet. Add one above!</p>
+      <div className="rounded-lg border border-dashed border-border py-16 text-center">
+        <p className="text-sm text-muted-foreground">No to-dos yet. Add one above!</p>
       </div>
     );
   }
@@ -114,79 +115,83 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
         return (
           <li
             key={todo.id}
-            className="rounded-lg bg-white px-4 py-3 dark:bg-zinc-900"
+            className="rounded-lg bg-card px-4 py-3"
           >
             {edit ? (
               /* ── Edit mode ── */
               <div className="space-y-3">
-                <input
+                <Input
                   type="text"
                   value={edit.title}
                   onChange={(e) => setEditState({ ...edit, title: e.target.value })}
                   maxLength={500}
                   autoFocus
-                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50"
                 />
                 <div className="flex flex-wrap items-center gap-3">
-                  <input
+                  <Input
                     type="date"
                     value={edit.dueDate}
                     onChange={(e) => setEditState({ ...edit, dueDate: e.target.value })}
-                    className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                    className="w-auto"
                   />
                   {tasks.length > 0 && (
-                    <select
+                    <Select
                       value={edit.taskId}
-                      onChange={(e) => setEditState({ ...edit, taskId: e.target.value })}
-                      className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      onValueChange={(v) => setEditState({ ...edit, taskId: v === '_none' ? '' : v })}
                     >
-                      <option value="">No linked task</option>
-                      {tasks.map((t) => (
-                        <option key={t.id} value={t.id}>{t.title}</option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="No linked task" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">No linked task</SelectItem>
+                        {tasks.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
                   {/* Done toggle in edit mode */}
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
                       checked={edit.isDone}
                       onChange={(e) => setEditState({ ...edit, isDone: e.target.checked })}
-                      className="h-4 w-4 rounded border-zinc-300 accent-teal-600"
+                      className="h-4 w-4 rounded border-zinc-300 accent-primary"
                     />
                     Mark as done
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => void handleSaveEdit()}
                     disabled={isSavingEdit || !edit.title.trim()}
-                    className="rounded-md bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-700 disabled:opacity-50"
                   >
                     {isSavingEdit ? 'Saving…' : 'Save'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setEditState(null)}
-                    className="rounded-md px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
               /* ── View mode ── */
               <div className="flex items-start gap-3">
-                {/* Circle checkbox */}
+                {/* Circle checkbox — custom design, not a standard button */}
                 <button
                   type="button"
                   onClick={() => handleToggle(todo)}
                   aria-label={todo.isDone ? 'Mark as not done' : 'Mark as done'}
                   className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                     todo.isDone
-                      ? 'border-teal-500 bg-teal-500 dark:border-teal-400 dark:bg-teal-400'
-                      : 'border-zinc-300 hover:border-teal-400 dark:border-zinc-600 dark:hover:border-teal-500'
+                      ? 'border-primary/80 bg-primary/50'
+                      : 'border-zinc-300 hover:border-primary/50 dark:border-zinc-600 dark:hover:border-primary/80'
                   }`}
                 >
                   {todo.isDone && (
@@ -211,7 +216,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                     {todo.task && (
                       <Link
                         href={`/tasks/${todo.task.id}`}
-                        className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 hover:text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                        className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                       >
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
@@ -240,19 +245,23 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
 
                 {/* Actions */}
                 <div className="flex shrink-0 items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleToggle(todo)}
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                       todo.isDone
-                        ? 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
-                        : 'bg-teal-50 text-teal-700 hover:bg-teal-100 dark:bg-teal-900/30 dark:text-teal-400 dark:hover:bg-teal-900/50'
+                        ? 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700'
+                        : 'bg-primary/5 text-primary hover:bg-primary/10'
                     }`}
                   >
                     {todo.isDone ? 'Undo' : 'Mark done'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setEditState({
                       id: todo.id,
                       title: todo.title,
@@ -260,17 +269,19 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                       taskId: todo.taskId ?? '',
                       isDone: todo.isDone,
                     })}
-                    className="text-xs text-zinc-400 underline hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                    className="h-auto p-0 text-xs text-zinc-400 underline hover:text-zinc-600 hover:bg-transparent dark:text-zinc-500 dark:hover:text-zinc-300"
                   >
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDelete(todo.id)}
-                    className="text-xs text-red-400 underline hover:text-red-600 dark:text-red-500 dark:hover:text-red-300"
+                    className="h-auto p-0 text-xs text-red-400 underline hover:text-red-600 hover:bg-transparent dark:text-red-500 dark:hover:text-red-300"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

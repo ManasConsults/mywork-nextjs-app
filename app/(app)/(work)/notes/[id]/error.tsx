@@ -18,7 +18,7 @@ export default function NoteDetailError({ error, reset }: ErrorProps): React.JSX
       <p className="text-sm text-red-700 dark:text-red-400">Failed to load note.</p>
       <button
         onClick={reset}
-        className="mt-3 text-sm font-medium text-teal-600 underline dark:text-teal-400"
+        className="mt-3 text-sm font-medium text-primary underline"
       >
         Try again
       </button>

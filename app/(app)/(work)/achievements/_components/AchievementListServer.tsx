@@ -23,7 +23,7 @@ export async function AchievementListServer({ userId, filters, fiscalYearStartMo
 
   return (
     <>
-      <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mb-4 text-sm text-muted-foreground">
         {total} {total === 1 ? 'achievement' : 'achievements'}
         {filters.reviewYear ? ` · ${fyLabel}` : ''}
       </p>

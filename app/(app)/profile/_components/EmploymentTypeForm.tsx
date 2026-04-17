@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react';
 
 import { updateEmploymentTypeAction } from '@/lib/actions/user';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const EMPLOYMENT_OPTIONS = [
   { value: 'EMPLOYED', label: 'Employee', description: 'Day job / PAYE employment only' },
@@ -42,11 +44,12 @@ export function EmploymentTypeForm({
         {EMPLOYMENT_OPTIONS.map(({ value, label, description }) => (
           <label
             key={value}
-            className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+            className={cn(
+              'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
               selected === value
-                ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20'
-                : 'border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600'
-            }`}
+                ? 'border-primary/80 bg-primary/5 dark:border-primary'
+                : 'border-border hover:border-ring/50',
+            )}
           >
             <input
               type="radio"
@@ -54,11 +57,11 @@ export function EmploymentTypeForm({
               value={value}
               checked={selected === value}
               onChange={() => setSelected(value)}
-              className="mt-0.5 accent-teal-600"
+              className="mt-0.5 accent-primary"
             />
             <div>
-              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{label}</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">{description}</p>
+              <p className="text-sm font-medium text-foreground">{label}</p>
+              <p className="text-xs text-muted-foreground">{description}</p>
             </div>
           </label>
         ))}
@@ -66,23 +69,22 @@ export function EmploymentTypeForm({
 
       {message && (
         <p
-          className={`text-sm ${
+          className={
             message.type === 'success'
-              ? 'text-teal-600 dark:text-teal-400'
-              : 'text-red-600 dark:text-red-400'
-          }`}
+              ? 'text-sm text-primary'
+              : 'text-sm text-red-600 dark:text-red-400'
+          }
         >
           {message.text}
         </p>
       )}
 
-      <button
+      <Button
         type="submit"
         disabled={isPending || selected === (initialEmploymentType as EmploymentTypeValue)}
-        className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? 'Saving…' : 'Save'}
-      </button>
+      </Button>
     </form>
   );
 }

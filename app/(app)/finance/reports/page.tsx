@@ -101,11 +101,11 @@ function SummaryCard({
     <div
       className={`rounded-xl border p-4 ${
         highlight
-          ? 'border-zinc-200 bg-teal-50 dark:border-zinc-800 dark:bg-teal-900/20'
-          : 'border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900'
+          ? 'border-zinc-200 bg-primary/5'
+          : 'border-border bg-card'
       }`}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
       <p
@@ -113,8 +113,8 @@ function SummaryCard({
           isExpense
             ? 'text-red-600 dark:text-red-400'
             : highlight
-              ? 'text-teal-700 dark:text-teal-400'
-              : 'text-zinc-900 dark:text-zinc-50'
+              ? 'text-primary'
+              : 'text-foreground'
         }`}
       >
         {value}
@@ -137,9 +137,9 @@ function SummaryCard({
 
 function CategoryTypeBadge({ type }: { type: string }): React.JSX.Element {
   const cls: Record<string, string> = {
-    PERSONAL: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+    PERSONAL: 'bg-accent text-muted-foreground',
     WORK_RELATED: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-    BUSINESS: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+    BUSINESS: 'bg-primary/10 text-primary',
   };
   const labels: Record<string, string> = {
     PERSONAL: 'Personal',
@@ -167,25 +167,25 @@ function ExpenseTable({
   currency: string;
 }): React.JSX.Element {
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{title}</h3>
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="border-b border-border px-4 py-3">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       </div>
-      <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+      <table className="min-w-full divide-y divide-border">
         <thead>
           <tr>
-            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Category
             </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Amount
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <tbody className="divide-y divide-border/60">
           {rows.map((row) => (
-            <tr key={row.categoryName} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-              <td className="px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300">
+            <tr key={row.categoryName} className="hover:bg-accent/40/40">
+              <td className="px-4 py-2.5 text-sm text-foreground">
                 {row.categoryName}
               </td>
               <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
@@ -195,8 +195,8 @@ function ExpenseTable({
           ))}
         </tbody>
         <tfoot>
-          <tr className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/40">
-            <td className="px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+          <tr className="border-t border-border bg-accent/40">
+            <td className="px-4 py-2.5 text-sm font-semibold text-foreground">
               Total
             </td>
             <td className="px-4 py-2.5 text-right text-sm font-semibold text-red-600 dark:text-red-400">
@@ -211,8 +211,8 @@ function ExpenseTable({
 
 function EmptyState({ message }: { message: string }): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-dashed border-zinc-200 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">{message}</p>
+    <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+      <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }
@@ -263,36 +263,36 @@ async function ProfitAndLossReport({
       </div>
 
       {data.byCategory.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">
               Breakdown by Category
             </h2>
           </div>
-          <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+          <table className="min-w-full divide-y divide-border">
             <thead>
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Category
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Type
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Income
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Expenses
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Net
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-border/60">
               {data.byCategory.map((row) => (
-                <tr key={row.categoryId} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-                  <td className="px-4 py-2.5 text-sm text-zinc-800 dark:text-zinc-200">
+                <tr key={row.categoryId} className="hover:bg-accent/40/40">
+                  <td className="px-4 py-2.5 text-sm text-foreground">
                     {row.categoryName}
                   </td>
                   <td className="px-4 py-2.5 text-sm">
@@ -307,7 +307,7 @@ async function ProfitAndLossReport({
                   <td
                     className={`px-4 py-2.5 text-right text-sm font-medium ${
                       row.income - row.expenses >= 0
-                        ? 'text-zinc-700 dark:text-zinc-300'
+                        ? 'text-foreground'
                         : 'text-red-600 dark:text-red-400'
                     }`}
                   >
@@ -339,41 +339,41 @@ async function CashFlowReport({
   const data = await getCashFlow(userId, months);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="border-b border-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-foreground">
           Monthly Cash Flow
         </h2>
       </div>
       {data.months.length === 0 ? (
-        <div className="p-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
+        <div className="p-8 text-center text-sm text-muted-foreground">
           No data available.
         </div>
       ) : (
-        <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+        <table className="min-w-full divide-y divide-border">
           <thead>
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Month
               </th>
-              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Income
               </th>
-              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Expenses
               </th>
-              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Net
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          <tbody className="divide-y divide-border/60">
             {data.months.map((m) => (
               <tr
                 key={`${m.year}-${m.month}`}
-                className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                className="hover:bg-accent/40/40"
               >
-                <td className="px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300">
+                <td className="px-4 py-2.5 text-sm text-foreground">
                   {formatMonthLabel(m.year, m.month)}
                 </td>
                 <td className="px-4 py-2.5 text-right text-sm text-green-600 dark:text-green-400">
@@ -385,7 +385,7 @@ async function CashFlowReport({
                 <td
                   className={`px-4 py-2.5 text-right text-sm font-semibold ${
                     m.net >= 0
-                      ? 'text-teal-600 dark:text-teal-400'
+                      ? 'text-primary'
                       : 'text-red-600 dark:text-red-400'
                   }`}
                 >
@@ -486,74 +486,74 @@ async function UnbilledHoursReport({
       {data.clients.map((client) => (
         <div
           key={client.clientId}
-          className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+          className="overflow-hidden rounded-xl border border-border bg-card"
         >
-          <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">
               {client.clientName}
             </h2>
-            <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            <span className="text-xs text-muted-foreground">
               {client.totalHours.toFixed(2)} hrs &middot; {fromMinorUnit(client.totalValue, currency)}
             </span>
           </div>
-          <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+          <table className="min-w-full divide-y divide-border">
             <thead>
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Date
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Description
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Hours
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Rate/hr
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Est. Value
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-border/60">
               {client.entries.map((entry) => (
-                <tr key={entry.workLogId} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-                  <td className="whitespace-nowrap px-4 py-2.5 text-sm text-zinc-500 dark:text-zinc-400">
+                <tr key={entry.workLogId} className="hover:bg-accent/40/40">
+                  <td className="whitespace-nowrap px-4 py-2.5 text-sm text-muted-foreground">
                     {new Date(entry.date).toLocaleDateString('en-GB', {
                       day: '2-digit',
                       month: 'short',
                       year: 'numeric',
                     })}
                   </td>
-                  <td className="px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300">
+                  <td className="px-4 py-2.5 text-sm text-foreground">
                     {entry.description}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-sm text-zinc-700 dark:text-zinc-300">
+                  <td className="px-4 py-2.5 text-right text-sm text-foreground">
                     {entry.hours.toFixed(2)}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-sm text-zinc-500 dark:text-zinc-400">
+                  <td className="px-4 py-2.5 text-right text-sm text-muted-foreground">
                     {entry.rate > 0 ? fromMinorUnit(entry.rate, currency) : '—'}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <td className="px-4 py-2.5 text-right text-sm font-medium text-foreground">
                     {entry.rate > 0 ? fromMinorUnit(entry.estimatedValue, currency) : '—'}
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/40">
+              <tr className="border-t border-border bg-accent/40">
                 <td
                   colSpan={2}
-                  className="px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+                  className="px-4 py-2.5 text-sm font-semibold text-foreground"
                 >
                   Client Total
                 </td>
-                <td className="px-4 py-2.5 text-right text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                <td className="px-4 py-2.5 text-right text-sm font-semibold text-foreground">
                   {client.totalHours.toFixed(2)}
                 </td>
                 <td />
-                <td className="px-4 py-2.5 text-right text-sm font-semibold text-teal-600 dark:text-teal-400">
+                <td className="px-4 py-2.5 text-right text-sm font-semibold text-primary">
                   {fromMinorUnit(client.totalValue, currency)}
                 </td>
               </tr>
@@ -563,13 +563,13 @@ async function UnbilledHoursReport({
       ))}
 
       {/* Grand total */}
-      <div className="flex items-center justify-between rounded-xl border border-teal-200 bg-teal-50 px-5 py-4 dark:border-teal-800/60 dark:bg-teal-900/20">
-        <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Grand Total</span>
+      <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
+        <span className="text-sm font-semibold text-foreground">Grand Total</span>
         <div className="flex items-center gap-6">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm text-muted-foreground">
             {data.grandTotalHours.toFixed(2)} hrs
           </span>
-          <span className="text-base font-bold text-teal-700 dark:text-teal-400">
+          <span className="text-base font-bold text-primary">
             {fromMinorUnit(data.grandTotalValue, currency)}
           </span>
         </div>
@@ -604,8 +604,7 @@ export default async function ReportsPage({
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Reports</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           Financial reports and analysis for your accounts.
         </p>
       </div>

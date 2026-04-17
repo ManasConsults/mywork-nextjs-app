@@ -20,7 +20,7 @@ function TypeBadge({ type }: { type: string }): React.JSX.Element {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+    <span className="inline-flex items-center rounded-full bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary">
       Feature Request
     </span>
   );
@@ -43,13 +43,13 @@ function StatusBadge({ status }: { status: string }): React.JSX.Element {
   }
   if (status === 'RESOLVED') {
     return (
-      <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+      <span className="inline-flex items-center rounded-full bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary">
         Resolved
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-300">
       Open
     </span>
   );
@@ -65,27 +65,27 @@ export async function FeedbackListServer({
 
   return (
     <>
-      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-0.5 text-sm text-muted-foreground">
         {total} submission{total !== 1 ? 's' : ''}
       </p>
 
       {total === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white py-16 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16">
           <MessageSquarePlus
             size={40}
             strokeWidth={1.5}
             className="text-zinc-300 dark:text-zinc-600"
             aria-hidden="true"
           />
-          <p className="mt-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          <p className="mt-3 text-sm font-medium text-muted-foreground">
             No feedback submitted yet
           </p>
-          <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Use the Feedback button in the header to share ideas or report bugs.
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-zinc-200 bg-white divide-y divide-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:divide-zinc-800">
+        <div className="rounded-xl border border-border bg-card divide-y divide-border/60">
           {submissions.map((s, i) => (
             <div
               key={s.id}
@@ -94,10 +94,10 @@ export async function FeedbackListServer({
             >
               <TypeBadge type={s.type} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                <p className="truncate text-sm font-medium text-foreground">
                   {s.title}
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {s.module} · {formatDate(s.createdAt)}
                 </p>
               </div>

@@ -21,13 +21,13 @@ export interface FeedbackRow {
 function TypeBadge({ type }: { type: string }): React.JSX.Element {
   if (type === 'BUG') {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+      <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
         Bug
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+    <span className="inline-flex items-center rounded-full bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary">
       Feature Request
     </span>
   );
@@ -36,27 +36,27 @@ function TypeBadge({ type }: { type: string }): React.JSX.Element {
 function StatusBadge({ status }: { status: string }): React.JSX.Element {
   if (status === 'IN_REVIEW') {
     return (
-      <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+      <span className="inline-flex items-center rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
         In Review
       </span>
     );
   }
   if (status === 'DEFERRED') {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+      <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
         Deferred
       </span>
     );
   }
   if (status === 'RESOLVED') {
     return (
-      <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+      <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
         Resolved
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
       Open
     </span>
   );
@@ -71,9 +71,9 @@ function formatDate(iso: string): string {
 }
 
 const TH_CLS =
-  'px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400';
+  'px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground';
 const ROW_CLS =
-  'border-t border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors duration-150';
+  'border-t border-border/60 hover:bg-muted/30 cursor-pointer transition-colors duration-150';
 const TD_CLS = 'px-4 py-3';
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -95,14 +95,14 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white py-16 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16">
         <MessageSquarePlus
           size={40}
           strokeWidth={1.5}
-          className="text-zinc-300 dark:text-zinc-600"
+          className="text-muted-foreground"
           aria-hidden="true"
         />
-        <p className="mt-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+        <p className="mt-3 text-sm font-medium text-muted-foreground">
           No submissions match the current filters
         </p>
       </div>
@@ -112,21 +112,21 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
   return (
     <>
       {/* ── Mobile card list (hidden on md+) ─────────────────────────────── */}
-      <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 divide-y divide-zinc-100 dark:divide-zinc-800 md:hidden">
+      <div className="rounded-xl border border-border bg-card divide-y divide-border md:hidden">
         {rows.map((row) => (
           <button
             key={row.id}
             type="button"
             onClick={() => handleRowClick(row)}
-            className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+            className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30"
             aria-label={`View details for: ${row.title}`}
           >
             <TypeBadge type={row.type} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+              <p className="truncate text-sm font-medium text-foreground">
                 {row.title}
               </p>
-              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {row.user.name ?? 'Unknown'} · {row.module} · {formatDate(row.createdAt)}
               </p>
             </div>
@@ -136,10 +136,10 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
       </div>
 
       {/* ── Desktop table (hidden below md) ──────────────────────────────── */}
-      <div className="hidden md:block overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="bg-zinc-50 dark:bg-zinc-800/50">
+            <tr className="bg-muted/50">
               <th className={TH_CLS}>Type</th>
               <th className={TH_CLS}>Title</th>
               <th className={TH_CLS}>User</th>
@@ -163,19 +163,19 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
                 <td className={TD_CLS}>
                   <TypeBadge type={row.type} />
                 </td>
-                <td className={`${TD_CLS} max-w-xs truncate text-sm font-medium text-zinc-900 dark:text-zinc-50`}>
+                <td className={`${TD_CLS} max-w-xs truncate text-sm font-medium text-foreground`}>
                   {row.title}
                 </td>
                 <td className={TD_CLS}>
-                  <p className="text-sm text-zinc-900 dark:text-zinc-50">
-                    {row.user.name ?? <span className="italic text-zinc-400">No name</span>}
+                  <p className="text-sm text-foreground">
+                    {row.user.name ?? <span className="italic text-muted-foreground">No name</span>}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{row.user.email}</p>
+                  <p className="text-xs text-muted-foreground">{row.user.email}</p>
                 </td>
-                <td className={`${TD_CLS} text-sm text-zinc-500 dark:text-zinc-400`}>
+                <td className={`${TD_CLS} text-sm text-muted-foreground`}>
                   {row.module}
                 </td>
-                <td className={`${TD_CLS} text-sm tabular-nums text-zinc-500 dark:text-zinc-400`}>
+                <td className={`${TD_CLS} text-sm tabular-nums text-muted-foreground`}>
                   {formatDate(row.createdAt)}
                 </td>
                 <td className={TD_CLS}>

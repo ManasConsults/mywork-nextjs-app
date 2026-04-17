@@ -1,8 +1,10 @@
 'use client';
 
+import { Download, Printer } from 'lucide-react';
 import type { Achievement } from '@prisma/client';
 
 import { fiscalYearLabel } from '@/lib/utils/fiscal-year';
+import { Button } from '@/components/ui/button';
 
 type AchievementWithTask = Achievement & { task: { id: string; title: string } | null };
 
@@ -26,20 +28,15 @@ function generateMarkdown(
 
   for (const a of achievements) {
     lines.push(`## ${a.title}`);
-
     const meta: string[] = [];
     if (a.category) meta.push(`**Category:** ${a.category}`);
     if (a.impactRating) meta.push(`**Impact:** ${'★'.repeat(a.impactRating)}${'☆'.repeat(5 - a.impactRating)}`);
     if (a.dateAchieved) {
-      meta.push(
-        `**Date:** ${new Date(a.dateAchieved).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`,
-      );
+      meta.push(`**Date:** ${new Date(a.dateAchieved).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`);
     }
     if (meta.length > 0) lines.push(meta.join(' | '));
-
     lines.push('');
     lines.push(a.description);
-
     if (a.task) lines.push('', `**Linked task:** ${a.task.title}`);
     lines.push('');
   }
@@ -59,9 +56,7 @@ export function ExportButtons({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = reviewYear
-      ? `achievements-fy${reviewYear}.md`
-      : 'achievements.md';
+    a.download = reviewYear ? `achievements-fy${reviewYear}.md` : 'achievements.md';
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -74,27 +69,16 @@ export function ExportButtons({
     window.open(`/achievements-print?${params.toString()}`, '_blank');
   }
 
-  const btnCls =
-    'flex items-center gap-1.5 rounded-md border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800';
-
   return (
     <div className="flex gap-2">
-      <button onClick={handleMarkdownDownload} className={btnCls} title="Download as Markdown">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
+      <Button variant="outline" size="sm" onClick={handleMarkdownDownload} title="Download as Markdown" className="gap-1.5">
+        <Download className="h-3.5 w-3.5" />
         Markdown
-      </button>
-      <button onClick={handlePrint} className={btnCls} title="Print as PDF">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 6 2 18 2 18 9" />
-          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-          <rect x="6" y="14" width="12" height="8" />
-        </svg>
+      </Button>
+      <Button variant="outline" size="sm" onClick={handlePrint} title="Print as PDF" className="gap-1.5">
+        <Printer className="h-3.5 w-3.5" />
         Print PDF
-      </button>
+      </Button>
     </div>
   );
 }
