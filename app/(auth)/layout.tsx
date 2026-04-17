@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
+// next-auth/react (in the root layout's SessionProvider) calls new URL(NEXTAUTH_URL)
+// during module evaluation. Prevent pre-rendering so that code only runs at request
+// time when NEXTAUTH_URL is present.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'MyWork — Sign in',
 };
