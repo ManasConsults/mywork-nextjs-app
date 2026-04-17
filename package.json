@@ -20,6 +20,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tiptap/extension-link": "^3.20.0",
     "@tiptap/extension-placeholder": "^3.20.0",
+    "@tiptap/extension-table": "^3.22.3",
     "@tiptap/html": "^3.20.0",
     "@tiptap/pm": "^3.20.0",
     "@tiptap/react": "^3.20.0",

@@ -123,6 +123,36 @@ body {
   color: var(--foreground);
 }
 
+/* ─── Global card elevation ─── */
+/* Targets both the shadcn <Card> component (via data-slot) and every hand-rolled
+   card surface that uses the standard bg-card + border-border pattern.
+   Single rule covers all 40+ card surfaces without touching individual files. */
+[data-slot="card"],
+.bg-card.border-border {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+[data-slot="card"]:hover,
+.bg-card.border-border:hover {
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+  transform: translateY(-4px);
+}
+.dark [data-slot="card"],
+.dark .bg-card.border-border {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.25);
+}
+.dark [data-slot="card"]:hover,
+.dark .bg-card.border-border:hover {
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Table styles for the ProseMirror editor are scoped inside NoteEditor.tsx
+   via a <style> tag to guarantee they win over Tailwind preflight. */
+
+/* Note view table styles are scoped inside the view page via a <style> tag
+   (same pattern as the editor) to bypass @tailwindcss/typography cascade. */
+
+
 /* ─── Animations ─── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
