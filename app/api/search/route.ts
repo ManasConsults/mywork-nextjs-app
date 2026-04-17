@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export type SearchResultItem = {
   id: string;
   type: 'task' | 'todo' | 'worklog' | 'achievement' | 'note';
