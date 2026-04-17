@@ -3,6 +3,10 @@ import Link from 'next/link';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/auth';
 
+// next-auth/react (SessionProvider in root layout) calls new URL(NEXTAUTH_URL)
+// during module evaluation — prevent pre-rendering so it only runs at request time.
+export const dynamic = 'force-dynamic';
+
 const features = [
   {
     icon: (
