@@ -49,7 +49,7 @@ function StatusBadge({ status }: { status: string }): React.JSX.Element {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
       Open
     </span>
   );
@@ -74,7 +74,7 @@ export async function FeedbackListServer({
           <MessageSquarePlus
             size={40}
             strokeWidth={1.5}
-            className="text-zinc-300 dark:text-zinc-600"
+            className="text-muted-foreground/40"
             aria-hidden="true"
           />
           <p className="mt-3 text-sm font-medium text-muted-foreground">

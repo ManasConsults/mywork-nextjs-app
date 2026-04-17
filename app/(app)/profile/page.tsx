@@ -45,7 +45,7 @@ export default async function ProfilePage(): Promise<React.JSX.Element> {
             {user.name ?? 'No name set'}
           </p>
           <p className="text-sm text-muted-foreground">{user.email}</p>
-          <span className="mt-1 inline-block rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
             {ROLE_LABELS[user.role] ?? user.role}
           </span>
         </div>

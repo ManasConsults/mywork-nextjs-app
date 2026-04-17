@@ -3,14 +3,14 @@ import Link from 'next/link';
 import type { TaskListItem } from '@/lib/services/task.service';
 
 const STATUS_BADGE: Record<string, string> = {
-  BACKLOG: 'bg-zinc-100 text-foreground',
+  BACKLOG: 'bg-muted text-foreground',
   IN_PROGRESS: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   BLOCKED: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
   DONE: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
-  LOW: 'bg-zinc-100 text-muted-foreground',
+  LOW: 'bg-muted text-muted-foreground',
   MEDIUM: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
   HIGH: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
   CRITICAL: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
@@ -37,7 +37,7 @@ export function TaskList({ tasks }: { tasks: TaskListItem[] }): React.JSX.Elemen
         <p className="text-sm text-muted-foreground">No tasks found.</p>
         <Link
           href="/tasks/new"
-          className="mt-3 inline-block text-sm font-medium text-primary underline dark:text-zinc-50"
+          className="mt-3 inline-block text-sm font-medium text-primary underline"
         >
           Create your first task
         </Link>

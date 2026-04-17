@@ -81,11 +81,11 @@ export function RegisterForm(): React.JSX.Element {
   if (isSuccess) {
     return (
       <div role="status" className="py-4 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/5">
-          <CheckCircle className="h-6 w-6 text-primary" aria-hidden="true" />
+        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-primary/5">
+          <CheckCircle className="size-6 text-primary" aria-hidden="true" />
         </div>
-        <h3 className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Registration submitted!</h3>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <h3 className="mb-1 text-lg font-semibold text-foreground">Registration submitted!</h3>
+        <p className="text-sm text-muted-foreground">
           Your account is pending approval by an administrator. You will be able to sign in once activated.
         </p>
       </div>
@@ -94,7 +94,7 @@ export function RegisterForm(): React.JSX.Element {
 
   return (
     <div>
-      <h2 className="mb-6 text-xl font-semibold text-zinc-900 dark:text-zinc-50">Create your account</h2>
+      <h2 className="mb-6 text-xl font-semibold text-foreground">Create your account</h2>
 
       {rootError && (
         <div
@@ -151,7 +151,7 @@ export function RegisterForm(): React.JSX.Element {
           </div>
 
           <div className="space-y-1.5">
-            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">How do you work?</p>
+            <p className="text-sm font-medium text-foreground">How do you work?</p>
             <div className="flex flex-col gap-2" role="radiogroup" aria-label="Employment type">
               {EMPLOYMENT_OPTIONS.map(({ value, label, description }) => (
                 <label
@@ -161,7 +161,7 @@ export function RegisterForm(): React.JSX.Element {
                     isPending && 'cursor-not-allowed opacity-50',
                     values.employmentType === value
                       ? 'border-primary/80 bg-primary/5 dark:border-primary'
-                      : 'border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600',
+                      : 'border-border hover:border-ring/40',
                   )}
                 >
                   <input
@@ -174,8 +174,8 @@ export function RegisterForm(): React.JSX.Element {
                     className="mt-0.5 accent-primary"
                   />
                   <div>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{label}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{description}</p>
+                    <p className="text-sm font-medium text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground">{description}</p>
                   </div>
                 </label>
               ))}
@@ -206,7 +206,7 @@ export function RegisterForm(): React.JSX.Element {
                 {fieldErrors.password}
               </p>
             ) : (
-              <p id="password-hint" className="text-xs text-zinc-400 dark:text-zinc-500">
+              <p id="password-hint" className="text-xs text-muted-foreground">
                 At least 8 characters, one uppercase letter, and one number.
               </p>
             )}
@@ -239,7 +239,7 @@ export function RegisterForm(): React.JSX.Element {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{' '}
         <Link href="/login" className="font-medium text-primary hover:text-primary hover:underline">
           Sign in

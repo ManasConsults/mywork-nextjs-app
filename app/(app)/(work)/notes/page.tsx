@@ -23,14 +23,14 @@ function NoteListSkeleton(): React.JSX.Element {
           key={i}
           className="animate-pulse rounded-lg border border-border bg-card p-4"
         >
-          <div className="mb-2 h-4 w-1/2 rounded bg-zinc-100" />
+          <div className="mb-2 h-4 w-1/2 rounded bg-muted" />
           <div className="space-y-1.5">
-            <div className="h-3 w-full rounded bg-zinc-100" />
-            <div className="h-3 w-3/4 rounded bg-zinc-100" />
+            <div className="h-3 w-full rounded bg-muted" />
+            <div className="h-3 w-3/4 rounded bg-muted" />
           </div>
           <div className="mt-3 flex gap-2">
-            <div className="h-4 w-14 rounded-full bg-zinc-100" />
-            <div className="h-4 w-20 rounded-full bg-zinc-100" />
+            <div className="h-4 w-14 rounded-full bg-muted" />
+            <div className="h-4 w-20 rounded-full bg-muted" />
           </div>
         </div>
       ))}
@@ -60,7 +60,7 @@ export default async function NotesPage({ searchParams }: NotesPageProps): Promi
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <Link
           href="/notes/new"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           + New note
         </Link>

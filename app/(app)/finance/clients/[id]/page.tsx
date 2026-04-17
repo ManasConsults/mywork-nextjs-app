@@ -45,11 +45,11 @@ export default async function ClientDetailPage({
     <div className="mx-auto max-w-3xl">
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/finance" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+        <Link href="/finance" className="hover:text-foreground">
           Finance
         </Link>
         <span>/</span>
-        <Link href="/finance/clients" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+        <Link href="/finance/clients" className="hover:text-foreground">
           Clients
         </Link>
         <span>/</span>
@@ -61,7 +61,7 @@ export default async function ClientDetailPage({
         <div className="flex items-center gap-2">
           <Link
             href={`/finance/clients/${client.id}/edit`}
-            className="rounded-lg border border-border px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-accent/40 dark:text-zinc-400"
+            className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent/40"
           >
             Edit
           </Link>

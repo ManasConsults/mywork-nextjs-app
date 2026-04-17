@@ -55,7 +55,7 @@ function StarRating({
           className="text-2xl leading-none transition-colors focus:outline-none"
           aria-label={`${star} star${star > 1 ? 's' : ''}`}
         >
-          <span className={star <= (value ?? 0) ? 'text-amber-400' : 'text-zinc-300 dark:text-zinc-600'}>
+          <span className={star <= (value ?? 0) ? 'text-amber-400' : 'text-muted-foreground/40'}>
             ★
           </span>
         </button>
@@ -64,7 +64,7 @@ function StarRating({
         <button
           type="button"
           onClick={() => onChange(null)}
-          className="ml-1 text-xs text-zinc-400 underline hover:text-zinc-600"
+          className="ml-1 text-xs text-muted-foreground underline hover:text-foreground"
         >
           Clear
         </button>

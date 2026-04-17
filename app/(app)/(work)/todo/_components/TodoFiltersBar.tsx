@@ -55,8 +55,8 @@ export function TodoFiltersBar({
             className={cn(
               'rounded-md px-3 py-1 text-sm font-medium transition-colors',
               currentStatus === s
-                ? 'bg-primary text-white hover:bg-primary hover:text-white dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-accent/40'
-                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',
+                ? 'bg-primary text-primary-foreground hover:bg-primary'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {STATUS_LABELS[s]}

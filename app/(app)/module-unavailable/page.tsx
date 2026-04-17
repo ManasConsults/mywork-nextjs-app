@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'MyWork — Module Unavailable' };
 export default function ModuleUnavailablePage(): React.JSX.Element {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+      <div className="flex size-16 items-center justify-center rounded-full bg-muted">
         <svg
           width="32"
           height="32"
@@ -16,7 +16,7 @@ export default function ModuleUnavailablePage(): React.JSX.Element {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-zinc-400"
+          className="text-muted-foreground"
           aria-hidden="true"
         >
           <circle cx="12" cy="12" r="10" />

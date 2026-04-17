@@ -2,13 +2,14 @@
 
 import type { Task } from '@prisma/client';
 
+import { cn } from '@/lib/utils';
 import { TASK_STATUSES } from '@/lib/schemas/task.schema';
 import { TaskCard } from './TaskCard';
 
 const COLUMN_CONFIG: Record<string, { label: string; headerClass: string }> = {
   BACKLOG: {
     label: 'To Do',
-    headerClass: 'border-zinc-300 bg-accent/40 text-foreground',
+    headerClass: 'border-border bg-accent/40 text-foreground',
   },
   IN_PROGRESS: {
     label: 'In Progress',
@@ -36,7 +37,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }): React.JSX.Element {
         const columnTasks = tasksByStatus[status];
         return (
           <div key={status} className="flex w-64 shrink-0 flex-col rounded-lg border border-border">
-            <div className={`rounded-t-lg border-b px-3 py-2 ${headerClass}`}>
+            <div className={cn('rounded-t-lg border-b px-3 py-2', headerClass)}>
               <span className="text-sm font-medium">{label}</span>
               <span className="ml-2 text-xs opacity-70">({columnTasks.length})</span>
             </div>
@@ -45,7 +46,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }): React.JSX.Element {
                 <TaskCard key={task.id} task={task} />
               ))}
               {columnTasks.length === 0 && (
-                <p className="py-4 text-center text-xs text-zinc-400 dark:text-zinc-600">Empty</p>
+                <p className="py-4 text-center text-xs text-muted-foreground">Empty</p>
               )}
             </div>
           </div>

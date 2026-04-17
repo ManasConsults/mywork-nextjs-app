@@ -40,11 +40,11 @@ export function TaskCard({ task }: { task: Task }): React.JSX.Element {
   }
 
   return (
-    <div className="rounded-md border border-border bg-card p-3 shadow-sm">
+    <div className="rounded-md border border-border bg-card p-3">
       <div className="mb-2 flex items-start justify-between gap-2">
         <Link
           href={`/tasks/${task.id}`}
-          className="text-sm font-medium text-zinc-900 hover:underline dark:text-zinc-50"
+          className="text-sm font-medium text-foreground hover:underline"
         >
           {task.title}
         </Link>

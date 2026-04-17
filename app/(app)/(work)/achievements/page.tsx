@@ -27,15 +27,15 @@ function AchievementListSkeleton(): React.JSX.Element {
         >
           <div className="mb-2 flex items-start justify-between gap-2">
             <div className="flex gap-2">
-              <div className="h-4 w-40 rounded bg-zinc-100" />
-              <div className="h-4 w-20 rounded-full bg-zinc-100" />
+              <div className="h-4 w-40 rounded bg-muted" />
+              <div className="h-4 w-20 rounded-full bg-muted" />
             </div>
-            <div className="h-4 w-24 rounded bg-zinc-100" />
+            <div className="h-4 w-24 rounded bg-muted" />
           </div>
-          <div className="h-3 w-24 rounded bg-zinc-100 mb-2" />
+          <div className="h-3 w-24 rounded bg-muted mb-2" />
           <div className="space-y-1.5">
-            <div className="h-3 w-full rounded bg-zinc-100" />
-            <div className="h-3 w-4/5 rounded bg-zinc-100" />
+            <div className="h-3 w-full rounded bg-muted" />
+            <div className="h-3 w-4/5 rounded bg-muted" />
           </div>
         </div>
       ))}
@@ -73,7 +73,7 @@ export default async function AchievementsPage({ searchParams }: AchievementsPag
           <FiscalYearSettings currentMonth={fiscalYearStartMonth} />
           <Link
             href="/achievements/new"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             + New achievement
           </Link>

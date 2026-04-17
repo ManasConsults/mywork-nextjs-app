@@ -125,7 +125,7 @@ export function NoteFiltersBar({
           variant="ghost"
           size="sm"
           onClick={clearAllFilters}
-          className="h-auto p-0 text-sm text-zinc-400 underline hover:text-zinc-600 hover:bg-transparent dark:text-zinc-500 dark:hover:text-zinc-300"
+          className="h-auto p-0 text-sm text-muted-foreground underline hover:text-foreground hover:bg-transparent"
         >
           Clear filters
         </Button>

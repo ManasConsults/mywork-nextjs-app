@@ -159,7 +159,7 @@ export default async function NoteViewPage({
             }
           `}</style>
           <div
-            className="note-body prose prose-zinc max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:rounded prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-zinc-800 prose-pre:rounded-lg prose-pre:bg-zinc-100 dark:prose-pre:bg-zinc-800 prose-blockquote:border-primary/40 prose-blockquote:not-italic prose-li:my-0.5 prose-p:leading-relaxed"
+            className="note-body prose prose-zinc max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:rounded-lg prose-pre:bg-muted prose-blockquote:border-primary/40 prose-blockquote:not-italic prose-li:my-0.5 prose-p:leading-relaxed"
             dangerouslySetInnerHTML={{ __html: html }}
           />
         </div>

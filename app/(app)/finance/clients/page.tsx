@@ -68,7 +68,7 @@ export default async function ClientsPage(): Promise<React.JSX.Element> {
                   <td className="px-4 py-3">
                     <Link
                       href={`/finance/clients/${client.id}`}
-                      className="text-sm font-medium text-zinc-900 hover:text-primary"
+                      className="text-sm font-medium text-foreground hover:text-primary"
                     >
                       {client.name}
                     </Link>
@@ -94,7 +94,7 @@ export default async function ClientsPage(): Promise<React.JSX.Element> {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/finance/clients/${client.id}/edit`}
-                        className="rounded-lg border border-border px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-accent/40 dark:text-zinc-400"
+                        className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent/40"
                       >
                         Edit
                       </Link>

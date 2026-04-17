@@ -68,7 +68,7 @@ export function FiscalYearSettings({
               ))}
             </SelectContent>
           </Select>
-          {isPending && <p className="mt-1 text-xs text-zinc-400">Saving…</p>}
+          {isPending && <p className="mt-1 text-xs text-muted-foreground">Saving…</p>}
         </div>
       )}
     </div>

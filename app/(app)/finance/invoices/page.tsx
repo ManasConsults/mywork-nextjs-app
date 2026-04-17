@@ -177,7 +177,7 @@ export default async function InvoicesPage({
                       <span className="inline-flex items-center justify-end gap-2">
                         <Link
                           href={`/finance/invoices/${invoice.id}`}
-                          className="rounded-lg border border-border px-3 py-1 text-xs text-zinc-600 transition-colors hover:bg-accent/40 dark:text-zinc-400"
+                          className="rounded-lg border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent/40"
                         >
                           View
                         </Link>

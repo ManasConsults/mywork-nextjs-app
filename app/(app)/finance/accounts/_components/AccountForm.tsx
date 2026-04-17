@@ -176,7 +176,7 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
           name="isDefault"
           type="checkbox"
           defaultChecked={account?.isDefault ?? false}
-          className="h-4 w-4 rounded border-border text-primary focus:ring-ring dark:border-zinc-600"
+          className="size-4 rounded border-border text-primary focus:ring-ring"
         />
         <Label htmlFor="isDefault">Set as default account</Label>
       </div>

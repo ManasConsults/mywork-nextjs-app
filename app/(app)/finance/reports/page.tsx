@@ -11,6 +11,7 @@ import {
   getUnbilledHours,
 } from '@/lib/services/finance/report.service';
 import { fromMinorUnit } from '@/lib/utils/money';
+import { cn } from '@/lib/utils';
 import { ReportFilters } from './_components/ReportFilters';
 
 export const metadata: Metadata = { title: 'MyWork — Reports' };
@@ -99,11 +100,10 @@ function SummaryCard({
 
   return (
     <div
-      className={`rounded-xl border p-4 ${
-        highlight
-          ? 'border-zinc-200 bg-primary/5'
-          : 'border-border bg-card'
-      }`}
+      className={cn(
+        'rounded-xl border p-4',
+        highlight ? 'border-border bg-primary/5' : 'border-border bg-card',
+      )}
     >
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}

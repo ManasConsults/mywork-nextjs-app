@@ -20,10 +20,10 @@ function TodoListSkeleton(): React.JSX.Element {
     <div className="divide-y divide-border/60 rounded-lg border border-border bg-card">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex animate-pulse items-center gap-3 px-4 py-3">
-          <div className="h-5 w-5 shrink-0 rounded-full bg-zinc-100" />
+          <div className="h-5 w-5 shrink-0 rounded-full bg-muted" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-4 w-2/3 rounded bg-zinc-100" />
-            <div className="h-3 w-1/4 rounded bg-zinc-100" />
+            <div className="h-4 w-2/3 rounded bg-muted" />
+            <div className="h-3 w-1/4 rounded bg-muted" />
           </div>
         </div>
       ))}

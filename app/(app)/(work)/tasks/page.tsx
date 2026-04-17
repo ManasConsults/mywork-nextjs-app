@@ -20,12 +20,12 @@ function TaskListSkeleton(): React.JSX.Element {
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="flex animate-pulse items-center gap-4 px-4 py-3">
           <div className="flex-1 space-y-1.5">
-            <div className="h-4 w-2/3 rounded bg-zinc-100" />
-            <div className="h-3 w-1/4 rounded bg-zinc-100" />
+            <div className="h-4 w-2/3 rounded bg-muted" />
+            <div className="h-3 w-1/4 rounded bg-muted" />
           </div>
           <div className="flex shrink-0 gap-2">
-            <div className="h-5 w-14 rounded-full bg-zinc-100" />
-            <div className="h-5 w-16 rounded-full bg-zinc-100" />
+            <div className="h-5 w-14 rounded-full bg-muted" />
+            <div className="h-5 w-16 rounded-full bg-muted" />
           </div>
         </div>
       ))}
@@ -65,7 +65,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
           </Link>
           <Link
             href="/tasks/new"
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             New task
           </Link>

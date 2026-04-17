@@ -164,11 +164,11 @@ export function TimesheetRow({
       <td className="px-4 py-2.5 text-right">
         {!isBilled && (
           <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="ghost" size="sm" onClick={() => setMode('edit')} className="h-auto px-2 py-0.5 text-xs text-zinc-500 hover:text-primary dark:text-zinc-400">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMode('edit')} className="h-auto px-2 py-0.5 text-xs text-muted-foreground hover:text-primary">
               Edit
             </Button>
             <span className="text-foreground">|</span>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setMode('confirmDelete')} className="h-auto px-2 py-0.5 text-xs text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMode('confirmDelete')} className="h-auto px-2 py-0.5 text-xs text-muted-foreground hover:text-destructive">
               Delete
             </Button>
           </div>
