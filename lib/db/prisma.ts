@@ -21,11 +21,16 @@ function stripSslMode(url: string): string {
 }
 
 function createPrismaClient(): PrismaClient {
-  const raw = process.env.DATABASE_URL ?? '';
-  const isLocal = /localhost|127\.0\.0\.1/.test(raw);
+  const raw = process.env.DATABASE_URL;
+  // When DATABASE_URL is absent (e.g. during `next build` module evaluation),
+  // @prisma/adapter-pg calls new URL(connectionString) internally which throws
+  // TypeError: Invalid URL on an empty string. A placeholder keeps the module
+  // importable; any real query will fail at connection time with a clear error.
+  const connectionString = raw ? stripSslMode(raw) : 'postgresql://localhost/placeholder';
+  const isLocal = !raw || /localhost|127\.0\.0\.1/.test(raw);
 
   const adapter = new PrismaPg({
-    connectionString: stripSslMode(raw),
+    connectionString,
     // Explicit SSL — equivalent to the old sslmode=verify-full, suppresses deprecation warning
     ...(isLocal ? {} : { ssl: { rejectUnauthorized: true } }),
     // Serverless-safe pool: small size, fail fast if pool is exhausted
