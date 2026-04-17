@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
 import { getThemeCSS } from '@/lib/theme';
 import { AppShell } from './_components/AppShell';
+import { AppSessionProvider } from './_components/AppSessionProvider';
 
 // All (app) pages are authenticated and user-specific — never pre-render during build.
 export const dynamic = 'force-dynamic';
@@ -27,9 +28,9 @@ export default async function AppLayout({ children }: { children: ReactNode }): 
   const themeCSS = getThemeCSS(userPrefs?.themeColor ?? 'teal');
 
   return (
-    <>
+    <AppSessionProvider>
       <style dangerouslySetInnerHTML={{ __html: themeCSS }} />
       <AppShell user={session.user} pendingCount={pendingCount}>{children}</AppShell>
-    </>
+    </AppSessionProvider>
   );
 }
