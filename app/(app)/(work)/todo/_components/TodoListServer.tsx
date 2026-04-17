@@ -16,7 +16,7 @@ export async function TodoListServer({ userId, filters, taskOptions }: Props): P
 
   return (
     <>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="text-sm text-muted-foreground">
         {total} {total === 1 ? 'item' : 'items'}
       </p>
       <TodoList todos={todos} tasks={taskOptions} />

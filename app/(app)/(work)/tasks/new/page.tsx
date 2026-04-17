@@ -14,7 +14,6 @@ export default async function NewTaskPage({ searchParams }: NewTaskPageProps): P
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">New task</h1>
       <TaskForm returnTo={returnTo} />
     </div>
   );

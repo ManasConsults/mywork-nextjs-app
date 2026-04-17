@@ -7,8 +7,11 @@ import type { Account, Category, Transaction } from '@prisma/client';
 import { createTransactionAction, updateTransactionAction } from '@/lib/actions/finance/transaction';
 import { createTransactionSchema, updateTransactionSchema } from '@/lib/schemas/finance/transaction.schema';
 import { toMinorUnit } from '@/lib/utils/money';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Inline relation type that mirrors what transaction.service returns
 type TransactionWithRelations = Transaction & {
   account: { name: string };
   category: { name: string; type: string };
@@ -49,41 +52,6 @@ interface TransactionFormProps {
   employmentType: string;
 }
 
-function inputCls(hasError: boolean): string {
-  return [
-    'block w-full rounded-lg border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500',
-    'bg-white dark:bg-zinc-800 dark:text-zinc-50',
-    hasError
-      ? 'border-red-500 dark:border-red-500'
-      : 'border-zinc-300 dark:border-zinc-700',
-  ].join(' ');
-}
-
-function Field({
-  label,
-  error,
-  required,
-  children,
-}: {
-  label: string;
-  error?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
-      </label>
-      {children}
-      {error && (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
-      )}
-    </div>
-  );
-}
-
 function todayIso(): string {
   return new Date().toISOString().split('T')[0];
 }
@@ -103,100 +71,58 @@ export function TransactionForm({
   const showWorkContext = employmentType === 'BOTH';
 
   const [isRecurring, setIsRecurring] = useState(false);
-  const [selectedFrequency, setSelectedFrequency] = useState<string>('MONTHLY');
-
-  const [selectedType, setSelectedType] = useState<TxType>(
-    (transaction?.type as TxType) ?? 'EXPENSE',
-  );
+  const [selectedFrequency, setSelectedFrequency] = useState('MONTHLY');
+  const [selectedType, setSelectedType] = useState<TxType>((transaction?.type as TxType) ?? 'EXPENSE');
+  const [accountId, setAccountId] = useState(transaction?.accountId ?? '');
+  const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? '');
+  const [transferToAccountId, setTransferToAccountId] = useState('');
+  const [workContext, setWorkContext] = useState(transaction?.workContext ?? '');
 
   const showTransferDest = selectedType === 'TRANSFER_OUT';
-
-  const defaultDate = transaction?.date
-    ? new Date(transaction.date).toISOString().split('T')[0]
-    : todayIso();
-
-  const defaultAmountDecimal =
-    transaction?.amount != null
-      ? (transaction.amount / 100).toFixed(2)
-      : '';
+  const defaultDate = transaction?.date ? new Date(transaction.date).toISOString().split('T')[0] : todayIso();
+  const defaultAmountDecimal = transaction?.amount != null ? (transaction.amount / 100).toFixed(2) : '';
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
-    const amountRaw = fd.get('amount') as string;
-    const amountDecimal = parseFloat(amountRaw);
-
+    const amountDecimal = parseFloat(fd.get('amount') as string);
     if (isNaN(amountDecimal) || amountDecimal <= 0) {
       setFieldErrors({ amount: ['Amount must be a positive number, e.g. 12.50'] });
       return;
     }
 
-    const transferToAccountId =
-      selectedType === 'TRANSFER_OUT'
-        ? ((fd.get('transferToAccountId') as string) || undefined)
-        : undefined;
-
-    const workContextRaw = (fd.get('workContext') as string) || undefined;
-
     const raw = {
       type: selectedType,
-      accountId: fd.get('accountId') as string,
-      categoryId: fd.get('categoryId') as string,
+      accountId,
+      categoryId,
       amount: toMinorUnit(amountDecimal),
       date: fd.get('date') as string,
       description: (fd.get('description') as string).trim() || undefined,
       reference: (fd.get('reference') as string).trim() || undefined,
-      workContext:
-        showWorkContext && workContextRaw
-          ? (workContextRaw as 'EMPLOYED' | 'SOLE_TRADER')
-          : undefined,
-      transferToAccountId,
+      workContext: showWorkContext && workContext ? (workContext as 'EMPLOYED' | 'SOLE_TRADER') : undefined,
+      transferToAccountId: selectedType === 'TRANSFER_OUT' ? transferToAccountId || undefined : undefined,
       isRecurring: !isEdit && isRecurring ? true : undefined,
       recurFrequency: !isEdit && isRecurring ? (selectedFrequency as 'WEEKLY' | 'FORTNIGHTLY' | 'MONTHLY' | 'QUARTERLY' | 'ANNUALLY') : undefined,
-      recurEndsAt: !isEdit && isRecurring
-        ? ((fd.get('recurEndsAt') as string) || undefined)
-        : undefined,
+      recurEndsAt: !isEdit && isRecurring ? ((fd.get('recurEndsAt') as string) || undefined) : undefined,
     };
 
     if (isEdit) {
       const parsed = updateTransactionSchema.safeParse(raw);
-      if (!parsed.success) {
-        setFieldErrors(parsed.error.flatten().fieldErrors as FieldErrors);
-        return;
-      }
-      setFieldErrors({});
-      setRootError(null);
-
+      if (!parsed.success) { setFieldErrors(parsed.error.flatten().fieldErrors as FieldErrors); return; }
+      setFieldErrors({}); setRootError(null);
       startTransition(async () => {
         const result = await updateTransactionAction(transaction.id, parsed.data);
-        if (!result.success) {
-          setRootError(result.error.message);
-          if (result.error.fields) {
-            setFieldErrors(result.error.fields as FieldErrors);
-          }
-          return;
-        }
+        if (!result.success) { setRootError(result.error.message); if (result.error.fields) setFieldErrors(result.error.fields as FieldErrors); return; }
         router.push('/finance/transactions');
       });
     } else {
       const parsed = createTransactionSchema.safeParse(raw);
-      if (!parsed.success) {
-        setFieldErrors(parsed.error.flatten().fieldErrors as FieldErrors);
-        return;
-      }
-      setFieldErrors({});
-      setRootError(null);
-
+      if (!parsed.success) { setFieldErrors(parsed.error.flatten().fieldErrors as FieldErrors); return; }
+      setFieldErrors({}); setRootError(null);
       startTransition(async () => {
         const result = await createTransactionAction(parsed.data);
-        if (!result.success) {
-          setRootError(result.error.message);
-          if (result.error.fields) {
-            setFieldErrors(result.error.fields as FieldErrors);
-          }
-          return;
-        }
+        if (!result.success) { setRootError(result.error.message); if (result.error.fields) setFieldErrors(result.error.fields as FieldErrors); return; }
         router.push('/finance/transactions');
       });
     }
@@ -205,223 +131,142 @@ export function TransactionForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {rootError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
       {isEdit && transaction?.isRecurring && (
-        <div className="rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:border-teal-800/60 dark:bg-teal-900/20 dark:text-teal-300">
+        <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary">
           This is a recurring transaction template. Edits apply to this occurrence only.
         </div>
       )}
 
-      {/* Type */}
-      <Field label="Type" error={fieldErrors.type?.[0]} required>
-        <select
-          name="type"
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value as TxType)}
-          className={inputCls(!!fieldErrors.type)}
-        >
-          {TRANSACTION_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <div className="space-y-1.5">
+        <Label>Type <span className="text-red-500">*</span></Label>
+        <Select value={selectedType} onValueChange={(v) => setSelectedType(v as TxType)} disabled={isPending}>
+          <SelectTrigger aria-invalid={!!fieldErrors.type}><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {TRANSACTION_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {fieldErrors.type?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.type[0]}</p>}
+      </div>
 
-      {/* Account */}
-      <Field label="Account" error={fieldErrors.accountId?.[0]} required>
-        <select
-          name="accountId"
-          defaultValue={transaction?.accountId ?? ''}
-          className={inputCls(!!fieldErrors.accountId)}
-        >
-          <option value="" disabled>
-            Select an account…
-          </option>
-          {accounts.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <div className="space-y-1.5">
+        <Label>Account <span className="text-red-500">*</span></Label>
+        <Select value={accountId} onValueChange={setAccountId} disabled={isPending}>
+          <SelectTrigger aria-invalid={!!fieldErrors.accountId}><SelectValue placeholder="Select an account…" /></SelectTrigger>
+          <SelectContent>
+            {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {fieldErrors.accountId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.accountId[0]}</p>}
+      </div>
 
-      {/* Transfer destination — only shown for TRANSFER_OUT */}
       {showTransferDest && (
-        <Field
-          label="Transfer to account"
-          error={fieldErrors.transferToAccountId?.[0]}
-          required
-        >
-          <select
-            name="transferToAccountId"
-            defaultValue=""
-            className={inputCls(!!fieldErrors.transferToAccountId)}
-          >
-            <option value="" disabled>
-              Select destination account…
-            </option>
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <div className="space-y-1.5">
+          <Label>Transfer to account <span className="text-red-500">*</span></Label>
+          <Select value={transferToAccountId} onValueChange={setTransferToAccountId} disabled={isPending}>
+            <SelectTrigger aria-invalid={!!fieldErrors.transferToAccountId}><SelectValue placeholder="Select destination account…" /></SelectTrigger>
+            <SelectContent>
+              {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {fieldErrors.transferToAccountId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.transferToAccountId[0]}</p>}
+        </div>
       )}
 
-      {/* Amount */}
-      <Field label="Amount" error={fieldErrors.amount?.[0]} required>
-        <input
-          name="amount"
-          type="number"
-          step="0.01"
-          min="0.01"
-          defaultValue={defaultAmountDecimal}
-          placeholder="0.00"
-          className={inputCls(!!fieldErrors.amount)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="amount">Amount <span className="text-red-500">*</span></Label>
+        <Input id="amount" name="amount" type="number" step="0.01" min="0.01" defaultValue={defaultAmountDecimal} placeholder="0.00" disabled={isPending} aria-invalid={!!fieldErrors.amount} />
+        {fieldErrors.amount?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.amount[0]}</p>}
+      </div>
 
-      {/* Date */}
-      <Field label="Date" error={fieldErrors.date?.[0]} required>
-        <input
-          name="date"
-          type="date"
-          defaultValue={defaultDate}
-          className={inputCls(!!fieldErrors.date)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="date">Date <span className="text-red-500">*</span></Label>
+        <Input id="date" name="date" type="date" defaultValue={defaultDate} disabled={isPending} aria-invalid={!!fieldErrors.date} />
+        {fieldErrors.date?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.date[0]}</p>}
+      </div>
 
-      {/* Recurring */}
       {!isEdit && (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
+        <div className="rounded-lg border border-border bg-muted/50 p-4">
           <label className="flex cursor-pointer items-center gap-3">
-            <input
-              type="checkbox"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="h-4 w-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500"
-            />
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Make this a recurring transaction</span>
+            <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="h-4 w-4 rounded border-border text-primary focus:ring-ring" />
+            <span className="text-sm font-medium text-foreground">Make this a recurring transaction</span>
           </label>
 
           {isRecurring && (
             <div className="mt-4 space-y-4">
-              <Field label="Frequency" error={fieldErrors.recurFrequency?.[0]} required>
-                <select
-                  value={selectedFrequency}
-                  onChange={(e) => setSelectedFrequency(e.target.value)}
-                  className={inputCls(!!fieldErrors.recurFrequency)}
-                >
-                  <option value="WEEKLY">Weekly</option>
-                  <option value="FORTNIGHTLY">Fortnightly</option>
-                  <option value="MONTHLY">Monthly</option>
-                  <option value="QUARTERLY">Quarterly</option>
-                  <option value="ANNUALLY">Annually</option>
-                </select>
-              </Field>
-
-              <Field label="Repeat until (optional)" error={fieldErrors.recurEndsAt?.[0]}>
-                <input
-                  name="recurEndsAt"
-                  type="date"
-                  min={todayIso()}
-                  className={inputCls(!!fieldErrors.recurEndsAt)}
-                />
-                <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-                  Leave blank to repeat indefinitely.
-                </p>
-              </Field>
+              <div className="space-y-1.5">
+                <Label>Frequency <span className="text-red-500">*</span></Label>
+                <Select value={selectedFrequency} onValueChange={setSelectedFrequency} disabled={isPending}>
+                  <SelectTrigger aria-invalid={!!fieldErrors.recurFrequency}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    <SelectItem value="FORTNIGHTLY">Fortnightly</SelectItem>
+                    <SelectItem value="MONTHLY">Monthly</SelectItem>
+                    <SelectItem value="QUARTERLY">Quarterly</SelectItem>
+                    <SelectItem value="ANNUALLY">Annually</SelectItem>
+                  </SelectContent>
+                </Select>
+                {fieldErrors.recurFrequency?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.recurFrequency[0]}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="recurEndsAt">Repeat until (optional)</Label>
+                <Input id="recurEndsAt" name="recurEndsAt" type="date" min={todayIso()} disabled={isPending} aria-invalid={!!fieldErrors.recurEndsAt} />
+                <p className="text-xs text-muted-foreground">Leave blank to repeat indefinitely.</p>
+                {fieldErrors.recurEndsAt?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.recurEndsAt[0]}</p>}
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Category */}
-      <Field label="Category" error={fieldErrors.categoryId?.[0]} required>
-        <select
-          name="categoryId"
-          defaultValue={transaction?.categoryId ?? ''}
-          className={inputCls(!!fieldErrors.categoryId)}
-        >
-          <option value="" disabled>
-            Select a category…
-          </option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </Field>
+      <div className="space-y-1.5">
+        <Label>Category <span className="text-red-500">*</span></Label>
+        <Select value={categoryId} onValueChange={setCategoryId} disabled={isPending}>
+          <SelectTrigger aria-invalid={!!fieldErrors.categoryId}><SelectValue placeholder="Select a category…" /></SelectTrigger>
+          <SelectContent>
+            {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {fieldErrors.categoryId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.categoryId[0]}</p>}
+      </div>
 
-      {/* Description */}
-      <Field label="Description (optional)" error={fieldErrors.description?.[0]}>
-        <input
-          name="description"
-          type="text"
-          defaultValue={transaction?.description ?? ''}
-          placeholder="e.g. Weekly groceries"
-          maxLength={500}
-          className={inputCls(!!fieldErrors.description)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="description">Description (optional)</Label>
+        <Input id="description" name="description" type="text" defaultValue={transaction?.description ?? ''} placeholder="e.g. Weekly groceries" maxLength={500} disabled={isPending} />
+        {fieldErrors.description?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>}
+      </div>
 
-      {/* Reference */}
-      <Field label="Reference (optional)" error={fieldErrors.reference?.[0]}>
-        <input
-          name="reference"
-          type="text"
-          defaultValue={transaction?.reference ?? ''}
-          placeholder="e.g. INV-0042"
-          maxLength={100}
-          className={inputCls(!!fieldErrors.reference)}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label htmlFor="reference">Reference (optional)</Label>
+        <Input id="reference" name="reference" type="text" defaultValue={transaction?.reference ?? ''} placeholder="e.g. INV-0042" maxLength={100} disabled={isPending} />
+        {fieldErrors.reference?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.reference[0]}</p>}
+      </div>
 
-      {/* Work context — only for BOTH employment type */}
       {showWorkContext && (
-        <Field label="Work context (optional)" error={fieldErrors.workContext?.[0]}>
-          <select
-            name="workContext"
-            defaultValue={transaction?.workContext ?? ''}
-            className={inputCls(!!fieldErrors.workContext)}
-          >
-            <option value="">Not specified</option>
-            {WORK_CONTEXT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <div className="space-y-1.5">
+          <Label>Work context (optional)</Label>
+          <Select value={workContext} onValueChange={setWorkContext} disabled={isPending}>
+            <SelectTrigger aria-invalid={!!fieldErrors.workContext}><SelectValue placeholder="Not specified" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">Not specified</SelectItem>
+              {WORK_CONTEXT_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {fieldErrors.workContext?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.workContext[0]}</p>}
+        </div>
       )}
 
-      {/* Actions */}
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
-        >
-          {isPending
-            ? 'Saving…'
-            : isEdit
-              ? 'Save changes'
-              : 'Create transaction'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/finance/transactions')}
-          className="rounded-lg px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Create transaction'}
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => router.push('/finance/transactions')}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

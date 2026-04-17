@@ -7,6 +7,10 @@ import {
   updateTimesheetEntryAction,
   deleteTimesheetEntryAction,
 } from '@/lib/actions/finance/timesheet';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface TimesheetRowProps {
   id: string;
@@ -17,7 +21,6 @@ interface TimesheetRowProps {
   value: number;
   currency: string;
   isBilled: boolean;
-  // Formatted display values (computed by the server)
   formattedDate: string;
   formattedRate: string;
   formattedValue: string;
@@ -25,21 +28,12 @@ interface TimesheetRowProps {
 
 type Mode = 'idle' | 'edit' | 'confirmDelete';
 
-function inputCls(hasError: boolean): string {
-  return [
-    'block w-full rounded border px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500',
-    'bg-white dark:bg-zinc-900 dark:text-zinc-50',
-    hasError ? 'border-red-500' : 'border-zinc-300 dark:border-zinc-700',
-  ].join(' ');
-}
-
 export function TimesheetRow({
   id,
   date,
   description,
   timeSpentMinutes,
   rate,
-  value: _value, // eslint-disable-line @typescript-eslint/no-unused-vars
   isBilled,
   formattedDate,
   formattedRate,
@@ -93,75 +87,32 @@ export function TimesheetRow({
 
   if (mode === 'edit') {
     return (
-      <tr className="bg-teal-50 dark:bg-teal-950/20">
+      <tr className="bg-primary/5">
         <td colSpan={7} className="px-4 py-3">
           <form onSubmit={handleEdit} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {error && (
-              <p className="col-span-3 text-xs text-red-600 dark:text-red-400">{error}</p>
-            )}
-            <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Date
-              </label>
-              <input
-                name="date"
-                type="date"
-                required
-                defaultValue={defaultDate}
-                className={inputCls(!!fieldErrors.date)}
-              />
-              {fieldErrors.date && (
-                <p className="mt-0.5 text-xs text-red-600">{fieldErrors.date[0]}</p>
-              )}
+            {error && <p className="col-span-3 text-xs text-red-600 dark:text-red-400">{error}</p>}
+            <div className="space-y-1">
+              <Label className="text-xs">Date</Label>
+              <Input name="date" type="date" required defaultValue={defaultDate} aria-invalid={!!fieldErrors.date} className="h-8 text-sm" />
+              {fieldErrors.date && <p className="text-xs text-red-600">{fieldErrors.date[0]}</p>}
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Hours
-              </label>
-              <input
-                name="hours"
-                type="number"
-                step="0.25"
-                min="0.25"
-                max="24"
-                required
-                defaultValue={defaultHours}
-                className={inputCls(!!fieldErrors.hours)}
-              />
-              {fieldErrors.hours && (
-                <p className="mt-0.5 text-xs text-red-600">{fieldErrors.hours[0]}</p>
-              )}
+            <div className="space-y-1">
+              <Label className="text-xs">Hours</Label>
+              <Input name="hours" type="number" step="0.25" min="0.25" max="24" required defaultValue={defaultHours} aria-invalid={!!fieldErrors.hours} className="h-8 text-sm" />
+              {fieldErrors.hours && <p className="text-xs text-red-600">{fieldErrors.hours[0]}</p>}
             </div>
-            <div className="sm:col-span-3">
-              <label className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Description
-              </label>
-              <textarea
-                name="description"
-                rows={2}
-                required
-                defaultValue={description}
-                className={inputCls(!!fieldErrors.description)}
-              />
-              {fieldErrors.description && (
-                <p className="mt-0.5 text-xs text-red-600">{fieldErrors.description[0]}</p>
-              )}
+            <div className="space-y-1 sm:col-span-3">
+              <Label className="text-xs">Description</Label>
+              <Textarea name="description" rows={2} required defaultValue={description} aria-invalid={!!fieldErrors.description} className="text-sm" />
+              {fieldErrors.description && <p className="text-xs text-red-600">{fieldErrors.description[0]}</p>}
             </div>
-            <div className="sm:col-span-3 flex items-center gap-2">
-              <button
-                type="submit"
-                disabled={isPending}
-                className="rounded bg-teal-600 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
-              >
+            <div className="flex items-center gap-2 sm:col-span-3">
+              <Button type="submit" size="sm" disabled={isPending}>
                 {isPending ? 'Saving…' : 'Save changes'}
-              </button>
-              <button
-                type="button"
-                onClick={() => { setMode('idle'); setError(null); setFieldErrors({}); }}
-                className="rounded px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700"
-              >
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => { setMode('idle'); setError(null); setFieldErrors({}); }}>
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         </td>
@@ -177,21 +128,12 @@ export function TimesheetRow({
             <p className="text-sm text-red-700 dark:text-red-400">
               Delete &ldquo;<span className="font-medium">{description}</span>&rdquo;? This cannot be undone.
             </p>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isPending}
-              className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-            >
+            <Button type="button" size="sm" variant="destructive" onClick={handleDelete} disabled={isPending}>
               {isPending ? 'Deleting…' : 'Delete'}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMode('idle'); setError(null); }}
-              className="rounded px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700"
-            >
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => { setMode('idle'); setError(null); }}>
               Cancel
-            </button>
+            </Button>
             {error && <p className="text-xs text-red-600">{error}</p>}
           </div>
         </td>
@@ -199,27 +141,19 @@ export function TimesheetRow({
     );
   }
 
-  // ─── Idle: normal row ──────────────────────────────────────────────────────
-
   const badgeCls = isBilled
     ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
     : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
 
   return (
-    <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-      <td className="whitespace-nowrap px-4 py-2.5 text-sm text-zinc-500 dark:text-zinc-400">
-        {formattedDate}
-      </td>
-      <td className="px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300">
-        {description}
-      </td>
-      <td className="px-4 py-2.5 text-right text-sm text-zinc-700 dark:text-zinc-300">
-        {hours.toFixed(2)}
-      </td>
-      <td className="hidden px-4 py-2.5 text-right text-sm text-zinc-500 dark:text-zinc-400 sm:table-cell">
+    <tr className="hover:bg-accent/40/40">
+      <td className="whitespace-nowrap px-4 py-2.5 text-sm text-muted-foreground">{formattedDate}</td>
+      <td className="px-4 py-2.5 text-sm text-foreground">{description}</td>
+      <td className="px-4 py-2.5 text-right text-sm text-foreground">{hours.toFixed(2)}</td>
+      <td className="hidden px-4 py-2.5 text-right text-sm text-muted-foreground sm:table-cell">
         {rate > 0 ? formattedRate : '—'}
       </td>
-      <td className="hidden px-4 py-2.5 text-right text-sm text-zinc-700 dark:text-zinc-300 sm:table-cell">
+      <td className="hidden px-4 py-2.5 text-right text-sm text-foreground sm:table-cell">
         {rate > 0 ? formattedValue : '—'}
       </td>
       <td className="px-4 py-2.5 text-right">
@@ -228,25 +162,17 @@ export function TimesheetRow({
         </span>
       </td>
       <td className="px-4 py-2.5 text-right">
-        {!isBilled ? (
+        {!isBilled && (
           <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setMode('edit')}
-              className="text-xs text-zinc-500 hover:text-teal-600 dark:text-zinc-400 dark:hover:text-teal-400"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMode('edit')} className="h-auto px-2 py-0.5 text-xs text-zinc-500 hover:text-primary dark:text-zinc-400">
               Edit
-            </button>
-            <span className="text-zinc-300 dark:text-zinc-600">|</span>
-            <button
-              type="button"
-              onClick={() => setMode('confirmDelete')}
-              className="text-xs text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400"
-            >
+            </Button>
+            <span className="text-foreground">|</span>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMode('confirmDelete')} className="h-auto px-2 py-0.5 text-xs text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400">
               Delete
-            </button>
+            </Button>
           </div>
-        ) : null}
+        )}
       </td>
     </tr>
   );

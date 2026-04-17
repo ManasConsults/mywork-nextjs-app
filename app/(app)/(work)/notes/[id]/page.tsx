@@ -57,7 +57,7 @@ export default async function NoteViewPage({
       </Link>
 
       {/* Title */}
-      <h1 className="mb-3 mt-4 text-3xl font-bold leading-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="mb-3 mt-4 text-3xl font-bold leading-tight text-foreground">
         {title}
       </h1>
 
@@ -67,7 +67,7 @@ export default async function NoteViewPage({
           note.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300"
+              className="rounded-full bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary"
             >
               #{tag}
             </span>
@@ -80,7 +80,7 @@ export default async function NoteViewPage({
             ↗ {note.task.title}
           </Link>
         )}
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="text-xs text-muted-foreground">
           Updated{' '}
           {new Date(note.updatedAt).toLocaleDateString('en-GB', {
             day: 'numeric',
@@ -102,7 +102,7 @@ export default async function NoteViewPage({
           stored in the DB. Only the authenticated note owner can access this page.
           generateHTML does not allow script injection from JSON. */}
       <div
-        className="prose prose-zinc max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-a:text-teal-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-teal-400 prose-code:rounded prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-zinc-800 prose-pre:rounded-lg prose-pre:bg-zinc-100 dark:prose-pre:bg-zinc-800 prose-blockquote:border-teal-300 prose-blockquote:not-italic dark:prose-blockquote:border-teal-700 prose-li:my-0.5 prose-p:leading-relaxed"
+        className="prose prose-zinc max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:rounded prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-zinc-800 prose-pre:rounded-lg prose-pre:bg-zinc-100 dark:prose-pre:bg-zinc-800 prose-blockquote:border-primary/40 prose-blockquote:not-italic prose-li:my-0.5 prose-p:leading-relaxed"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>

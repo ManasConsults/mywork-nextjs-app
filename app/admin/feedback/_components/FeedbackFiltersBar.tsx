@@ -21,10 +21,8 @@ const STATUS_FILTERS = [
   { value: 'RESOLVED', label: 'Resolved' },
 ] as const;
 
-const ACTIVE_CLS =
-  'bg-teal-600 text-white dark:bg-zinc-50 dark:text-zinc-900';
-const INACTIVE_CLS =
-  'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200';
+const ACTIVE_CLS = 'bg-primary text-primary-foreground';
+const INACTIVE_CLS = 'text-muted-foreground hover:text-foreground';
 
 function buildHref(type: string | null, status: string | null): string {
   const params = new URLSearchParams();
@@ -49,7 +47,7 @@ export function FeedbackFiltersBar({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
       {/* Type group */}
-      <div className="flex items-center gap-1 rounded-lg border border-zinc-200 p-1 dark:border-zinc-700">
+      <div className="flex items-center gap-1 rounded-lg border border-border p-1">
         {TYPE_FILTERS.map((f) => {
           const isActive = f.value === activeType;
           return (
@@ -69,7 +67,7 @@ export function FeedbackFiltersBar({
       </div>
 
       {/* Status group */}
-      <div className="flex items-center gap-1 rounded-lg border border-zinc-200 p-1 dark:border-zinc-700">
+      <div className="flex items-center gap-1 rounded-lg border border-border p-1">
         {STATUS_FILTERS.map((f) => {
           const isActive = f.value === activeStatus;
           return (

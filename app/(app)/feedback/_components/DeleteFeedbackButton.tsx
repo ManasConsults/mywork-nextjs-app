@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Trash2, Loader2 } from 'lucide-react';
 
 import { deleteMyFeedbackAction } from '@/lib/actions/feedback';
+import { Button } from '@/components/ui/button';
 
 export function DeleteFeedbackButton({ id }: { id: string }): React.JSX.Element {
   const router = useRouter();
@@ -24,17 +25,19 @@ export function DeleteFeedbackButton({ id }: { id: string }): React.JSX.Element 
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={handleDelete}
       disabled={deleting}
       aria-label="Delete submission"
-      className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+      className="h-8 w-8 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
     >
       {deleting
         ? <Loader2 size={14} className="animate-spin" aria-hidden="true" />
         : <Trash2 size={14} aria-hidden="true" />
       }
-    </button>
+    </Button>
   );
 }

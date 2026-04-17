@@ -24,9 +24,9 @@ export async function WorkLogListServer({ userId, filters }: Props): Promise<Rea
   return (
     <>
       {totalHours > 0 && (
-        <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mb-4 text-sm text-muted-foreground">
           Total logged:{' '}
-          <span className="font-medium text-teal-600 dark:text-teal-400">
+          <span className="font-medium text-primary">
             {formatHours(totalHours)}
           </span>
           {' '}across {total} {total === 1 ? 'entry' : 'entries'}

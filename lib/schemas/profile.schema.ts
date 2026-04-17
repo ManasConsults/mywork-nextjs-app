@@ -17,6 +17,8 @@ const SUPPORTED_CURRENCIES = [
 export type SupportedCurrency = typeof SUPPORTED_CURRENCIES[number];
 export { SUPPORTED_CURRENCIES };
 
+const THEME_COLORS = ['teal', 'blue', 'indigo', 'purple', 'rose', 'orange', 'green'] as const;
+
 export const updateSettingsSchema = z.object({
   fiscalYearStartMonth: z
     .number()
@@ -24,6 +26,7 @@ export const updateSettingsSchema = z.object({
     .min(1, 'Month must be between 1 and 12')
     .max(12, 'Month must be between 1 and 12'),
   currency: z.enum(SUPPORTED_CURRENCIES).optional(),
+  themeColor: z.enum(THEME_COLORS).optional(),
 });
 
 export const changePasswordSchema = z

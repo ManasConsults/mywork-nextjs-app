@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 
 import { Check, X, Ban, Trash2 } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   setUserActiveAction,
   setUserRoleAction,
@@ -37,41 +39,16 @@ function userStatus(u: UserRow): 'ACTIVE' | 'PENDING' | 'REJECTED' {
   return 'PENDING';
 }
 
-// Desktop table styles (original inline styles)
-const th: React.CSSProperties = {
-  padding: '0.75rem 1rem',
-  textAlign: 'left',
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  color: '#6b7280',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
-  whiteSpace: 'nowrap',
+const STATUS_BADGE_CLS: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
+  ACTIVE:   'bg-success/10 text-success',
+  PENDING:  'bg-warning/10 text-warning',
+  REJECTED: 'bg-destructive/10 text-destructive',
 };
 
-const STATUS_BADGE: Record<'ACTIVE' | 'PENDING' | 'REJECTED', React.CSSProperties> = {
-  ACTIVE:   { backgroundColor: '#dcfce7', color: '#166534' },
-  PENDING:  { backgroundColor: '#fef9c3', color: '#854d0e' },
-  REJECTED: { backgroundColor: '#fee2e2', color: '#991b1b' },
-};
-
-const ROW_BG: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
-  ACTIVE:   'transparent',
-  PENDING:  '#fffbeb',
-  REJECTED: '#fff1f2',
-};
-
-// Mobile card styles (Tailwind classes)
-const CARD_STATUS_BADGE: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
-  ACTIVE:   'bg-green-100 text-green-800',
-  PENDING:  'bg-yellow-100 text-yellow-800',
-  REJECTED: 'bg-red-100 text-red-800',
-};
-
-const CARD_ROW_BG: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
+const ROW_BG_CLS: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
   ACTIVE:   '',
-  PENDING:  'bg-yellow-50',
-  REJECTED: 'bg-red-50',
+  PENDING:  'bg-warning/5',
+  REJECTED: 'bg-destructive/5',
 };
 
 const STATUS_LABEL: Record<'ACTIVE' | 'PENDING' | 'REJECTED', string> = {
@@ -95,61 +72,33 @@ function ActionButtons({
   onReject: (id: string) => void;
   onDelete: (id: string, name: string | null) => void;
 }): React.JSX.Element {
-  const btn = size === 'md'
-    ? 'w-10 h-10 flex items-center justify-center rounded-md border-2 cursor-pointer disabled:cursor-not-allowed transition-colors'
-    : 'w-9 h-9 flex items-center justify-center rounded-md border-2 cursor-pointer disabled:cursor-not-allowed transition-colors';
-  const iconSize = size === 'md' ? 18 : 16;
+  const btnSize: 'icon-sm' | 'icon-xs' = size === 'md' ? 'icon-sm' : 'icon-xs';
 
   return (
-    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+    <div className="flex gap-1.5 items-center">
       {status === 'PENDING' && (
         <>
-          <button
-            onClick={() => onToggleActive(user.id, false)}
-            disabled={isPending}
-            title="Approve"
-            className={`${btn} border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700`}
-          >
-            <Check size={iconSize} aria-hidden="true" />
-          </button>
-          <button
-            onClick={() => onReject(user.id)}
-            disabled={isPending}
-            title="Reject"
-            className={`${btn} border-red-300 bg-white text-red-600 hover:bg-red-50`}
-          >
-            <X size={iconSize} aria-hidden="true" />
-          </button>
+          <Button size={btnSize} onClick={() => onToggleActive(user.id, false)} disabled={isPending} title="Approve" aria-label="Approve">
+            <Check aria-hidden="true" />
+          </Button>
+          <Button size={btnSize} variant="outline" onClick={() => onReject(user.id)} disabled={isPending} title="Reject" aria-label="Reject">
+            <X aria-hidden="true" />
+          </Button>
         </>
       )}
       {status === 'ACTIVE' && (
-        <button
-          onClick={() => onToggleActive(user.id, true)}
-          disabled={isPending}
-          title="Deactivate"
-          className={`${btn} border-red-300 bg-white text-red-600 hover:bg-red-50`}
-        >
-          <Ban size={iconSize} aria-hidden="true" />
-        </button>
+        <Button size={btnSize} variant="outline" onClick={() => onToggleActive(user.id, true)} disabled={isPending} title="Deactivate" aria-label="Deactivate">
+          <Ban aria-hidden="true" />
+        </Button>
       )}
       {status === 'REJECTED' && (
-        <button
-          onClick={() => onToggleActive(user.id, false)}
-          disabled={isPending}
-          title="Approve"
-          className={`${btn} border-teal-600 bg-teal-600 text-white hover:bg-teal-700 hover:border-teal-700`}
-        >
-          <Check size={iconSize} aria-hidden="true" />
-        </button>
+        <Button size={btnSize} onClick={() => onToggleActive(user.id, false)} disabled={isPending} title="Approve" aria-label="Approve">
+          <Check aria-hidden="true" />
+        </Button>
       )}
-      <button
-        onClick={() => onDelete(user.id, user.name)}
-        disabled={isPending}
-        title="Delete"
-        className={`${btn} border-red-300 bg-red-50 text-red-600 hover:bg-red-100`}
-      >
-        <Trash2 size={iconSize} aria-hidden="true" />
-      </button>
+      <Button size={btnSize} variant="destructive" onClick={() => onDelete(user.id, user.name)} disabled={isPending} title="Delete" aria-label="Delete">
+        <Trash2 aria-hidden="true" />
+      </Button>
     </div>
   );
 }
@@ -248,18 +197,19 @@ export function UserTable({
   ];
 
   return (
-    <div style={{ opacity: isPending ? 0.7 : 1, transition: 'opacity 0.15s' }}>
+    <div className={cn('transition-opacity duration-150', isPending && 'opacity-70')}>
       {/* Filter tabs */}
       <div className="mb-4 flex flex-wrap gap-2">
         {tabs.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setFilter(id)}
-            className={`py-1.5 px-4 rounded-full border text-[13px] font-medium cursor-pointer transition-colors ${
+            className={cn(
+              'py-1.5 px-4 rounded-full border text-[13px] font-medium cursor-pointer transition-colors',
               filter === id
-                ? 'bg-teal-600 border-teal-600 text-white hover:bg-teal-700 hover:border-teal-700'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
+                ? 'bg-primary border-primary text-primary-foreground hover:bg-primary/90 hover:border-primary/70'
+                : 'bg-background border-border text-muted-foreground hover:bg-accent hover:text-foreground'
+            )}
           >
             {label}
           </button>
@@ -269,7 +219,7 @@ export function UserTable({
       {/* Mobile card list */}
       <div className="flex flex-col gap-3 md:hidden">
         {filtered.length === 0 && (
-          <p className="py-10 text-center text-sm text-gray-400">No users found.</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">No users found.</p>
         )}
         {filtered.map((user) => {
           const isSelf = user.id === currentUserId;
@@ -277,17 +227,17 @@ export function UserTable({
           return (
             <div
               key={user.id}
-              className={`rounded-xl border border-gray-200 bg-white p-4 ${CARD_ROW_BG[status]}`}
+              className={cn('rounded-xl border border-border bg-card p-4', ROW_BG_CLS[status])}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {user.name ?? '—'}
-                    {isSelf && <span className="ml-1.5 text-xs text-gray-400">(you)</span>}
+                    {isSelf && <span className="ml-1.5 text-xs text-muted-foreground">(you)</span>}
                   </p>
-                  <p className="truncate text-xs text-gray-500">{user.email}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${CARD_STATUS_BADGE[status]}`}>
+                <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium', STATUS_BADGE_CLS[status])}>
                   {STATUS_LABEL[status]}
                 </span>
               </div>
@@ -297,33 +247,33 @@ export function UserTable({
                   value={user.role}
                   disabled={isSelf || isPending}
                   onChange={(e) => changeRole(user.id, e.target.value as Role)}
-                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 disabled:cursor-not-allowed"
+                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground disabled:cursor-not-allowed"
                 >
                   {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   {new Date(user.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-1.5 text-xs text-gray-600">
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <input
                     type="checkbox"
                     checked={user.moduleWork}
                     disabled={isSelf || isPending}
                     onChange={(e) => changeModules(user.id, e.target.checked, user.moduleFinance)}
-                    className="accent-teal-600"
+                    className="accent-primary"
                   />
                   Work
                 </label>
-                <label className="flex items-center gap-1.5 text-xs text-gray-600">
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <input
                     type="checkbox"
                     checked={user.moduleFinance}
                     disabled={isSelf || isPending}
                     onChange={(e) => changeModules(user.id, user.moduleWork, e.target.checked)}
-                    className="accent-teal-600"
+                    className="accent-primary"
                   />
                   Finance
                 </label>
@@ -331,7 +281,7 @@ export function UserTable({
                   value={user.employmentType}
                   disabled={isSelf || isPending}
                   onChange={(e) => changeEmploymentType(user.id, e.target.value)}
-                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 disabled:cursor-not-allowed"
+                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground disabled:cursor-not-allowed"
                 >
                   <option value="EMPLOYED">Employee</option>
                   <option value="SOLE_TRADER">Sole Trader</option>
@@ -340,11 +290,11 @@ export function UserTable({
               </div>
 
               {errors[user.id] && (
-                <p className="mt-2 text-xs text-red-600">{errors[user.id]}</p>
+                <p className="mt-2 text-xs text-destructive">{errors[user.id]}</p>
               )}
 
               {!isSelf && (
-                <div className="mt-3 border-t border-gray-100 pt-3">
+                <div className="mt-3 border-t border-border/60 pt-3">
                   <ActionButtons
                     user={user}
                     status={status}
@@ -361,26 +311,25 @@ export function UserTable({
         })}
       </div>
 
-      {/* Desktop table — original styling restored */}
-      <div className="max-md:hidden overflow-x-auto rounded-xl border border-gray-200 bg-white">
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      {/* Desktop table */}
+      <div className="max-md:hidden overflow-x-auto rounded-xl border border-border bg-card">
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-              <th style={th}>User</th>
-              <th style={th}>Role</th>
-              <th style={th}>Modules</th>
-              <th style={th}>Employment</th>
-              <th style={th}>Status</th>
-              <th style={th}>Joined</th>
-              <th style={{ ...th, textAlign: 'right' }}>Actions</th>
+            <tr className="bg-muted/50 border-b border-border">
+              <th className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">User</th>
+              <th className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">Role</th>
+              <th className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">Modules</th>
+              <th className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">Employment</th>
+              <th className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">Status</th>
+              <th className="px-3 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={7}
-                  style={{ padding: '2.5rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem' }}
+                  colSpan={6}
+                  className="px-4 py-10 text-center text-sm text-muted-foreground"
                 >
                   No users found.
                 </td>
@@ -392,92 +341,54 @@ export function UserTable({
               return (
                 <tr
                   key={user.id}
-                  style={{
-                    borderBottom: i < filtered.length - 1 ? '1px solid #f3f4f6' : 'none',
-                    backgroundColor: ROW_BG[status],
-                  }}
+                  className={cn(
+                    ROW_BG_CLS[status],
+                    i < filtered.length - 1 && 'border-b border-border/60'
+                  )}
                 >
                   {/* User info */}
-                  <td style={{ padding: '0.875rem 1rem' }}>
-                    <div style={{ fontWeight: 500, fontSize: '0.875rem', color: '#111827' }}>
+                  <td className="px-3 py-2.5">
+                    <div className="text-sm font-medium text-foreground">
                       {user.name ?? '—'}
-                      {isSelf && (
-                        <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: '#9ca3af' }}>
-                          (you)
-                        </span>
-                      )}
+                      {isSelf && <span className="ml-1.5 text-[0.7rem] text-muted-foreground">(you)</span>}
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: '#6b7280' }}>{user.email}</div>
-                    {errors[user.id] && (
-                      <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.25rem' }}>
-                        {errors[user.id]}
-                      </div>
-                    )}
+                    <div className="text-xs text-muted-foreground">{user.email}</div>
+                    {errors[user.id] && <div className="mt-1 text-xs text-destructive">{errors[user.id]}</div>}
                   </td>
 
                   {/* Role */}
-                  <td style={{ padding: '0.875rem 1rem' }}>
+                  <td className="px-3 py-2.5">
                     <select
                       value={user.role}
                       disabled={isSelf || isPending}
                       onChange={(e) => changeRole(user.id, e.target.value as Role)}
-                      style={{
-                        fontSize: '0.8125rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        padding: '0.25rem 0.5rem',
-                        backgroundColor: '#ffffff',
-                        color: '#374151',
-                        cursor: isSelf ? 'not-allowed' : 'pointer',
-                      }}
+                      className="text-xs rounded-md border border-border bg-background px-2 py-1 text-foreground disabled:cursor-not-allowed"
                     >
-                      {ROLES.map((r) => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
+                      {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                     </select>
                   </td>
 
                   {/* Modules */}
-                  <td style={{ padding: '0.875rem 1rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: '#374151', cursor: isSelf ? 'not-allowed' : 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={user.moduleWork}
-                          disabled={isSelf || isPending}
-                          onChange={(e) => changeModules(user.id, e.target.checked, user.moduleFinance)}
-                          style={{ accentColor: '#0d9488' }}
-                        />
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center gap-3">
+                      <label className={cn('flex items-center gap-1 text-xs text-foreground', isSelf ? 'cursor-not-allowed' : 'cursor-pointer')}>
+                        <input type="checkbox" checked={user.moduleWork} disabled={isSelf || isPending} onChange={(e) => changeModules(user.id, e.target.checked, user.moduleFinance)} className="accent-primary" />
                         Work
                       </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: '#374151', cursor: isSelf ? 'not-allowed' : 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={user.moduleFinance}
-                          disabled={isSelf || isPending}
-                          onChange={(e) => changeModules(user.id, user.moduleWork, e.target.checked)}
-                          style={{ accentColor: '#0d9488' }}
-                        />
+                      <label className={cn('flex items-center gap-1 text-xs text-foreground', isSelf ? 'cursor-not-allowed' : 'cursor-pointer')}>
+                        <input type="checkbox" checked={user.moduleFinance} disabled={isSelf || isPending} onChange={(e) => changeModules(user.id, user.moduleWork, e.target.checked)} className="accent-primary" />
                         Finance
                       </label>
                     </div>
                   </td>
 
                   {/* Employment type */}
-                  <td style={{ padding: '0.875rem 1rem' }}>
+                  <td className="px-3 py-2.5">
                     <select
                       value={user.employmentType}
                       disabled={isSelf || isPending}
                       onChange={(e) => changeEmploymentType(user.id, e.target.value)}
-                      style={{
-                        fontSize: '0.8125rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        padding: '0.25rem 0.5rem',
-                        backgroundColor: '#ffffff',
-                        color: '#374151',
-                        cursor: isSelf ? 'not-allowed' : 'pointer',
-                      }}
+                      className={cn('text-xs rounded-md border border-border bg-background px-2 py-1 text-foreground', isSelf ? 'cursor-not-allowed' : 'cursor-pointer')}
                     >
                       <option value="EMPLOYED">Employee</option>
                       <option value="SOLE_TRADER">Sole Trader</option>
@@ -486,32 +397,14 @@ export function UserTable({
                   </td>
 
                   {/* Status badge */}
-                  <td style={{ padding: '0.875rem 1rem' }}>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '0.25rem 0.625rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        ...STATUS_BADGE[status],
-                      }}
-                    >
+                  <td className="px-3 py-2.5">
+                    <span className={cn('inline-block rounded-full px-2.5 py-1 text-xs font-medium', STATUS_BADGE_CLS[status])}>
                       {STATUS_LABEL[status]}
                     </span>
                   </td>
 
-                  {/* Joined */}
-                  <td style={{ padding: '0.875rem 1rem', fontSize: '0.8125rem', color: '#6b7280' }}>
-                    {new Date(user.createdAt).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </td>
-
                   {/* Actions */}
-                  <td style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>
+                  <td className="px-3 py-2.5 text-right">
                     {!isSelf && (
                       <ActionButtons
                         user={user}

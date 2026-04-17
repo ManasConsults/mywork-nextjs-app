@@ -42,12 +42,12 @@ function StatCard({
   icon: React.ReactNode;
 }): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center justify-between">
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{label}</p>
-        <span className="text-zinc-400 dark:text-zinc-500">{icon}</span>
+        <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+        <span className="text-muted-foreground">{icon}</span>
       </div>
-      <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+      <p className="mt-2 text-3xl font-bold text-foreground">
         {value.toLocaleString()}
       </p>
     </div>
@@ -59,20 +59,20 @@ function StatCard({
 function RoleBadge({ role }: { role: string }): React.JSX.Element {
   if (role === 'ADMIN') {
     return (
-      <span className="inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+      <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
         Admin
       </span>
     );
   }
   if (role === 'MANAGER') {
     return (
-      <span className="inline-flex items-center rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
+      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
         Manager
       </span>
     );
   }
   return (
-    <span className="text-xs text-zinc-500 dark:text-zinc-400">Member</span>
+    <span className="text-xs text-muted-foreground">Member</span>
   );
 }
 
@@ -81,7 +81,7 @@ function RoleBadge({ role }: { role: string }): React.JSX.Element {
 function UserAvatar({ name, email }: { name: string | null; email: string }): React.JSX.Element {
   const initial = (name ?? email)[0]?.toUpperCase() ?? '?';
   return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
       {initial}
     </span>
   );
@@ -91,7 +91,7 @@ function UserAvatar({ name, email }: { name: string | null; email: string }): Re
 
 function CountCell({ value }: { value: number }): React.JSX.Element {
   if (value === 0) {
-    return <span className="text-zinc-300 dark:text-zinc-600">&#8212;</span>;
+    return <span className="text-muted-foreground/40">&#8212;</span>;
   }
   return <span>{value}</span>;
 }
@@ -100,49 +100,42 @@ function CountCell({ value }: { value: number }): React.JSX.Element {
 
 function UserRow({
   user,
-  index,
 }: {
   user: UserUsageStats;
-  index: number;
 }): React.JSX.Element {
-  const isEven = index % 2 === 0;
-  const rowBg = isEven
-    ? 'bg-white dark:bg-zinc-900'
-    : 'bg-zinc-50 dark:bg-zinc-800/50';
-
   return (
-    <tr className={rowBg}>
-      <td className="border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
+    <tr className="hover:bg-muted/30 transition-colors">
+      <td className="border-t border-border/60 px-4 py-3">
         <div className="flex items-center gap-2">
           <UserAvatar name={user.name} email={user.email} />
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
-              {user.name ?? <span className="italic text-zinc-400">No name</span>}
+            <p className="truncate text-sm font-medium text-foreground">
+              {user.name ?? <span className="italic text-muted-foreground">No name</span>}
             </p>
-            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
       </td>
-      <td className="border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
+      <td className="border-t border-border/60 px-4 py-3">
         <RoleBadge role={user.role} />
       </td>
-      <td className="border-t border-zinc-100 px-4 py-3 text-sm text-zinc-700 tabular-nums dark:border-zinc-800 dark:text-zinc-300">
+      <td className="border-t border-border/60 px-4 py-3 text-sm text-foreground tabular-nums">
         <CountCell value={user.taskCount} />
       </td>
-      <td className="border-t border-zinc-100 px-4 py-3 text-sm text-zinc-700 tabular-nums dark:border-zinc-800 dark:text-zinc-300">
+      <td className="border-t border-border/60 px-4 py-3 text-sm text-foreground tabular-nums">
         <CountCell value={user.workLogCount} />
       </td>
-      <td className="border-t border-zinc-100 px-4 py-3 text-sm text-zinc-700 tabular-nums dark:border-zinc-800 dark:text-zinc-300">
+      <td className="border-t border-border/60 px-4 py-3 text-sm text-foreground tabular-nums">
         <CountCell value={user.achievementCount} />
       </td>
-      <td className="border-t border-zinc-100 px-4 py-3 text-sm text-zinc-700 tabular-nums dark:border-zinc-800 dark:text-zinc-300">
+      <td className="border-t border-border/60 px-4 py-3 text-sm text-foreground tabular-nums">
         <CountCell value={user.noteCount} />
       </td>
-      <td className="border-t border-zinc-100 px-4 py-3 text-sm text-zinc-700 tabular-nums dark:border-zinc-800 dark:text-zinc-300">
+      <td className="border-t border-border/60 px-4 py-3 text-sm text-foreground tabular-nums">
         <CountCell value={user.todoCount} />
       </td>
-      <td className="border-t border-zinc-100 px-4 py-3 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-        {user.lastActiveAt ? relativeTime(user.lastActiveAt) : <span className="text-zinc-300 dark:text-zinc-600">&#8212;</span>}
+      <td className="border-t border-border/60 px-4 py-3 text-xs text-muted-foreground">
+        {user.lastActiveAt ? relativeTime(user.lastActiveAt) : <span className="text-muted-foreground/40">&#8212;</span>}
       </td>
     </tr>
   );
@@ -155,14 +148,6 @@ export default async function AdminDashboardPage(): Promise<React.JSX.Element> {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Usage Dashboard</h1>
-        <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-          Snapshot of activity across all users and modules.
-        </p>
-      </div>
-
       {/* Summary stat cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard
@@ -199,56 +184,56 @@ export default async function AdminDashboardPage(): Promise<React.JSX.Element> {
 
       {/* Per-user activity table */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">
           Per-user Activity
         </h2>
 
         {stats.users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white py-16 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16">
             <Users
               size={40}
-              className="text-zinc-300 dark:text-zinc-600"
+              className="text-muted-foreground"
               aria-hidden="true"
             />
-            <p className="mt-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">No users yet</p>
-            <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+            <p className="mt-3 text-sm font-medium text-muted-foreground">No users yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">
               Users will appear here once they have been created.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <div className="overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full min-w-180 border-collapse text-left">
               <thead>
-                <tr className="bg-zinc-50 dark:bg-zinc-800/50">
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                <tr className="bg-muted/50">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     User
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Role
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Tasks
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Work Logs
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Achievements
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Notes
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Todos
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Last Active
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {stats.users.map((user, index) => (
-                  <UserRow key={user.id} user={user} index={index} />
+                {stats.users.map((user) => (
+                  <UserRow key={user.id} user={user} />
                 ))}
               </tbody>
             </table>

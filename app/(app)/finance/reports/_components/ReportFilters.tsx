@@ -2,12 +2,11 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
-type ReportType = 'pnl' | 'cashflow' | 'tax' | 'unbilled';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-interface ClientOption {
-  id: string;
-  name: string;
-}
+type ReportType = 'pnl' | 'cashflow' | 'tax' | 'unbilled';
 
 interface ReportFiltersProps {
   type: ReportType;
@@ -16,14 +15,7 @@ interface ReportFiltersProps {
   currentCategoryType?: string;
   currentMonths?: string;
   currentTaxYear?: string;
-  clients?: ClientOption[];
 }
-
-const selectCls =
-  'rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
-
-const inputCls =
-  'rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
 
 const CATEGORY_TYPES = [
   { value: '', label: 'All categories' },
@@ -38,23 +30,16 @@ const MONTHS_OPTIONS = [
   { value: '12', label: 'Last 12 months' },
 ] as const;
 
-/**
- * Build an array of tax year options.
- * UK: April 6 start; Calendar: January 1 start.
- * Returns the current year and the previous 2 years for each mode.
- */
 function buildTaxYearOptions(): { value: string; label: string }[] {
   const currentYear = new Date().getFullYear();
   const options: { value: string; label: string }[] = [];
 
   for (let i = 0; i < 3; i++) {
     const year = currentYear - i;
-    // UK tax year e.g. "2025-04-06" for 2025/26
     options.push({
       value: `uk-${year}`,
       label: `${year}/${String(year + 1).slice(-2)} (UK Apr–Mar)`,
     });
-    // Calendar year e.g. "2025-01-01" for 2025
     options.push({
       value: `cal-${year}`,
       label: `${year} (Calendar Jan–Dec)`,
@@ -100,98 +85,80 @@ export function ReportFilters({
 
   return (
     <div className="mb-6">
-      {/* Tab navigation */}
-      <div className="mb-5 flex gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900/60">
+      <div className="mb-5 flex gap-1 rounded-xl border border-border bg-muted/50 p-1/60">
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab.key}
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => switchTab(tab.key)}
-            className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-lg text-sm font-medium transition-colors ${
               type === tab.key
-                ? 'bg-white text-teal-700 shadow-sm dark:bg-zinc-800 dark:text-teal-400'
-                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                ? 'bg-card text-primary shadow-sm hover:bg-card'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 
-      {/* Per-tab filter controls */}
       {type === 'pnl' && (
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-sm text-zinc-500 dark:text-zinc-400">From</label>
-            <input
-              type="date"
-              value={currentFrom ?? ''}
-              onChange={(e) => updateParam('from', e.target.value)}
-              className={inputCls}
-              aria-label="P&L from date"
-            />
+            <span className="text-sm text-muted-foreground">From</span>
+            <Input type="date" value={currentFrom ?? ''} onChange={(e) => updateParam('from', e.target.value)} className="w-36" aria-label="P&L from date" />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm text-zinc-500 dark:text-zinc-400">To</label>
-            <input
-              type="date"
-              value={currentTo ?? ''}
-              onChange={(e) => updateParam('to', e.target.value)}
-              className={inputCls}
-              aria-label="P&L to date"
-            />
+            <span className="text-sm text-muted-foreground">To</span>
+            <Input type="date" value={currentTo ?? ''} onChange={(e) => updateParam('to', e.target.value)} className="w-36" aria-label="P&L to date" />
           </div>
-          <select
-            value={currentCategoryType ?? ''}
-            onChange={(e) => updateParam('categoryType', e.target.value)}
-            className={selectCls}
-            aria-label="Filter by category type"
-          >
-            {CATEGORY_TYPES.map((ct) => (
-              <option key={ct.value} value={ct.value}>
-                {ct.label}
-              </option>
-            ))}
-          </select>
+          <Select value={currentCategoryType ?? ''} onValueChange={(v) => updateParam('categoryType', v === '_all' ? '' : v)}>
+            <SelectTrigger className="w-44" aria-label="Filter by category type">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              {CATEGORY_TYPES.map((ct) => (
+                <SelectItem key={ct.value || '_all'} value={ct.value || '_all'}>{ct.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
       {type === 'cashflow' && (
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={currentMonths ?? '12'}
-            onChange={(e) => updateParam('months', e.target.value)}
-            className={selectCls}
-            aria-label="Select number of months"
-          >
-            {MONTHS_OPTIONS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+          <Select value={currentMonths ?? '12'} onValueChange={(v) => updateParam('months', v)}>
+            <SelectTrigger className="w-44" aria-label="Select number of months">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTHS_OPTIONS.map((m) => (
+                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
       {type === 'tax' && (
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={currentTaxYear ?? taxYearOptions[0]?.value ?? ''}
-            onChange={(e) => updateParam('taxYear', e.target.value)}
-            className={selectCls}
-            aria-label="Select tax year"
-          >
-            {taxYearOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Select value={currentTaxYear ?? taxYearOptions[0]?.value ?? ''} onValueChange={(v) => updateParam('taxYear', v)}>
+            <SelectTrigger className="w-52" aria-label="Select tax year">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {taxYearOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
       {type === 'unbilled' && (
-        <p className="text-sm text-zinc-400 dark:text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           Showing all unbilled billable work logs with no filters.
         </p>
       )}

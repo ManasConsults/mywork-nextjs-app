@@ -3,6 +3,8 @@
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { Button } from '@/components/ui/button';
+
 interface DeleteButtonProps {
   id: string;
   title: string;
@@ -22,12 +24,14 @@ export function DeleteButton({ id, title, action }: DeleteButtonProps): React.JS
   }
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={handleDelete}
       disabled={isPending}
-      className="rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
+      className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
     >
       {isPending ? 'Deleting…' : 'Delete achievement'}
-    </button>
+    </Button>
   );
 }

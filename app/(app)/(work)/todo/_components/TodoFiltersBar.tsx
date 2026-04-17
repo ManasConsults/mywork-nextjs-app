@@ -3,6 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { TODO_SORT_BY, TODO_STATUS_FILTER, TODO_PAGE_SIZES } from '@/lib/schemas/todo.schema';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface TodoFiltersBarProps {
   currentStatus: string;
@@ -23,9 +26,6 @@ const SORT_BY_LABELS: Record<string, string> = {
   status: 'Status',
 };
 
-const SELECT_CLS =
-  'rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300';
-
 export function TodoFiltersBar({
   currentStatus,
   currentSortBy,
@@ -35,7 +35,7 @@ export function TodoFiltersBar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  function updateParam(key: string, value: string, resetPage = true) {
+  function updateParam(key: string, value: string, resetPage = true): void {
     const params = new URLSearchParams(searchParams.toString());
     params.set(key, value);
     if (resetPage) params.delete('page');
@@ -44,61 +44,58 @@ export function TodoFiltersBar({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {/* Status filter */}
-      <div className="flex items-center gap-1 rounded-lg border border-zinc-200 p-1 dark:border-zinc-700">
+      <div className="flex items-center gap-1 rounded-lg border border-border p-1">
         {TODO_STATUS_FILTER.map((s) => (
-          <button
+          <Button
             key={s}
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => updateParam('status', s)}
-            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+            className={cn(
+              'rounded-md px-3 py-1 text-sm font-medium transition-colors',
               currentStatus === s
-                ? 'bg-teal-600 text-white dark:bg-zinc-50 dark:text-zinc-900'
-                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-            }`}
+                ? 'bg-primary text-white hover:bg-primary hover:text-white dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-accent/40'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',
+            )}
           >
             {STATUS_LABELS[s]}
-          </button>
+          </Button>
         ))}
       </div>
 
-      {/* Sort + page size pushed right */}
       <div className="ml-auto flex items-center gap-2">
-        <select
-          value={currentSortBy}
-          onChange={(e) => updateParam('sortBy', e.target.value, false)}
-          className={SELECT_CLS}
-          aria-label="Sort by"
-        >
-          {TODO_SORT_BY.map((s) => (
-            <option key={s} value={s}>
-              {SORT_BY_LABELS[s]}
-            </option>
-          ))}
-        </select>
+        <Select value={currentSortBy} onValueChange={(v) => updateParam('sortBy', v, false)}>
+          <SelectTrigger className="w-36" aria-label="Sort by">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TODO_SORT_BY.map((s) => (
+              <SelectItem key={s} value={s}>{SORT_BY_LABELS[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
-          value={currentSortOrder}
-          onChange={(e) => updateParam('sortOrder', e.target.value, false)}
-          className={SELECT_CLS}
-          aria-label="Sort order"
-        >
-          <option value="desc">Newest first</option>
-          <option value="asc">Oldest first</option>
-        </select>
+        <Select value={currentSortOrder} onValueChange={(v) => updateParam('sortOrder', v, false)}>
+          <SelectTrigger className="w-32" aria-label="Sort order">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Newest first</SelectItem>
+            <SelectItem value="asc">Oldest first</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <select
-          value={currentPageSize}
-          onChange={(e) => updateParam('pageSize', e.target.value)}
-          className={SELECT_CLS}
-          aria-label="Items per page"
-        >
-          {TODO_PAGE_SIZES.map((n) => (
-            <option key={n} value={n}>
-              {n} per page
-            </option>
-          ))}
-        </select>
+        <Select value={String(currentPageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
+          <SelectTrigger className="w-28" aria-label="Items per page">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TODO_PAGE_SIZES.map((n) => (
+              <SelectItem key={n} value={String(n)}>{n} per page</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

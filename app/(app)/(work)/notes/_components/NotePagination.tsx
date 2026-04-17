@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { Button } from '@/components/ui/button';
+
 interface NotePaginationProps {
   page: number;
   totalPages: number;
@@ -32,49 +34,35 @@ export function NotePagination({
 
   return (
     <div className="mt-4 flex items-center justify-between text-sm">
-      <p className="text-zinc-500 dark:text-zinc-400">
+      <p className="text-muted-foreground">
         {from}–{to} of {total}
       </p>
 
       <div className="flex items-center gap-1">
-        <button
-          onClick={() => goToPage(page - 1)}
-          disabled={page <= 1}
-          className="rounded-md border border-zinc-200 px-2.5 py-1.5 text-zinc-600 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          aria-label="Previous page"
-        >
+        <Button variant="outline" size="sm" onClick={() => goToPage(page - 1)} disabled={page <= 1} aria-label="Previous page">
           ‹
-        </button>
+        </Button>
 
         {pages.map((p, i) =>
           p === null ? (
-            <span key={`ellipsis-${i}`} className="px-1 text-zinc-400">
-              …
-            </span>
+            <span key={`ellipsis-${i}`} className="px-1 text-zinc-400">…</span>
           ) : (
-            <button
+            <Button
               key={p}
+              variant={p === page ? 'default' : 'outline'}
+              size="sm"
               onClick={() => goToPage(p)}
               aria-current={p === page ? 'page' : undefined}
-              className={`rounded-md border px-2.5 py-1.5 transition-colors ${
-                p === page
-                  ? 'border-teal-600 bg-teal-600 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900'
-                  : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800'
-              }`}
+              className={p === page ? 'bg-primary text-white hover:bg-primary/90 border-primary dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:border-zinc-50' : ''}
             >
               {p}
-            </button>
+            </Button>
           ),
         )}
 
-        <button
-          onClick={() => goToPage(page + 1)}
-          disabled={page >= totalPages}
-          className="rounded-md border border-zinc-200 px-2.5 py-1.5 text-zinc-600 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          aria-label="Next page"
-        >
+        <Button variant="outline" size="sm" onClick={() => goToPage(page + 1)} disabled={page >= totalPages} aria-label="Next page">
           ›
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -84,7 +72,6 @@ function buildPageRange(current: number, total: number): (number | null)[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
   const pages: (number | null)[] = [1];
-
   if (current > 3) pages.push(null);
 
   const start = Math.max(2, current - 1);
@@ -92,7 +79,6 @@ function buildPageRange(current: number, total: number): (number | null)[] {
   for (let p = start; p <= end; p++) pages.push(p);
 
   if (current < total - 2) pages.push(null);
-
   pages.push(total);
   return pages;
 }

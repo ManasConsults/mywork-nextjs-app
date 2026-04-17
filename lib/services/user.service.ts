@@ -30,6 +30,7 @@ export async function updateSettings(
     data: {
       fiscalYearStartMonth: data.fiscalYearStartMonth,
       ...(data.currency !== undefined ? { currency: data.currency } : {}),
+      ...(data.themeColor !== undefined ? { themeColor: data.themeColor } : {}),
     },
   });
 }

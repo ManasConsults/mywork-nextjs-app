@@ -19,10 +19,9 @@ export default async function ClientsPage(): Promise<React.JSX.Element> {
     <div className="mx-auto max-w-4xl">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Clients</h1>
         <Link
           href="/finance/clients/new"
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
         >
           + New Client
         </Link>
@@ -30,54 +29,54 @@ export default async function ClientsPage(): Promise<React.JSX.Element> {
 
       {/* Client list */}
       {clients.length === 0 ? (
-        <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <p className="text-sm text-muted-foreground">
             No clients yet. Add your first client to start creating invoices.
           </p>
           <Link
             href="/finance/clients/new"
-            className="mt-4 inline-block rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
+            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
           >
             Add client
           </Link>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <table className="min-w-full divide-y divide-border">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Name
                 </th>
-                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 sm:table-cell">
+                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
                   Email
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Total Invoiced
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Outstanding
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-border/60">
               {clients.map((client) => (
-                <tr key={client.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                <tr key={client.id} className="hover:bg-accent/40">
                   <td className="px-4 py-3">
                     <Link
                       href={`/finance/clients/${client.id}`}
-                      className="text-sm font-medium text-zinc-900 hover:text-teal-600 dark:text-zinc-100 dark:hover:text-teal-400"
+                      className="text-sm font-medium text-zinc-900 hover:text-primary"
                     >
                       {client.name}
                     </Link>
                   </td>
-                  <td className="hidden px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 sm:table-cell">
-                    {client.email ?? <span className="italic text-zinc-300 dark:text-zinc-600">—</span>}
+                  <td className="hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell">
+                    {client.email ?? <span className="italic text-foreground">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
+                  <td className="px-4 py-3 text-right text-sm text-foreground">
                     {fromMinorUnit(client.totalInvoiced, client.currency)}
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-medium">
@@ -95,7 +94,7 @@ export default async function ClientsPage(): Promise<React.JSX.Element> {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/finance/clients/${client.id}/edit`}
-                        className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        className="rounded-lg border border-border px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-accent/40 dark:text-zinc-400"
                       >
                         Edit
                       </Link>

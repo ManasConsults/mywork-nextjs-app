@@ -17,19 +17,19 @@ interface WorkLogsPageProps {
 
 function WorkLogListSkeleton(): React.JSX.Element {
   return (
-    <div className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="divide-y divide-border/60 rounded-lg border border-border bg-card">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex animate-pulse items-start gap-4 px-4 py-3">
           <div className="flex-1 space-y-1.5">
             <div className="flex gap-2">
-              <div className="h-3 w-20 rounded bg-zinc-100 dark:bg-zinc-800" />
-              <div className="h-3 w-32 rounded bg-zinc-100 dark:bg-zinc-800" />
+              <div className="h-3 w-20 rounded bg-zinc-100" />
+              <div className="h-3 w-32 rounded bg-zinc-100" />
             </div>
-            <div className="h-4 w-3/4 rounded bg-zinc-100 dark:bg-zinc-800" />
-            <div className="h-3 w-1/2 rounded bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-4 w-3/4 rounded bg-zinc-100" />
+            <div className="h-3 w-1/2 rounded bg-zinc-100" />
           </div>
           <div className="flex shrink-0 gap-2">
-            <div className="h-5 w-12 rounded-full bg-zinc-100 dark:bg-zinc-800" />
+            <div className="h-5 w-12 rounded-full bg-zinc-100" />
           </div>
         </div>
       ))}
@@ -57,10 +57,9 @@ export default async function WorkLogsPage({ searchParams }: WorkLogsPageProps):
   return (
     <div>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Work Logs</h1>
         <Link
           href="/work-logs/new"
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           + New work log
         </Link>
