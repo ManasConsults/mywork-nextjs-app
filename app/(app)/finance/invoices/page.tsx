@@ -8,6 +8,7 @@ import { fromMinorUnit } from '@/lib/utils/money';
 import type { InvoiceStatus } from '@prisma/client';
 import { DeleteInvoiceButton } from './_components/DeleteInvoiceButton';
 
+export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'MyWork — Invoices' };
 
 const STATUS_LABELS: Record<string, string> = {
