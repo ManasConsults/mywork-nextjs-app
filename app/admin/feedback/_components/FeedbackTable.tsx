@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageSquarePlus } from 'lucide-react';
+import Link from 'next/link';
+import { MessageSquarePlus, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -80,7 +81,25 @@ const TD_CLS = 'px-4 py-3';
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): React.JSX.Element {
+interface FeedbackTableProps {
+  initialRows: FeedbackRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  activeType: string;
+  activeStatus: string;
+}
+
+export function FeedbackTable({
+  initialRows,
+  total,
+  page,
+  pageSize,
+  totalPages,
+  activeType,
+  activeStatus,
+}: FeedbackTableProps): React.JSX.Element {
   const [rows, setRows] = useState<FeedbackRow[]>(initialRows);
   const [selected, setSelected] = useState<FeedbackRow | null>(null);
 
@@ -91,8 +110,13 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
     }
   }
 
-  function handleRowClick(row: FeedbackRow) {
-    setSelected(row);
+  function buildPageHref(p: number): string {
+    const params = new URLSearchParams();
+    params.set('type', activeType);
+    params.set('status', activeStatus);
+    if (pageSize !== 10) params.set('pageSize', String(pageSize));
+    if (p > 1) params.set('page', String(p));
+    return `/admin/feedback?${params.toString()}`;
   }
 
   if (rows.length === 0) {
@@ -112,14 +136,14 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       {/* ── Mobile card list (hidden on md+) ─────────────────────────────── */}
       <div className="rounded-xl border border-border bg-card divide-y divide-border md:hidden">
         {rows.map((row) => (
           <button
             key={row.id}
             type="button"
-            onClick={() => handleRowClick(row)}
+            onClick={() => setSelected(row)}
             className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30"
             aria-label={`View details for: ${row.title}`}
           >
@@ -155,10 +179,10 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
               <tr
                 key={row.id}
                 className={ROW_CLS}
-                onClick={() => handleRowClick(row)}
+                onClick={() => setSelected(row)}
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') handleRowClick(row);
+                  if (e.key === 'Enter' || e.key === ' ') setSelected(row);
                 }}
                 aria-label={`View details for: ${row.title}`}
               >
@@ -189,6 +213,42 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
         </table>
       </div>
 
+      {/* ── Pagination ────────────────────────────────────────────────────── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-muted-foreground">
+            {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
+          </p>
+          <div className="flex items-center gap-1">
+            <Link
+              href={buildPageHref(page - 1)}
+              aria-label="Previous page"
+              aria-disabled={page <= 1}
+              className={cn(
+                'inline-flex size-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
+                page <= 1 && 'pointer-events-none opacity-40',
+              )}
+            >
+              <ChevronLeft size={14} />
+            </Link>
+            <span className="px-2 text-xs tabular-nums text-muted-foreground">
+              {page} / {totalPages}
+            </span>
+            <Link
+              href={buildPageHref(page + 1)}
+              aria-label="Next page"
+              aria-disabled={page >= totalPages}
+              className={cn(
+                'inline-flex size-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
+                page >= totalPages && 'pointer-events-none opacity-40',
+              )}
+            >
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Detail panel */}
       {selected && (
         <FeedbackDetailPanel
@@ -197,6 +257,6 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
           onStatusUpdated={handleStatusUpdated}
         />
       )}
-    </>
+    </div>
   );
 }

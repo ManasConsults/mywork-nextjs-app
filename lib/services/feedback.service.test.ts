@@ -18,6 +18,7 @@ jest.mock('@/lib/db/prisma', () => ({
       create: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      count: jest.fn(),
       updateMany: jest.fn(),
       deleteMany: jest.fn(),
     },
@@ -104,36 +105,69 @@ describe('getFeedbackSubmissionsByUser', () => {
     const older = { ...baseSubmission, id: 'submission-2', createdAt: new Date('2026-02-01T10:00:00Z') };
     const newer = { ...baseSubmission, id: 'submission-1', createdAt: new Date('2026-03-01T10:00:00Z') };
     mockFeedbackSubmission.findMany.mockResolvedValue([newer, older]);
+    mockFeedbackSubmission.count.mockResolvedValue(2);
 
     const result = await getFeedbackSubmissionsByUser(userId);
 
     expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      skip: 0,
+      take: 10,
     });
-    expect(result).toHaveLength(2);
-    expect(result[0].id).toBe('submission-1');
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].id).toBe('submission-1');
+    expect(result.total).toBe(2);
+    expect(result.page).toBe(1);
+    expect(result.pageSize).toBe(10);
+    expect(result.totalPages).toBe(1);
   });
 
-  it('should return an empty array when the user has no submissions', async () => {
+  it('should return empty items when the user has no submissions', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([]);
+    mockFeedbackSubmission.count.mockResolvedValue(0);
 
     const result = await getFeedbackSubmissionsByUser(userId);
 
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.total).toBe(0);
+    expect(result.totalPages).toBe(0);
+  });
+
+  it('should apply type and status filters when provided', async () => {
+    mockFeedbackSubmission.findMany.mockResolvedValue([baseSubmission]);
+    mockFeedbackSubmission.count.mockResolvedValue(1);
+
+    await getFeedbackSubmissionsByUser(userId, { type: 'BUG', status: 'OPEN' });
+
+    expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId, type: 'BUG', status: 'OPEN' } }),
+    );
+  });
+
+  it('should paginate correctly with page and pageSize options', async () => {
+    mockFeedbackSubmission.findMany.mockResolvedValue([baseSubmission]);
+    mockFeedbackSubmission.count.mockResolvedValue(25);
+
+    const result = await getFeedbackSubmissionsByUser(userId, { page: 2, pageSize: 10 });
+
+    expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10, take: 10 }),
+    );
+    expect(result.page).toBe(2);
+    expect(result.totalPages).toBe(3);
   });
 
   it('should not return submissions belonging to another user', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([]);
+    mockFeedbackSubmission.count.mockResolvedValue(0);
 
-    await getFeedbackSubmissionsByUser('other-user');
+    const result = await getFeedbackSubmissionsByUser('other-user');
 
     expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { userId: 'other-user' } }),
     );
-    // Confirm the query is scoped — it would not return user-1 submissions
-    const result = await getFeedbackSubmissionsByUser('other-user');
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
   });
 });
 
@@ -147,55 +181,59 @@ describe('getAllFeedbackSubmissions', () => {
 
   it('should return all submissions when no filters are provided', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([submissionWithUser]);
+    mockFeedbackSubmission.count.mockResolvedValue(1);
 
     const result = await getAllFeedbackSubmissions({});
 
-    expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith({
-      where: {},
-      orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, email: true } } },
-    });
-    expect(result).toHaveLength(1);
+    expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {},
+        orderBy: { createdAt: 'desc' },
+        include: { user: { select: { name: true, email: true } } },
+      }),
+    );
+    expect(result.items).toHaveLength(1);
+    expect(result.total).toBe(1);
+    expect(result.page).toBe(1);
+    expect(result.pageSize).toBe(10);
   });
 
   it('should filter by type when type filter is provided', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([submissionWithUser]);
+    mockFeedbackSubmission.count.mockResolvedValue(1);
 
     await getAllFeedbackSubmissions({ type: 'FEATURE_REQUEST' });
 
     expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { type: 'FEATURE_REQUEST' },
-      }),
+      expect.objectContaining({ where: { type: 'FEATURE_REQUEST' } }),
     );
   });
 
   it('should filter by status when status filter is provided', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([submissionWithUser]);
+    mockFeedbackSubmission.count.mockResolvedValue(1);
 
     await getAllFeedbackSubmissions({ status: 'IN_REVIEW' });
 
     expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { status: 'IN_REVIEW' },
-      }),
+      expect.objectContaining({ where: { status: 'IN_REVIEW' } }),
     );
   });
 
   it('should apply both type and status filters simultaneously', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([submissionWithUser]);
+    mockFeedbackSubmission.count.mockResolvedValue(1);
 
     await getAllFeedbackSubmissions({ type: 'BUG', status: 'RESOLVED' });
 
     expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { type: 'BUG', status: 'RESOLVED' },
-      }),
+      expect.objectContaining({ where: { type: 'BUG', status: 'RESOLVED' } }),
     );
   });
 
   it('should include user name and email in results', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([submissionWithUser]);
+    mockFeedbackSubmission.count.mockResolvedValue(1);
 
     const result = await getAllFeedbackSubmissions({});
 
@@ -204,12 +242,27 @@ describe('getAllFeedbackSubmissions', () => {
         include: { user: { select: { name: true, email: true } } },
       }),
     );
-    expect(result[0]).toHaveProperty('user');
-    expect(result[0].user.email).toBe('alice@example.com');
+    expect(result.items[0]).toHaveProperty('user');
+    expect(result.items[0].user.email).toBe('alice@example.com');
+  });
+
+  it('should paginate correctly with page and pageSize options', async () => {
+    mockFeedbackSubmission.findMany.mockResolvedValue([submissionWithUser]);
+    mockFeedbackSubmission.count.mockResolvedValue(35);
+
+    const result = await getAllFeedbackSubmissions({}, { page: 2, pageSize: 20 });
+
+    expect(mockFeedbackSubmission.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 20, take: 20 }),
+    );
+    expect(result.page).toBe(2);
+    expect(result.pageSize).toBe(20);
+    expect(result.totalPages).toBe(2);
   });
 
   it('should return results sorted by createdAt desc', async () => {
     mockFeedbackSubmission.findMany.mockResolvedValue([submissionWithUser]);
+    mockFeedbackSubmission.count.mockResolvedValue(1);
 
     await getAllFeedbackSubmissions({});
 

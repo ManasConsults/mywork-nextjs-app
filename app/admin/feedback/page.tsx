@@ -13,6 +13,9 @@ import type { FeedbackRow } from './_components/FeedbackTable';
 
 export const metadata: Metadata = { title: 'MyWork Admin — Feedback' };
 
+const VALID_PAGE_SIZES = [10, 20, 50] as const;
+type ValidPageSize = (typeof VALID_PAGE_SIZES)[number];
+
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
@@ -25,19 +28,35 @@ export default async function AdminFeedbackPage({ searchParams }: PageProps): Pr
 
   const rawParams = await searchParams;
 
+  // Coerce string | string[] | undefined → string
+  const rawType = Array.isArray(rawParams['type']) ? rawParams['type'][0] : rawParams['type'];
+  const rawStatus = Array.isArray(rawParams['status']) ? rawParams['status'][0] : rawParams['status'];
+  // 'all' = explicit "no filter"; absent = first-load default (OPEN)
+  const activeType = rawType === 'all' ? 'all' : (rawType ?? 'all');
+  const activeStatus = rawStatus === 'all' ? 'all' : (rawStatus ?? 'OPEN');
+
   const parsed = feedbackFiltersSchema.safeParse({
-    type: rawParams['type'],
-    status: rawParams['status'],
+    type: activeType === 'all' ? undefined : activeType,
+    status: activeStatus === 'all' ? undefined : activeStatus,
   });
 
   const filters = parsed.success ? parsed.data : {};
 
-  const submissions = await getAllFeedbackSubmissions({
-    type: filters.type as FeedbackType | undefined,
-    status: filters.status as FeedbackStatus | undefined,
-  });
+  const rawPageSize = parseInt(String(rawParams['pageSize'] ?? '10'), 10);
+  const pageSize: ValidPageSize = (VALID_PAGE_SIZES as readonly number[]).includes(rawPageSize)
+    ? (rawPageSize as ValidPageSize)
+    : 10;
+  const page = Math.max(1, parseInt(String(rawParams['page'] ?? '1'), 10) || 1);
 
-  const rows: FeedbackRow[] = submissions.map((s) => ({
+  const result = await getAllFeedbackSubmissions(
+    {
+      type: filters.type as FeedbackType | undefined,
+      status: filters.status as FeedbackStatus | undefined,
+    },
+    { page, pageSize },
+  );
+
+  const rows: FeedbackRow[] = result.items.map((s) => ({
     id: s.id,
     type: s.type,
     status: s.status,
@@ -48,18 +67,26 @@ export default async function AdminFeedbackPage({ searchParams }: PageProps): Pr
     user: s.user,
   }));
 
-  const activeType = filters.type ?? null;
-  const activeStatus = filters.status ?? null;
-
   return (
     <div className="flex flex-col gap-6">
-      {/* Filter bar — client component, needs Suspense for useSearchParams */}
       <Suspense>
-        <FeedbackFiltersBar activeType={activeType} activeStatus={activeStatus} />
+        <FeedbackFiltersBar
+          activeType={activeType}
+          activeStatus={activeStatus}
+          pageSize={pageSize}
+        />
       </Suspense>
 
-      {/* Table */}
-      <FeedbackTable initialRows={rows} />
+      <FeedbackTable
+        key={`${activeType}-${activeStatus}-${page}-${pageSize}`}
+        initialRows={rows}
+        total={result.total}
+        page={result.page}
+        pageSize={result.pageSize}
+        totalPages={result.totalPages}
+        activeType={activeType}
+        activeStatus={activeStatus}
+      />
     </div>
   );
 }
