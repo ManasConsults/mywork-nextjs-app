@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getTasksByUser } from '@/lib/services/task.service';
 import { noteFiltersSchema } from '@/lib/schemas/note.schema';
 import { NoteFiltersBar } from './_components/NoteFiltersBar';
@@ -17,20 +18,20 @@ interface NotesPageProps {
 
 function NoteListSkeleton(): React.JSX.Element {
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse rounded-lg border border-border bg-card p-4"
+          className="rounded-lg border border-border bg-card p-4"
         >
-          <div className="mb-2 h-4 w-1/2 rounded bg-muted" />
-          <div className="space-y-1.5">
-            <div className="h-3 w-full rounded bg-muted" />
-            <div className="h-3 w-3/4 rounded bg-muted" />
+          <Skeleton className="mb-2 h-4 w-1/2 rounded bg-muted" />
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-3 w-full rounded bg-muted" />
+            <Skeleton className="h-3 w-3/4 rounded bg-muted" />
           </div>
           <div className="mt-3 flex gap-2">
-            <div className="h-4 w-14 rounded-full bg-muted" />
-            <div className="h-4 w-20 rounded-full bg-muted" />
+            <Skeleton className="h-4 w-14 rounded-full bg-muted" />
+            <Skeleton className="h-4 w-20 rounded-full bg-muted" />
           </div>
         </div>
       ))}

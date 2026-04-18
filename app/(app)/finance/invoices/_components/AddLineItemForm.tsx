@@ -66,7 +66,7 @@ export function AddLineItemForm({ invoiceId }: AddLineItemFormProps): React.JSX.
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
       {rootError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
@@ -74,19 +74,19 @@ export function AddLineItemForm({ invoiceId }: AddLineItemFormProps): React.JSX.
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="space-y-1.5 sm:col-span-1">
+        <div className="flex flex-col gap-1.5 sm:col-span-1">
           <Label htmlFor="description">Description <span className="text-red-500">*</span></Label>
           <Input id="description" name="description" type="text" placeholder="Service description" maxLength={500} required disabled={isPending} aria-invalid={!!fieldErrors.description} />
           {fieldErrors.description?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="quantity">Quantity <span className="text-red-500">*</span></Label>
           <Input id="quantity" name="quantity" type="number" step="0.01" min="0.01" placeholder="1.00" required disabled={isPending} aria-invalid={!!fieldErrors.quantity} />
           {fieldErrors.quantity?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.quantity[0]}</p>}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="unitPrice">Unit Price <span className="text-red-500">*</span></Label>
           <Input id="unitPrice" name="unitPrice" type="number" step="0.01" min="0.01" placeholder="0.00" required disabled={isPending} aria-invalid={!!fieldErrors.unitPrice} />
           {fieldErrors.unitPrice?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.unitPrice[0]}</p>}

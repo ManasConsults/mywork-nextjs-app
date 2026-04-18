@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { cn } from '@/lib/utils';
+
 interface FeedbackFiltersBarProps {
   activeType: string | null;
   activeStatus: string | null;
@@ -55,9 +57,7 @@ export function FeedbackFiltersBar({
               key={f.value ?? 'all-type'}
               type="button"
               onClick={() => navigate(f.value, activeStatus)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                isActive ? ACTIVE_CLS : INACTIVE_CLS
-              }`}
+              className={cn('rounded-md px-3 py-1 text-sm font-medium transition-colors', isActive ? ACTIVE_CLS : INACTIVE_CLS)}
               aria-pressed={isActive}
             >
               {f.label}
@@ -75,9 +75,7 @@ export function FeedbackFiltersBar({
               key={f.value ?? 'all-status'}
               type="button"
               onClick={() => navigate(activeType, f.value)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                isActive ? ACTIVE_CLS : INACTIVE_CLS
-              }`}
+              className={cn('rounded-md px-3 py-1 text-sm font-medium transition-colors', isActive ? ACTIVE_CLS : INACTIVE_CLS)}
               aria-pressed={isActive}
             >
               {f.label}

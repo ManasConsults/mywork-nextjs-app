@@ -69,7 +69,7 @@ export default async function InvoiceDetailPage({
     : [];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl flex flex-col gap-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-3">
         <Link
@@ -85,7 +85,7 @@ export default async function InvoiceDetailPage({
       {/* Invoice header */}
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-semibold text-foreground">
                 {invoice.invoiceNumber}
@@ -120,7 +120,7 @@ export default async function InvoiceDetailPage({
               Export PDF
             </Link>
 
-            <div className="text-sm text-muted-foreground text-right space-y-1">
+            <div className="text-sm text-muted-foreground text-right flex flex-col gap-1">
             <p>
               <span className="font-medium">Issue date:</span> {formatDate(invoice.issueDate)}
             </p>
@@ -199,7 +199,7 @@ export default async function InvoiceDetailPage({
 
         {/* Totals */}
         <div className="border-t border-border px-6 py-4">
-          <div className="ml-auto max-w-xs space-y-2 text-sm">
+          <div className="ml-auto max-w-xs flex flex-col gap-2 text-sm">
             <div className="flex justify-between text-muted-foreground">
               <span>Subtotal</span>
               <span>{fromMinorUnit(invoice.subtotal, invoice.currency)}</span>
@@ -229,7 +229,7 @@ export default async function InvoiceDetailPage({
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-green-800 dark:text-green-400">
             Payment Details
           </h2>
-          <dl className="space-y-1.5 text-sm">
+          <dl className="flex flex-col gap-1.5 text-sm">
             <div className="flex gap-4">
               <dt className="w-36 shrink-0 text-muted-foreground">Account name</dt>
               <dd className="font-medium text-foreground">{invoice.paymentAccount.name}</dd>

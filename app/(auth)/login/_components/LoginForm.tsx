@@ -160,7 +160,7 @@ export function LoginForm(): React.JSX.Element {
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="flex flex-col gap-4">
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">Email address</Label>
             <Input
               id="email"
@@ -181,7 +181,7 @@ export function LoginForm(): React.JSX.Element {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link

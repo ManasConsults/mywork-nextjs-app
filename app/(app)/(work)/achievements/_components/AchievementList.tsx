@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import type { Achievement } from '@prisma/client';
 
+import { cn } from '@/lib/utils';
 import { deleteAchievementAction } from '@/lib/actions/achievement';
 import { Button } from '@/components/ui/button';
 
@@ -78,7 +79,7 @@ export function AchievementList({
               </Link>
               {a.category && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_BADGE[a.category] ?? 'bg-muted text-foreground'}`}
+                  className={cn('rounded-full px-2 py-0.5 text-xs font-medium', CATEGORY_BADGE[a.category] ?? 'bg-muted text-foreground')}
                 >
                   {a.category}
                 </span>

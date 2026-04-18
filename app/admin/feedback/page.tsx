@@ -52,7 +52,7 @@ export default async function AdminFeedbackPage({ searchParams }: PageProps): Pr
   const activeStatus = filters.status ?? null;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Filter bar — client component, needs Suspense for useSearchParams */}
       <Suspense>
         <FeedbackFiltersBar activeType={activeType} activeStatus={activeStatus} />

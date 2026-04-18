@@ -109,23 +109,19 @@ function SummaryCard({
         {label}
       </p>
       <p
-        className={`mt-1 text-2xl font-bold ${
-          isExpense
-            ? 'text-red-600 dark:text-red-400'
-            : highlight
-              ? 'text-primary'
-              : 'text-foreground'
-        }`}
+        className={cn(
+          'mt-1 text-2xl font-bold',
+          isExpense ? 'text-red-600 dark:text-red-400' : highlight ? 'text-primary' : 'text-foreground',
+        )}
       >
         {value}
       </p>
       {change !== undefined && changeLabel && (
         <p
-          className={`mt-1 text-xs ${
-            isPositiveChange
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-red-600 dark:text-red-400'
-          }`}
+          className={cn(
+            'mt-1 text-xs',
+            isPositiveChange ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+          )}
         >
           {isPositiveChange ? '+' : ''}
           {fromMinorUnit(change, currency)} {changeLabel}
@@ -148,7 +144,7 @@ function CategoryTypeBadge({ type }: { type: string }): React.JSX.Element {
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${cls[type] ?? cls.PERSONAL}`}
+      className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold', cls[type] ?? cls.PERSONAL)}
     >
       {labels[type] ?? type}
     </span>
@@ -238,7 +234,7 @@ async function ProfitAndLossReport({
   const netChange = data.net - (data.previousIncome - data.previousExpenses);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <SummaryCard
           label="Total Income"
@@ -305,11 +301,10 @@ async function ProfitAndLossReport({
                     {row.expenses > 0 ? fromMinorUnit(row.expenses, currency) : '—'}
                   </td>
                   <td
-                    className={`px-4 py-2.5 text-right text-sm font-medium ${
-                      row.income - row.expenses >= 0
-                        ? 'text-foreground'
-                        : 'text-red-600 dark:text-red-400'
-                    }`}
+                    className={cn(
+                      'px-4 py-2.5 text-right text-sm font-medium',
+                      row.income - row.expenses >= 0 ? 'text-foreground' : 'text-red-600 dark:text-red-400',
+                    )}
                   >
                     {fromMinorUnit(row.income - row.expenses, currency)}
                   </td>
@@ -383,11 +378,10 @@ async function CashFlowReport({
                   {m.expenses > 0 ? fromMinorUnit(m.expenses, currency) : '—'}
                 </td>
                 <td
-                  className={`px-4 py-2.5 text-right text-sm font-semibold ${
-                    m.net >= 0
-                      ? 'text-primary'
-                      : 'text-red-600 dark:text-red-400'
-                  }`}
+                  className={cn(
+                    'px-4 py-2.5 text-right text-sm font-semibold',
+                    m.net >= 0 ? 'text-primary' : 'text-red-600 dark:text-red-400',
+                  )}
                 >
                   {fromMinorUnit(m.net, currency)}
                 </td>
@@ -418,7 +412,7 @@ async function TaxSummaryReport({
   const totalWorkRelated = data.workRelatedExpenses.reduce((s, e) => s + e.amount, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/20">
         <p className="text-sm text-amber-800 dark:text-amber-300">
           <strong>Disclaimer:</strong> This report is for reference only and does not constitute
@@ -482,7 +476,7 @@ async function UnbilledHoursReport({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {data.clients.map((client) => (
         <div
           key={client.clientId}

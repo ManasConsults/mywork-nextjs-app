@@ -124,14 +124,14 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {rootError && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="title">Title</Label>
         <Input
           id="title"
@@ -146,7 +146,7 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
         )}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
@@ -163,7 +163,7 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Category</Label>
           <Select value={category} onValueChange={setCategory} disabled={isPending}>
             <SelectTrigger aria-invalid={!!fieldErrors.category}>
@@ -183,7 +183,7 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="dateAchieved">Date achieved</Label>
           <Input
             id="dateAchieved"
@@ -199,7 +199,7 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
         </div>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Impact rating</Label>
         <StarRating value={impactRating} onChange={setImpactRating} />
         {fieldErrors.impactRating?.[0] && (
@@ -208,7 +208,7 @@ export function AchievementForm({ achievement, tasks }: AchievementFormProps): R
       </div>
 
       {tasks.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Linked task (optional)</Label>
           <Select value={taskId} onValueChange={setTaskId} disabled={isPending}>
             <SelectTrigger aria-invalid={!!fieldErrors.taskId}>

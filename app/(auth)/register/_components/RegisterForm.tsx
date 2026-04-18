@@ -108,7 +108,7 @@ export function RegisterForm(): React.JSX.Element {
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="flex flex-col gap-4">
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Full name</Label>
             <Input
               id="name"
@@ -129,7 +129,7 @@ export function RegisterForm(): React.JSX.Element {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">Email address</Label>
             <Input
               id="email"
@@ -150,7 +150,7 @@ export function RegisterForm(): React.JSX.Element {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <p className="text-sm font-medium text-foreground">How do you work?</p>
             <div className="flex flex-col gap-2" role="radiogroup" aria-label="Employment type">
               {EMPLOYMENT_OPTIONS.map(({ value, label, description }) => (
@@ -187,7 +187,7 @@ export function RegisterForm(): React.JSX.Element {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
@@ -212,7 +212,7 @@ export function RegisterForm(): React.JSX.Element {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="confirmPassword">Confirm password</Label>
             <Input
               id="confirmPassword"

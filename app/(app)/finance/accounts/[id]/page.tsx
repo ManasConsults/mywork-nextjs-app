@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { cn } from '@/lib/utils';
 import { getAccountById, getAccountBalance } from '@/lib/services/finance/account.service';
 import { getTransactions } from '@/lib/services/finance/transaction.service';
 import { fromMinorUnit } from '@/lib/utils/money';
@@ -193,11 +194,10 @@ export default async function AccountDetailPage({
                         {tx.category.name}
                       </td>
                       <td
-                        className={`whitespace-nowrap px-4 py-3 text-right text-sm font-medium ${
-                          isIncome
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
+                        className={cn(
+                          'whitespace-nowrap px-4 py-3 text-right text-sm font-medium',
+                          isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                        )}
                       >
                         {isIncome ? '+' : '-'}
                         {fromMinorUnit(tx.amount, currency)}

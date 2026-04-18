@@ -56,7 +56,7 @@ export default async function AccountsPage(): Promise<React.JSX.Element> {
           </Link>
         </div>
       ) : (
-        <ul className="space-y-3" role="list">
+        <ul className="flex flex-col gap-3" role="list">
           {accountsWithBalances.map((acc) => (
             <li
               key={acc.id}

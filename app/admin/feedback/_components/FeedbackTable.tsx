@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { MessageSquarePlus } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
+
 import { FeedbackDetailPanel } from './FeedbackDetailPanel';
 
 export interface FeedbackRow {
@@ -163,7 +165,7 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
                 <td className={TD_CLS}>
                   <TypeBadge type={row.type} />
                 </td>
-                <td className={`${TD_CLS} max-w-xs truncate text-sm font-medium text-foreground`}>
+                <td className={cn(TD_CLS, 'max-w-xs truncate text-sm font-medium text-foreground')}>
                   {row.title}
                 </td>
                 <td className={TD_CLS}>
@@ -172,10 +174,10 @@ export function FeedbackTable({ initialRows }: { initialRows: FeedbackRow[] }): 
                   </p>
                   <p className="text-xs text-muted-foreground">{row.user.email}</p>
                 </td>
-                <td className={`${TD_CLS} text-sm text-muted-foreground`}>
+                <td className={cn(TD_CLS, 'text-sm text-muted-foreground')}>
                   {row.module}
                 </td>
-                <td className={`${TD_CLS} text-sm tabular-nums text-muted-foreground`}>
+                <td className={cn(TD_CLS, 'text-sm tabular-nums text-muted-foreground')}>
                   {formatDate(row.createdAt)}
                 </td>
                 <td className={TD_CLS}>

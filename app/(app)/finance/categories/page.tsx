@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import type { Category } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
+import { cn } from '@/lib/utils';
 import { getCategories, seedDefaultCategories } from '@/lib/services/finance/category.service';
 import { CategoryForm } from './_components/CategoryForm';
 import { DeleteCategoryButton } from './_components/DeleteCategoryButton';
@@ -105,7 +106,7 @@ export default async function CategoriesPage({
       )}
 
       {/* Category groups */}
-      <div className="space-y-8">
+      <div className="flex flex-col gap-8">
         {visibleTypes.map((type) => {
           const meta = TYPE_META[type];
           const categories = grouped[type];
@@ -115,7 +116,7 @@ export default async function CategoriesPage({
               <div className="mb-3 flex items-center gap-2">
                 <span
                   id={`heading-${type}`}
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${meta.badgeCls}`}
+                  className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold', meta.badgeCls)}
                 >
                   {meta.label}
                 </span>
@@ -151,7 +152,7 @@ export default async function CategoriesPage({
                       <div className="flex min-w-0 items-center gap-3">
                         {/* Colour dot */}
                         <span
-                          className={`h-3 w-3 shrink-0 rounded-full ${!cat.colour ? meta.dotCls : ''}`}
+                          className={cn('h-3 w-3 shrink-0 rounded-full', !cat.colour && meta.dotCls)}
                           style={cat.colour ? { backgroundColor: cat.colour } : undefined}
                           aria-hidden="true"
                         />

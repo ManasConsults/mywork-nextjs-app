@@ -82,52 +82,52 @@ export function ClientForm({ client }: ClientFormProps): React.JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {rootError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
         <Input id="name" name="name" type="text" defaultValue={client?.name ?? ''} placeholder="e.g. Acme Corp" required disabled={isPending} aria-invalid={!!fieldErrors.name} />
         {fieldErrors.name?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.name[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="contactName">Point of Contact</Label>
         <Input id="contactName" name="contactName" type="text" defaultValue={client?.contactName ?? ''} placeholder="e.g. Jane Smith" disabled={isPending} aria-invalid={!!fieldErrors.contactName} />
         {fieldErrors.contactName?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.contactName[0]}</p>}
         <p className="text-xs text-muted-foreground">The person invoices are addressed to at this business.</p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" defaultValue={client?.email ?? ''} placeholder="e.g. billing@acme.com" disabled={isPending} aria-invalid={!!fieldErrors.email} />
         {fieldErrors.email?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.email[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="phone">Phone</Label>
         <Input id="phone" name="phone" type="tel" defaultValue={client?.phone ?? ''} placeholder="e.g. +44 7700 900000" disabled={isPending} aria-invalid={!!fieldErrors.phone} />
         {fieldErrors.phone?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.phone[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="address">Address</Label>
         <Textarea id="address" name="address" defaultValue={client?.address ?? ''} rows={3} placeholder="Billing address (optional)" disabled={isPending} aria-invalid={!!fieldErrors.address} />
         {fieldErrors.address?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.address[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="defaultRate">Default Hourly Rate</Label>
         <Input id="defaultRate" name="defaultRate" type="number" step="0.01" min="0.01" defaultValue={defaultRateDisplay} placeholder="e.g. 75.00" disabled={isPending} aria-invalid={!!fieldErrors.defaultRate} />
         {fieldErrors.defaultRate?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.defaultRate[0]}</p>}
         <p className="text-xs text-muted-foreground">Enter the hourly rate as a decimal, e.g. 75.00</p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="notes">Notes</Label>
         <Textarea id="notes" name="notes" defaultValue={client?.notes ?? ''} rows={4} placeholder="Internal notes about this client (optional)" disabled={isPending} aria-invalid={!!fieldErrors.notes} />
         {fieldErrors.notes?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.notes[0]}</p>}

@@ -197,7 +197,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
             <h2 className="text-3xl font-bold text-foreground">How it works</h2>
             <p className="mt-3 text-muted-foreground">Up and running in minutes.</p>
           </div>
-          <ol className="relative mx-auto max-w-2xl space-y-8">
+          <ol className="relative mx-auto max-w-2xl flex flex-col gap-8">
             {steps.map((s, i) => (
               <li key={s.step} className="flex gap-5">
                 <div className="shrink-0 flex flex-col items-center">

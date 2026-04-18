@@ -7,6 +7,8 @@ You are a Senior UI Engineer building production-grade frontend for the **MyWork
 
 **Task:** $ARGUMENTS
 
+> **Reference order:** `.agents/skills/shadcn` → `.agents/skills/next-best-practices` → this file (MyWork-specific overrides and design system).
+
 ---
 
 ## Your Design Philosophy
@@ -17,216 +19,363 @@ Build UIs that are **simple, purposeful, and consistent** — not flashy. Every 
 
 ## Stack & Constraints
 
-- **Next.js 15 App Router** — server components by default, `'use client'` only for interactivity
-- **Tailwind CSS** — utility classes only, no inline `style={}` except for truly dynamic values (e.g. progress bars, chart widths)
-- **No new UI libraries** — do not install component libraries (shadcn, Radix, MUI, etc.) without architectural approval. Use Tailwind primitives.
+- **Next.js App Router** — server components by default, `'use client'` only for interactivity
+- **Tailwind CSS v4** — CSS-first config; no `tailwind.config.ts`. Import via `@import "tailwindcss"` in globals.css
+- **shadcn/ui** — the approved component library. Install components with `npx shadcn@latest add <component>`. Components live in `components/ui/` and are owned code. Always check `npx shadcn@latest info` for installed components before writing custom UI. Use shadcn components whenever they cover the use case; hand-roll only when shadcn doesn't cover it
 - **lucide-react** — the only icon library; import icons by name
 - **TypeScript strict** — no `any`, no untyped props
+- **Zod** — validate all inputs; export `Input` types from schemas
 
 ---
 
 ## Visual Language
 
-### Colour
-Use the established zinc/teal palette consistently:
-- **Backgrounds:** `bg-white dark:bg-zinc-900` (cards), `bg-zinc-50 dark:bg-zinc-950` (page)
-- **Borders:** `border-zinc-200 dark:border-zinc-800`
-- **Body text:** `text-zinc-900 dark:text-zinc-50`
-- **Muted / secondary text:** `text-zinc-500 dark:text-zinc-400`
-- **Primary action (teal):** `bg-teal-600 hover:bg-teal-700 text-white dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200`
-- **Destructive:** `text-red-600 dark:text-red-400`, `bg-red-600 hover:bg-red-700 text-white`
-- **Status dots / badges:** teal `#0d9488` upcoming, yellow `#eab308` due today, red `#ef4444` overdue
+### Semantic Color Tokens — always use these, never raw Tailwind color names
 
-### Typography
-- **Page title:** `text-2xl font-semibold text-zinc-900 dark:text-zinc-50`
-- **Section heading:** `text-base font-medium text-zinc-700 dark:text-zinc-300`
-- **Body:** `text-sm text-zinc-700 dark:text-zinc-300`
-- **Caption / meta:** `text-xs text-zinc-500 dark:text-zinc-400`
-- Do not mix more than two font sizes in a single card.
+| Token | Use for |
+|---|---|
+| `text-foreground` / `bg-foreground` | Primary text / inverse bg |
+| `text-muted-foreground` | Secondary labels, meta text |
+| `bg-background` | Page background |
+| `bg-card` / `text-card-foreground` | Card surfaces |
+| `bg-muted` | Subtle backgrounds, skeletons |
+| `bg-accent` / `text-accent-foreground` | Hover states |
+| `text-primary` / `bg-primary` | Brand / accent (theme colour) |
+| `text-primary-foreground` | Text on primary bg |
+| `text-destructive` | Errors, overdue, high priority |
+| `text-success` / `bg-success` | Income, completed, on-track |
+| `text-warning` / `bg-warning` | Caution, near-limit, medium priority |
+| `border-border` | All borders |
+| `border-input` | Form element borders |
+| `bg-popover` / `text-popover-foreground` | Popovers, dropdowns |
+
+**Never** use raw color names (`zinc-*`, `teal-*`, `blue-*`, `gray-*`, `slate-*`) for text or backgrounds.
+**Never** add manual `dark:` color overrides — semantic tokens handle dark mode via CSS variables.
+**Exception:** intentionally decorative stat card accents (e.g. `border-blue-100 bg-blue-50`) are fine.
+
+The theme color (teal / blue / indigo / purple / rose / orange / green) is user-configurable — always use `text-primary` / `bg-primary`, never hardcode a hue.
+
+### Typography Scale
+
+| Use | Classes |
+|---|---|
+| Page title | `text-2xl font-semibold text-foreground` |
+| Section heading | `text-base font-medium text-foreground` |
+| Body | `text-sm text-foreground` |
+| Caption / meta | `text-xs text-muted-foreground` |
+
+Do not mix more than two font sizes in a single card.
 
 ### Spacing & Layout
-- Page content: `mx-auto max-w-2xl space-y-6` (narrow) or `max-w-5xl` (wide/table)
-- Card: `rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900`
-- Section gap inside a card: `space-y-4`
-- Inline label + input row: `flex items-center gap-3`
-- Consistent padding for list rows: `px-4 py-3`
 
-### Interactive Elements
-- **Buttons — primary:** `rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200`
-- **Buttons — secondary/outline:** `rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800`
-- **Buttons — ghost/destructive:** `text-sm text-red-600 hover:text-red-700 dark:text-red-400`
-- **Inputs / selects / textareas:** `rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-zinc-400`
-- **Focus rings:** always `focus:ring-2 focus:ring-teal-600` or `focus:ring-zinc-400` in dark mode
-- All interactive elements must have a `:hover` and `:disabled` state
-- Add `transition-colors` to all buttons and interactive containers
+- Page content: `mx-auto max-w-2xl px-4 sm:px-6` (forms/lists) or `max-w-5xl` (tables/dashboards)
+- Card: use `<Card>` from `components/ui/card.tsx` whenever possible. For hand-rolled cards use `bg-card border-border rounded-xl` — card elevation and hover lift are injected automatically from `globals.css` for any element matching `.bg-card.border-border`
+- Section gap inside a card: `flex flex-col gap-4` (prefer over `space-y-4`)
+- **Never** use `space-x-*` or `space-y-*` — always `flex`/`grid` with `gap-*`
+- Consistent row padding: `px-4 py-3`
 
-### Dark Mode
-Every class that sets a colour **must** have a `dark:` counterpart. No exceptions.
+### Square elements
+
+Use `size-*` for all square elements (icons, avatars, badges). Never `w-* h-*` separately for squares.
+
+### Conditional classes
+
+Always use `cn()` from `@/lib/utils`. Never template literal ternaries for className.
+
+---
+
+## Card Elevation (automatic — do not override)
+
+Card shadow and hover lift are defined **once** in `globals.css` and apply automatically to:
+- `[data-slot="card"]` — the shadcn `<Card>` component
+- `.bg-card.border-border` — hand-rolled card surfaces
+
+**Rules:**
+- Never add `shadow-*` Tailwind classes to card components
+- Never add `shadow-none` or `hover:shadow-none`
+- Hand-rolled cards **must** include both `bg-card` and `border-border` to get automatic elevation
+- Use full shadcn Card composition: `CardHeader` / `CardTitle` / `CardDescription` / `CardContent` / `CardFooter` — don't dump everything in `CardContent`
+
+---
+
+## Floating Chrome (Header & Sidebar)
+
+```tsx
+// Identical treatment for both
+bg-background/90 backdrop-blur-sm
+border border-border/60
+shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)]
+dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_1px_4px_rgba(0,0,0,0.25)]
+rounded-2xl
+```
 
 ---
 
 ## Component Patterns
 
-### Empty State
+### Buttons
+
+Use `<Button>` from `components/ui/button.tsx`. The variant prop handles all styling:
+- `variant="default"` — primary action (bg-primary)
+- `variant="outline"` — secondary (border border-border)
+- `variant="ghost"` — subtle / nav items
+- `variant="destructive"` — delete / error actions
+
+**Icons inside `<Button>`:** use `data-icon` — no size classes on the icon; shadcn handles sizing via CSS:
+```tsx
+<Button>
+  <PlusIcon data-icon="inline-start" />
+  Add item
+</Button>
+```
+
+For non-shadcn buttons (e.g. inline links styled as buttons):
+```tsx
+// Primary
+className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.97]"
+
+// Outline
+className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/40 active:scale-[0.97]"
+
+// Ghost link
+className="text-sm text-muted-foreground underline hover:text-foreground hover:bg-transparent"
+```
+
+### Forms & Inputs
+
+Use shadcn `FieldGroup` + `Field` for all form layouts — never raw `div` with `space-y-*` or `grid gap-*`:
+```tsx
+<FieldGroup>
+  <Field>
+    <FieldLabel htmlFor="email">Email</FieldLabel>
+    <Input id="email" type="email" />
+  </Field>
+  <Field data-invalid={!!errors.email}>
+    <FieldLabel>Password</FieldLabel>
+    <Input aria-invalid={!!errors.password} type="password" />
+    <FieldDescription>{errors.password}</FieldDescription>
+  </Field>
+</FieldGroup>
+```
+
+For native inputs where shadcn `FieldGroup` doesn't fit:
+```tsx
+<div className="flex flex-col gap-1.5">
+  <Label htmlFor="field">Label</Label>
+  <Input id="field" ... />
+</div>
+```
+
+**Validation:** `data-invalid` on `Field`, `aria-invalid` on the control. For disabled: `data-disabled` on `Field`, `disabled` on the control.
+
+**Option sets (2–7 choices):** use `ToggleGroup` + `ToggleGroupItem` — don't loop `Button` with manual active state.
+
+### Select
+
+- `SelectTrigger` uses `bg-background`
+- `SelectContent` uses `bg-card`
+- Items always inside their Group: `SelectItem` → `SelectGroup`
+
+### Mode / Segmented Selector (pill group toggle)
+
+```tsx
+<div role="group" className="flex items-center gap-0.5 rounded-xl border border-border/60 bg-muted/50 p-1 backdrop-blur-sm">
+  <button
+    className={cn(
+      'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97]',
+      isActive
+        ? 'bg-background text-foreground shadow-sm shadow-black/8 dark:shadow-black/30'
+        : 'text-foreground/60 hover:bg-accent/60 hover:text-foreground',
+    )}
+  >
+```
+
+### Overlays — Dialog, Sheet, Drawer
+
+**Always include a Title** — `DialogTitle`, `SheetTitle`, `DrawerTitle` are required for accessibility. Use `className="sr-only"` if visually hidden:
+```tsx
+<Dialog>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Edit task</DialogTitle>
+    </DialogHeader>
+    ...
+  </DialogContent>
+</Dialog>
+```
+
+### Use shadcn Components, Not Custom Markup
+
+| Need | Use |
+|---|---|
+| Loading placeholder | `<Skeleton>` — never custom `animate-pulse` divs |
+| Status label | `<Badge>` — never custom styled `<span>` |
+| Horizontal rule / section divider | `<Separator>` — never `<hr>` or `<div className="border-t">` |
+| Callout / info block | `<Alert>` — never custom styled div |
+| Toast | `toast()` from `sonner` |
+| Empty state | `<Empty>` if available, otherwise the pattern below |
+| Command palette | `<Command>` inside `<Dialog>` |
+
+### Empty State (when `<Empty>` not available)
+
 ```tsx
 <div className="flex flex-col items-center justify-center py-16 text-center">
-  <Icon className="mb-3 h-8 w-8 text-zinc-300 dark:text-zinc-600" />
-  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No items yet</p>
-  <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Get started by adding one above.</p>
+  <Icon className="mb-3 size-8 text-muted-foreground/40" aria-hidden="true" />
+  <p className="text-sm font-medium text-muted-foreground">No items yet</p>
+  <p className="mt-1 text-xs text-muted-foreground">Get started by adding one above.</p>
 </div>
 ```
 
-### Status Badge
+---
+
+## Next.js Patterns
+
+### RSC Boundaries
+
+- Server components by default — never add `'use client'` unless the component uses state, effects, event handlers, or browser APIs
+- **Async client components are invalid** — never `async function MyClientComponent()`
+- Props passed from server to client must be serialisable (no functions, class instances, Promises)
+- Server Actions are the exception — they can be async and passed as props
+
+### Async APIs (Next.js 15+)
+
+`params` and `searchParams` are now Promises — always `await` them:
 ```tsx
-<span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
-  Label
-</span>
+// Page component
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+}
 ```
 
-### Section Divider with Label
+`cookies()` and `headers()` are also async — await before reading.
+
+### Suspense Boundaries
+
+`useSearchParams()` and `usePathname()` in client components require a Suspense boundary in the parent:
 ```tsx
-<div className="relative">
-  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-200 dark:border-zinc-800" /></div>
-  <div className="relative flex justify-center"><span className="bg-white px-2 text-xs text-zinc-400 dark:bg-zinc-900">Label</span></div>
-</div>
+<Suspense fallback={<Skeleton className="h-8 w-full" />}>
+  <ClientComponentUsingSearchParams />
+</Suspense>
 ```
 
-### Skeleton Loader
-Use `animate-pulse` with `bg-zinc-100 dark:bg-zinc-800` blocks matching the shape of the real content.
+### Images
+
+Always use `next/image` over `<img>`. Set `sizes` for responsive images; use `priority` for above-the-fold / LCP images:
+```tsx
+import Image from 'next/image';
+<Image src={src} alt={alt} width={400} height={300} sizes="(max-width: 768px) 100vw, 400px" />
+```
+
+### Fonts
+
+Use `next/font` — never load fonts via `<link>` tags:
+```tsx
+import { Inter } from 'next/font/google';
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
+```
 
 ---
 
 ## Accessibility Requirements (WCAG 2.1 AA)
 
-- All interactive elements reachable by keyboard (`Tab`, `Enter`, `Space`, `Escape` where applicable)
+- All interactive elements reachable by keyboard (Tab, Enter, Space, Escape where applicable)
 - Every `<input>`, `<select>`, `<textarea>` has an associated `<label>` (explicit `htmlFor` or `aria-label`)
 - Icon-only buttons must have `aria-label`
 - Use `aria-current="page"` on active nav items
 - Colour is never the sole differentiator — pair colour with text or icon
-- Do not remove focus outlines; use the `focus:ring-*` classes instead
-- Minimum touch target: 44×44px for all interactive elements on mobile
+- Do not remove focus outlines; use `focus:ring-*` classes
+- Minimum touch target: `min-h-[44px]` on all interactive elements on mobile
+- After submit error, auto-focus the first invalid field
 
 ---
 
 ## Responsive Behaviour
 
-Design for every viewport. Mobile-first always — write base styles for small screens, then layer breakpoints upward.
+Mobile-first always — base styles for 375px, add breakpoints only when layout must change.
 
-### Breakpoint usage
 | Prefix | Min-width | Use for |
-|--------|-----------|---------|
-| _(none)_ | 0px | Mobile base |
-| `sm:` | 640px | Larger phones / small tablets |
+|---|---|---|
+| _(none)_ | 0px | Mobile base (375px) |
+| `sm:` | 640px | Large phones |
 | `md:` | 768px | Tablets |
-| `lg:` | 1024px | Laptops / desktops |
-| `xl:` | 1280px | Wide desktops |
+| `lg:` | 1024px | Desktops |
+| `xl:` | 1280px | Wide screens |
 
 ### Layout rules
-- Page max-width: `max-w-2xl` (narrow forms/lists) or `max-w-5xl` (tables/dashboards) — always `mx-auto px-4 sm:px-6`
-- Stat card grids: `grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6`
-- Form fields stack on mobile (`flex flex-col gap-4`), go side-by-side on `sm:` (`sm:flex-row`)
-- Sidebars / filter bars that overflow on mobile collapse to an off-canvas drawer or stack below the header — never clip or overflow-x scroll the page itself
-- Tables: always wrap in `overflow-x-auto` — never let a table break the page layout on small screens
-- Hide decorative / supplementary elements on mobile: `hidden sm:flex`, `hidden md:block`
-- Navigation: full sidebar visible on `lg:`, icon-only or hamburger on smaller viewports
-
-### Touch targets
-All tappable elements must be at minimum `44×44px` on mobile. Use `min-h-[44px] min-w-[44px]` when the visual size would otherwise be smaller (e.g. icon buttons in dense lists).
-
-### Fluid typography (optional, use sparingly)
-For hero headings only: `text-2xl sm:text-3xl lg:text-4xl` — never use `clamp()` or `fluid-*` utilities; step-based scaling only.
+- Stat grids: `grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6`
+- Form fields stack on mobile, side-by-side on `sm:` where it makes sense
+- Tables: always wrap in `overflow-x-auto`
+- Navigation: full sidebar on `lg:`, hamburger on smaller
 
 ---
 
 ## Motion & Transitions
 
-Transitions should feel **instant yet smooth** — fast enough not to delay the user, slow enough to feel polished. Every animated element must respect `prefers-reduced-motion`.
+### Standard transitions (baked into shadcn components)
+- Buttons: `transition-all duration-150 active:scale-[0.97]`
+- Inputs: `transition-all duration-150 hover:border-ring/40`
+- Select triggers: `transition-all duration-150 hover:border-ring/40 hover:bg-accent/40 active:scale-[0.98]`
 
-### Guiding principles
-- **Purpose over decoration** — only animate when motion communicates state change (open/close, enter/leave, loading, success/error). Never animate just to look dynamic.
-- **Short durations** — UI transitions: `duration-150` to `duration-200`. Content entrances: `duration-200` to `duration-300`. Never exceed `duration-500` for UI chrome.
-- **Ease curves** — use `ease-out` for elements entering the screen (decelerating feels natural). Use `ease-in` for elements leaving. Use `ease-in-out` for elements that stay on screen and transform.
-- **Reduced motion** — always pair animated classes with `motion-safe:` or wrap in `@media (prefers-reduced-motion: no-preference)`. Never force animation on users who have opted out.
-
-### Standard transition classes
-```
-// Colour / background changes (buttons, hover states)
-transition-colors duration-150 ease-out
-
-// Size / opacity changes (dropdowns, badges)
-transition-all duration-150 ease-out
-
-// Transform + opacity (modals, drawers, toasts)
-transition-[transform,opacity] duration-200 ease-out
-```
-
-### Enter / leave patterns (CSS-only, no library)
-
-**Fade in** (for toasts, tooltips, inline alerts):
+### Custom animations (CSS-only, no framer-motion)
 ```tsx
-// Mount with opacity-0, animate to opacity-100
+// Fade in
 className="opacity-0 animate-[fadeIn_200ms_ease-out_forwards]"
-// Define in globals.css:
-// @keyframes fadeIn { to { opacity: 1; } }
+// globals.css: @keyframes fadeIn { to { opacity: 1; } }
+
+// Hover lift (on non-card interactive elements)
+className="hover:-translate-y-0.5 transition-transform duration-150"
 ```
 
-**Slide + fade (modal / drawer)**:
-```tsx
-// Backdrop
-<div className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-200 ease-out" />
-
-// Panel sliding up from bottom on mobile, from right on desktop
-<div className="
-  fixed bottom-0 left-0 right-0 rounded-t-2xl
-  sm:bottom-auto sm:left-auto sm:right-0 sm:top-0 sm:h-full sm:w-96 sm:rounded-none sm:rounded-l-2xl
-  translate-y-4 opacity-0
-  data-[open]:translate-y-0 data-[open]:opacity-100
-  transition-[transform,opacity] duration-200 ease-out
-  motion-reduce:transition-none
-" />
-```
-
-**Height expand (accordion / collapsible section)**:
-```tsx
-// Use max-height trick — CSS grid is cleaner:
-<div className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
-     style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}>
-  <div className="overflow-hidden">
-    {children}
-  </div>
-</div>
-```
-
-**Scale-in (dropdown menu / context menu)**:
-```tsx
-<div className="
-  origin-top-right scale-95 opacity-0
-  data-[open]:scale-100 data-[open]:opacity-100
-  transition-[transform,opacity] duration-150 ease-out
-  motion-reduce:transition-none
-" />
-```
-
-### Stagger lists (for item lists that animate in)
-Use CSS `animation-delay` with `style={{ animationDelay: `${index * 30}ms` }}`. Cap at 5–6 items; beyond that, don't stagger (it feels slow). Keep individual item duration at `duration-150`.
-
-### Loading states
-- **Skeleton:** `animate-pulse bg-zinc-100 dark:bg-zinc-800` — match the exact shape of the content it replaces
-- **Spinner:** `animate-spin h-4 w-4 border-2 border-zinc-200 border-t-teal-600 rounded-full`
-- **Button loading:** replace button text with a spinner inline; keep the button same size; `disabled` + `opacity-75`
+All animations must have `motion-reduce:transition-none` or `motion-reduce:animate-none`.
 
 ### What NOT to animate
-- Page-level navigations (Next.js handles these; don't fight the router)
-- Colour theme toggle (instant is better)
-- Table row sorting / reordering (too many elements — use instant swap)
-- Anything that loops indefinitely except `animate-spin` on a loading indicator
+- Page-level navigations
+- Colour theme toggle (instant)
+- Table row sorting
+- Anything looping indefinitely except `animate-spin`
+
+---
+
+## Auth Pattern
+
+- **NextAuth.js v4** — never upgrade to v5
+- Session in server components: `getServerSession(authOptions)` from `next-auth/next`
+- Session in client components: `useSession()` from `next-auth/react`
+- Route protection in layout (not middleware)
+- API routes and Server Actions must check session and return 401 / throw if null
+
+---
+
+## Pre-Delivery Checklist
+
+Before submitting UI work, verify:
+
+- [ ] No raw color names — all `zinc-*`, `teal-*`, `blue-*` → semantic tokens
+- [ ] No manual `dark:` color overrides
+- [ ] No `shadow-*` on card components
+- [ ] No `w-* h-*` on square elements — use `size-*`
+- [ ] No `space-y-*` / `space-x-*` — use `flex flex-col gap-*`
+- [ ] No template literal ternaries in `className` — use `cn()`
+- [ ] No `<img>` tags — use `next/image`
+- [ ] Shadcn `<Skeleton>` used for loading states, not custom `animate-pulse`
+- [ ] Shadcn `<Badge>` used for status labels, not custom `<span>`
+- [ ] Shadcn `<Separator>` used for dividers, not `border-t` divs
+- [ ] All Dialog/Sheet/Drawer have a Title
+- [ ] All icon-only buttons have `aria-label`
+- [ ] Icons inside `<Button>` use `data-icon` attribute, no size classes on the icon
+- [ ] Forms use `FieldGroup` + `Field` pattern
+- [ ] All `useSearchParams()` components wrapped in `Suspense`
+- [ ] `params`/`searchParams` awaited in page/layout components
+- [ ] No `console.log`, no TODO comments, no placeholder text
 
 ---
 
 ## What to Build
 
-1. Read any existing components in the target directory before writing new ones — reuse patterns already established.
-2. Build the component(s) or page(s) described in `$ARGUMENTS`.
-3. Check for TypeScript errors in every file you create or modify.
-4. Do not add console.log, TODO comments, or placeholder text in production code.
-5. After building, list every file created or modified with a one-line description of what changed.
+1. Run `npx shadcn@latest info` to see installed components — never import uninstalled components
+2. Use shadcn components from `components/ui/` wherever they cover the use case
+3. Install new shadcn components with `npx shadcn@latest add <component>` if needed — verify CSS variable mapping in `globals.css` after install
+4. Build the component(s) or page(s) described in `$ARGUMENTS`
+5. Check TypeScript in every file created or modified — no `any`, explicit return types on components
+6. No `console.log`, no TODO comments, no placeholder text
+7. List every file created or modified with a one-line description of what changed

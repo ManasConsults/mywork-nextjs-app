@@ -88,7 +88,7 @@ export function AddTimesheetEntryForm({ clients }: AddTimesheetEntryFormProps): 
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Client <span className="text-red-500">*</span></Label>
           <Select value={clientId} onValueChange={setClientId} disabled={isPending}>
             <SelectTrigger aria-invalid={!!fieldErrors.clientId}>
@@ -103,19 +103,19 @@ export function AddTimesheetEntryForm({ clients }: AddTimesheetEntryFormProps): 
           {fieldErrors.clientId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.clientId[0]}</p>}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="date">Date <span className="text-red-500">*</span></Label>
           <Input id="date" name="date" type="date" required defaultValue={todayStr} disabled={isPending} aria-invalid={!!fieldErrors.date} />
           {fieldErrors.date?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.date[0]}</p>}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="hours">Hours <span className="text-red-500">*</span></Label>
           <Input id="hours" name="hours" type="number" step="0.25" min="0.25" max="24" required placeholder="e.g. 2.5" disabled={isPending} aria-invalid={!!fieldErrors.hours} />
           {fieldErrors.hours?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.hours[0]}</p>}
         </div>
 
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
           <Label htmlFor="description">Description <span className="text-red-500">*</span></Label>
           <Textarea id="description" name="description" rows={2} required placeholder="What did you work on?" disabled={isPending} aria-invalid={!!fieldErrors.description} />
           {fieldErrors.description?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>}

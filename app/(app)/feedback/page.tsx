@@ -14,7 +14,7 @@ export default async function FeedbackHistoryPage(): Promise<React.JSX.Element> 
   if (!session) redirect('/login');
 
   return (
-    <div className="mx-auto max-w-2xl px-4 sm:px-6 space-y-6">
+    <div className="mx-auto max-w-2xl px-4 sm:px-6 flex flex-col gap-6">
       <Suspense fallback={<FeedbackListSkeleton />}>
         <FeedbackListServer userId={session.user.id} />
       </Suspense>

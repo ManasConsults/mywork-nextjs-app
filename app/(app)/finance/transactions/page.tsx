@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { cn } from '@/lib/utils';
 import { getAccounts } from '@/lib/services/finance/account.service';
 import { getCategories } from '@/lib/services/finance/category.service';
 import { getTransactions, generateDueRecurrences } from '@/lib/services/finance/transaction.service';
@@ -192,7 +193,7 @@ export default async function TransactionsPage({
                           {tx.category.name}
                         </span>
                         <span
-                          className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${badgeCls}`}
+                          className={cn('inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold', badgeCls)}
                         >
                           {TYPE_LABELS[tx.type] ?? tx.type}
                         </span>
@@ -202,11 +203,10 @@ export default async function TransactionsPage({
                       {tx.account.name}
                     </td>
                     <td
-                      className={`whitespace-nowrap px-4 py-3 text-right text-sm font-semibold ${
-                        isIncome
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-red-600 dark:text-red-400'
-                      }`}
+                      className={cn(
+                        'whitespace-nowrap px-4 py-3 text-right text-sm font-semibold',
+                        isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                      )}
                     >
                       {isIncome ? '+' : '-'}
                       {fromMinorUnit(tx.amount, currency)}

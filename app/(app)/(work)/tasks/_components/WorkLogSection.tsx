@@ -104,23 +104,23 @@ export function WorkLogSection({ taskId, initialLogs }: WorkLogSectionProps): Re
             <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">{rootError}</p>
           )}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label className="text-xs">Date</Label>
               <Input name="date" type="date" defaultValue={today} aria-invalid={!!fieldErrors.date} />
               {fieldErrors.date && <p className="text-xs text-red-600">{fieldErrors.date[0]}</p>}
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label className="text-xs">Time spent (hours)</Label>
               <Input name="timeSpent" type="number" step="0.25" min="0.25" max="24" placeholder="e.g. 1.5" aria-invalid={!!fieldErrors.timeSpent} />
               {fieldErrors.timeSpent && <p className="text-xs text-red-600">{fieldErrors.timeSpent[0]}</p>}
             </div>
           </div>
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 flex flex-col gap-1">
             <Label className="text-xs">Description</Label>
             <Textarea name="description" rows={3} placeholder="What did you work on?" aria-invalid={!!fieldErrors.description} />
             {fieldErrors.description && <p className="text-xs text-red-600">{fieldErrors.description[0]}</p>}
           </div>
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 flex flex-col gap-1">
             <Label className="text-xs">Outcome (optional)</Label>
             <Input name="outcome" placeholder="What was the result?" aria-invalid={!!fieldErrors.outcome} />
             {fieldErrors.outcome && <p className="text-xs text-red-600">{fieldErrors.outcome[0]}</p>}
@@ -137,7 +137,7 @@ export function WorkLogSection({ taskId, initialLogs }: WorkLogSectionProps): Re
           <p className="text-sm text-muted-foreground">No work logs yet.</p>
         </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="flex flex-col gap-2">
           {initialLogs.map((log) => (
             <li key={log.id} className="rounded-lg border border-border bg-card p-3">
               <div className="mb-1 flex items-center justify-between gap-2">

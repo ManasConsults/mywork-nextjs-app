@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'www.manasconsults.net',
+      },
+    ],
+  },
   // @react-pdf/renderer calls new URL('') during module initialisation, which
   // throws when env vars are absent at build time. Marking it external means
   // it is loaded by Node.js at request time and never bundled or evaluated

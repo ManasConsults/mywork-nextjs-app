@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { cn } from '@/lib/utils';
 import { getClientById } from '@/lib/services/finance/client.service';
 import { fromMinorUnit } from '@/lib/utils/money';
 import { ArchiveClientButton } from '../_components/ArchiveClientButton';
@@ -176,9 +177,7 @@ export default async function ClientDetailPage({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          INVOICE_STATUS_COLOURS[invoice.status] ?? ''
-                        }`}
+                        className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', INVOICE_STATUS_COLOURS[invoice.status])}
                       >
                         {INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
                       </span>

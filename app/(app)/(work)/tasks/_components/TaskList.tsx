@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { cn } from '@/lib/utils';
 import type { TaskListItem } from '@/lib/services/task.service';
 
 const STATUS_BADGE: Record<string, string> = {
@@ -64,10 +65,10 @@ export function TaskList({ tasks }: { tasks: TaskListItem[] }): React.JSX.Elemen
               )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_BADGE[task.priority]}`}>
+              <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', PRIORITY_BADGE[task.priority])}>
                 {PRIORITY_LABELS[task.priority]}
               </span>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[task.status]}`}>
+              <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', STATUS_BADGE[task.status])}>
                 {STATUS_LABELS[task.status]}
               </span>
             </div>

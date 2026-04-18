@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getTasksByUser } from '@/lib/services/task.service';
 import { workLogFiltersSchema } from '@/lib/schemas/work-log.schema';
 import { WorkLogFilters } from './_components/WorkLogFilters';
@@ -19,17 +20,17 @@ function WorkLogListSkeleton(): React.JSX.Element {
   return (
     <div className="divide-y divide-border/60 rounded-lg border border-border bg-card">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="flex animate-pulse items-start gap-4 px-4 py-3">
-          <div className="flex-1 space-y-1.5">
+        <div key={i} className="flex items-start gap-4 px-4 py-3">
+          <div className="flex-1 flex flex-col gap-1.5">
             <div className="flex gap-2">
-              <div className="h-3 w-20 rounded bg-muted" />
-              <div className="h-3 w-32 rounded bg-muted" />
+              <Skeleton className="h-3 w-20 rounded bg-muted" />
+              <Skeleton className="h-3 w-32 rounded bg-muted" />
             </div>
-            <div className="h-4 w-3/4 rounded bg-muted" />
-            <div className="h-3 w-1/2 rounded bg-muted" />
+            <Skeleton className="h-4 w-3/4 rounded bg-muted" />
+            <Skeleton className="h-3 w-1/2 rounded bg-muted" />
           </div>
           <div className="flex shrink-0 gap-2">
-            <div className="h-5 w-12 rounded-full bg-muted" />
+            <Skeleton className="h-5 w-12 rounded-full bg-muted" />
           </div>
         </div>
       ))}

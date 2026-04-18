@@ -184,7 +184,7 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
         </div>
 
         {/* Body */}
-        <div className="space-y-5 px-5 py-5">
+        <div className="flex flex-col gap-5 px-5 py-5">
 
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-3">
@@ -234,11 +234,12 @@ export function FeedbackDetailPanel({ submission, onClose, onStatusUpdated }: Pr
                     type="button"
                     disabled={savingStatus !== null}
                     onClick={() => handleStatusChange(opt.value)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-200 disabled:opacity-60 ${
+                    className={cn(
+                      'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-200 disabled:opacity-60',
                       isActive
                         ? 'bg-primary text-primary-foreground'
-                        : 'border border-border text-muted-foreground hover:bg-accent hover:text-foreground'
-                    }`}
+                        : 'border border-border text-muted-foreground hover:bg-accent hover:text-foreground',
+                    )}
                     aria-pressed={isActive}
                   >
                     {isSaving && (

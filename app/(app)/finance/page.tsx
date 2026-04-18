@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { cn } from '@/lib/utils';
 import { getAccounts, getAccountBalance } from '@/lib/services/finance/account.service';
 import { getTransactions, getTransactionSummary, generateDueRecurrences } from '@/lib/services/finance/transaction.service';
 import { fromMinorUnit } from '@/lib/utils/money';
@@ -218,11 +219,10 @@ export default async function FinancePage(): Promise<React.JSX.Element> {
                         {tx.account.name}
                       </td>
                       <td
-                        className={`whitespace-nowrap px-4 py-3 text-right text-sm font-medium ${
-                          isIncome
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
+                        className={cn(
+                          'whitespace-nowrap px-4 py-3 text-right text-sm font-medium',
+                          isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                        )}
                       >
                         {isIncome ? '+' : '-'}
                         {fromMinorUnit(tx.amount, currency)}
@@ -255,9 +255,9 @@ function SummaryCard({
     : { ring: 'border-red-100 dark:border-red-900/40', value: 'text-red-600 dark:text-red-400' };
 
   return (
-    <div className={`rounded-xl border ${styles.ring} bg-card p-5 transition-all duration-200 hover:-translate-y-0.5`}>
+    <div className={cn('rounded-xl border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5', styles.ring)}>
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className={`mt-3 text-3xl font-bold tracking-tight ${styles.value}`}>
+      <p className={cn('mt-3 text-3xl font-bold tracking-tight', styles.value)}>
         {prefix}
         {value}
       </p>

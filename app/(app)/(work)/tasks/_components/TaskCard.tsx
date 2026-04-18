@@ -6,6 +6,7 @@ import type { Task } from '@prisma/client';
 
 import { TASK_STATUSES } from '@/lib/schemas/task.schema';
 import { updateTaskAction } from '@/lib/actions/task';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -48,7 +49,7 @@ export function TaskCard({ task }: { task: Task }): React.JSX.Element {
         >
           {task.title}
         </Link>
-        <Badge className={`shrink-0 ${PRIORITY_BADGE_VARIANT[task.priority]}`}>
+        <Badge className={cn('shrink-0', PRIORITY_BADGE_VARIANT[task.priority])}>
           {PRIORITY_LABELS[task.priority]}
         </Badge>
       </div>

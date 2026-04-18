@@ -8,6 +8,7 @@ import {
   CalendarClock,
 } from 'lucide-react';
 import { prisma } from '@/lib/db/prisma';
+import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
 type Accent = 'blue' | 'teal' | 'amber' | 'red' | 'purple' | 'emerald';
@@ -36,14 +37,14 @@ function StatCard({
 }): React.JSX.Element {
   const a = ACCENT[accent];
   return (
-    <div className={`rounded-xl border ${a.ring} bg-card p-5 transition-all duration-200 hover:-translate-y-0.5`}>
+    <div className={cn('rounded-xl border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5', a.ring)}>
       <div className="flex items-start justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-        <div className={`rounded-lg p-2 ${a.iconBg}`}>
-          <Icon className={`size-4 ${a.icon}`} />
+        <div className={cn('rounded-lg p-2', a.iconBg)}>
+          <Icon className={cn('size-4', a.icon)} />
         </div>
       </div>
-      <p className={`mt-3 text-3xl font-bold tracking-tight ${a.value}`}>
+      <p className={cn('mt-3 text-3xl font-bold tracking-tight', a.value)}>
         {value}
         {suffix && <span className="ml-0.5 text-lg font-semibold">{suffix}</span>}
       </p>

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import type { Task, WorkLog } from '@prisma/client';
 
+import { cn } from '@/lib/utils';
+
 const STATUS_LABELS: Record<string, string> = {
   BACKLOG: 'To Do',
   IN_PROGRESS: 'In Progress',
@@ -47,7 +49,7 @@ export function NoteTaskPanel({ task, workLogs }: NoteTaskPanelProps): React.JSX
   const visibleLogs = workLogs.slice(0, 5);
 
   return (
-    <aside className="space-y-3">
+    <aside className="flex flex-col gap-3">
       {/* ── Linked task ── */}
       <div className="rounded-xl border border-border bg-card p-4">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -63,19 +65,19 @@ export function NoteTaskPanel({ task, workLogs }: NoteTaskPanelProps): React.JSX
 
         <div className="flex flex-wrap gap-1.5">
           <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[task.status] ?? STATUS_CLASSES.BACKLOG}`}
+            className={cn('rounded-full px-2 py-0.5 text-xs font-medium', STATUS_CLASSES[task.status] ?? STATUS_CLASSES.BACKLOG)}
           >
             {STATUS_LABELS[task.status] ?? task.status}
           </span>
           <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_CLASSES[task.priority] ?? PRIORITY_CLASSES.MEDIUM}`}
+            className={cn('rounded-full px-2 py-0.5 text-xs font-medium', PRIORITY_CLASSES[task.priority] ?? PRIORITY_CLASSES.MEDIUM)}
           >
             {PRIORITY_LABELS[task.priority] ?? task.priority}
           </span>
         </div>
 
         {task.dueDate !== null && (
-          <p className={`mt-3 text-xs ${isOverdue ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
+          <p className={cn('mt-3 text-xs', isOverdue ? 'font-medium text-destructive' : 'text-muted-foreground')}>
             {isOverdue ? '⚠ Overdue · ' : 'Due '}
             {new Date(task.dueDate).toLocaleDateString('en-GB', {
               day: 'numeric',
@@ -100,11 +102,11 @@ export function NoteTaskPanel({ task, workLogs }: NoteTaskPanelProps): React.JSX
             )}
           </div>
 
-          <ul className="space-y-0">
+          <ul className="flex flex-col gap-0">
             {visibleLogs.map((log, i) => (
               <li
                 key={log.id}
-                className={`py-2.5 ${i < visibleLogs.length - 1 ? 'border-b border-border' : ''}`}
+                className={cn('py-2.5', i < visibleLogs.length - 1 && 'border-b border-border')}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">

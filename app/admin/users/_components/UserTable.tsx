@@ -7,6 +7,7 @@ import { Check, X, Ban, Trash2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   setUserActiveAction,
   setUserRoleAction,
@@ -243,14 +244,18 @@ export function UserTable({
               </div>
 
               <div className="mt-3 flex items-center gap-4">
-                <select
+                <Select
                   value={user.role}
                   disabled={isSelf || isPending}
-                  onChange={(e) => changeRole(user.id, e.target.value as Role)}
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground disabled:cursor-not-allowed"
+                  onValueChange={(v) => changeRole(user.id, v as Role)}
                 >
-                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
+                  <SelectTrigger className="h-7 w-28 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
                 <span className="text-xs text-muted-foreground">
                   {new Date(user.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
@@ -277,16 +282,20 @@ export function UserTable({
                   />
                   Finance
                 </label>
-                <select
+                <Select
                   value={user.employmentType}
                   disabled={isSelf || isPending}
-                  onChange={(e) => changeEmploymentType(user.id, e.target.value)}
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground disabled:cursor-not-allowed"
+                  onValueChange={(v) => changeEmploymentType(user.id, v)}
                 >
-                  <option value="EMPLOYED">Employee</option>
-                  <option value="SOLE_TRADER">Sole Trader</option>
-                  <option value="BOTH">Both</option>
-                </select>
+                  <SelectTrigger className="h-7 w-32 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="EMPLOYED">Employee</SelectItem>
+                    <SelectItem value="SOLE_TRADER">Sole Trader</SelectItem>
+                    <SelectItem value="BOTH">Both</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {errors[user.id] && (
@@ -358,14 +367,18 @@ export function UserTable({
 
                   {/* Role */}
                   <td className="px-3 py-2.5">
-                    <select
+                    <Select
                       value={user.role}
                       disabled={isSelf || isPending}
-                      onChange={(e) => changeRole(user.id, e.target.value as Role)}
-                      className="text-xs rounded-md border border-border bg-background px-2 py-1 text-foreground disabled:cursor-not-allowed"
+                      onValueChange={(v) => changeRole(user.id, v as Role)}
                     >
-                      {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                    </select>
+                      <SelectTrigger className="h-7 w-28 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </td>
 
                   {/* Modules */}
@@ -384,16 +397,20 @@ export function UserTable({
 
                   {/* Employment type */}
                   <td className="px-3 py-2.5">
-                    <select
+                    <Select
                       value={user.employmentType}
                       disabled={isSelf || isPending}
-                      onChange={(e) => changeEmploymentType(user.id, e.target.value)}
-                      className={cn('text-xs rounded-md border border-border bg-background px-2 py-1 text-foreground', isSelf ? 'cursor-not-allowed' : 'cursor-pointer')}
+                      onValueChange={(v) => changeEmploymentType(user.id, v)}
                     >
-                      <option value="EMPLOYED">Employee</option>
-                      <option value="SOLE_TRADER">Sole Trader</option>
-                      <option value="BOTH">Both</option>
-                    </select>
+                      <SelectTrigger className="h-7 w-32 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EMPLOYED">Employee</SelectItem>
+                        <SelectItem value="SOLE_TRADER">Sole Trader</SelectItem>
+                        <SelectItem value="BOTH">Both</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </td>
 
                   {/* Status badge */}

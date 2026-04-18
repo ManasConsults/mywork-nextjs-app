@@ -200,7 +200,7 @@ export function NoteEditor({
       : null;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Scoped table styles for the ProseMirror editor.
           Placed here (not globals.css) so they win over Tailwind preflight's
           border-width:0 reset regardless of stylesheet load order. */}
