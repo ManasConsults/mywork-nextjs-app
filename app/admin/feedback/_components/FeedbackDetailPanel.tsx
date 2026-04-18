@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Loader2, Trash2 } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { updateFeedbackStatusAction, deleteFeedbackSubmissionAction } from '@/lib/actions/feedback';
 
 interface FeedbackSubmissionRow {
