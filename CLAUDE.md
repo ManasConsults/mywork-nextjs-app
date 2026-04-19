@@ -132,11 +132,20 @@ export const authOptions: NextAuthOptions = {
 - Icons inside `Button` — no size classes on the icon; shadcn handles sizing
 - `variant="outline"` buttons — always `border border-border`; never bare `border` or `dark:border-input` override (bare `border` falls back to `currentColor` which appears dark)
 
-### Card Elevation (automatic via `card.tsx`)
-- **Default:** `shadow-[0_4px_12px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)]`
-- **Hover:** shadow expands + card lifts `-translate-y-1`, `transition-all duration-200`
-- **Dark:** higher opacity shadows
-- Never add `shadow-none` or override the card shadow
+### Card Elevation (automatic — globals.css, not card.tsx)
+Card shadow and hover are defined **once** in `globals.css` and apply automatically to two targets:
+- `[data-slot="card"]` — the shadcn `<Card>` component
+- `.bg-card.border-border` — every hand-rolled card surface using the standard pattern
+
+**Default:** `box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)`
+**Hover:** shadow expands + card lifts `translateY(-4px)` over `0.2s ease`
+**Dark:** higher opacity shadows (0.4 / 0.45)
+
+Rules:
+- Never add shadow Tailwind classes to card components — elevation comes from globals.css
+- Never add `shadow-none` or `hover:shadow-none` — it will break the global rule
+- Hand-rolled cards **must** include both `bg-card` and `border-border` classes to get automatic elevation
+- Use `<Card>` from `components/ui/card.tsx` whenever possible — hand-roll only when Card's internal padding/gap structure doesn't fit
 
 ### Floating Shell Chrome
 Sidebar and header share identical visual treatment — same background, border, and shadow.

@@ -46,7 +46,7 @@ export function ThemeToggle(): React.JSX.Element {
   );
 
   if (!mounted) {
-    return <div className="h-8 w-[104px] rounded-md bg-zinc-100" />;
+    return <div className="h-8 w-[104px] rounded-md bg-muted" />;
   }
 
   return (

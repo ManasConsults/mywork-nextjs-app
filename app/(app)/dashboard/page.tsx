@@ -27,7 +27,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
       <div className="mt-10">
         <Link
           href="/tasks"
-          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           Go to Tasks
         </Link>

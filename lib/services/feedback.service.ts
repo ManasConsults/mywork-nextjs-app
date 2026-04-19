@@ -18,29 +18,77 @@ export async function createFeedbackSubmission(
   });
 }
 
-export async function getFeedbackSubmissionsByUser(
-  userId: string,
-): Promise<FeedbackSubmission[]> {
-  return prisma.feedbackSubmission.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-  });
-}
-
-export async function getAllFeedbackSubmissions(filters: {
+export interface FeedbackListOptions {
   type?: FeedbackType;
   status?: FeedbackStatus;
-}): Promise<(FeedbackSubmission & { user: { name: string | null; email: string } })[]> {
-  return prisma.feedbackSubmission.findMany({
-    where: {
-      ...(filters.type ? { type: filters.type } : {}),
-      ...(filters.status ? { status: filters.status } : {}),
-    },
-    orderBy: { createdAt: 'desc' },
-    include: {
-      user: { select: { name: true, email: true } },
-    },
-  });
+  page?: number;
+  pageSize?: number;
+}
+
+export interface FeedbackListResult {
+  items: FeedbackSubmission[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export async function getFeedbackSubmissionsByUser(
+  userId: string,
+  opts: FeedbackListOptions = {},
+): Promise<FeedbackListResult> {
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = opts.pageSize ?? 10;
+  const where = {
+    userId,
+    ...(opts.type ? { type: opts.type } : {}),
+    ...(opts.status ? { status: opts.status } : {}),
+  };
+
+  const [items, total] = await Promise.all([
+    prisma.feedbackSubmission.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.feedbackSubmission.count({ where }),
+  ]);
+
+  return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+}
+
+export interface AdminFeedbackListResult {
+  items: (FeedbackSubmission & { user: { name: string | null; email: string } })[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export async function getAllFeedbackSubmissions(
+  filters: { type?: FeedbackType; status?: FeedbackStatus },
+  pagination: { page?: number; pageSize?: number } = {},
+): Promise<AdminFeedbackListResult> {
+  const page = Math.max(1, pagination.page ?? 1);
+  const pageSize = pagination.pageSize ?? 10;
+  const where = {
+    ...(filters.type ? { type: filters.type } : {}),
+    ...(filters.status ? { status: filters.status } : {}),
+  };
+
+  const [items, total] = await Promise.all([
+    prisma.feedbackSubmission.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: { user: { select: { name: true, email: true } } },
+    }),
+    prisma.feedbackSubmission.count({ where }),
+  ]);
+
+  return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }
 
 export async function updateFeedbackSubmissionStatus(

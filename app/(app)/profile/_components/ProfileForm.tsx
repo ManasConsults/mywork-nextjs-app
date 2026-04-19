@@ -39,7 +39,7 @@ export function ProfileForm({ initialName, initialImage, email }: ProfileFormPro
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
@@ -51,13 +51,13 @@ export function ProfileForm({ initialName, initialImage, email }: ProfileFormPro
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Email</Label>
         <Input type="email" value={email} disabled />
         <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="name">Display name</Label>
         <Input
           id="name"
@@ -70,7 +70,7 @@ export function ProfileForm({ initialName, initialImage, email }: ProfileFormPro
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="image">Avatar URL</Label>
         <Input
           id="image"

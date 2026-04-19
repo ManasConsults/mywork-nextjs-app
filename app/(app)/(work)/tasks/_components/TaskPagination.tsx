@@ -45,7 +45,7 @@ export function TaskPagination({
 
         {pages.map((p, i) =>
           p === null ? (
-            <span key={`ellipsis-${i}`} className="px-1 text-zinc-400">…</span>
+            <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground">…</span>
           ) : (
             <Button
               key={p}
@@ -53,7 +53,7 @@ export function TaskPagination({
               size="sm"
               onClick={() => goToPage(p)}
               aria-current={p === page ? 'page' : undefined}
-              className={p === page ? 'bg-primary text-white hover:bg-primary/90 border-primary dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:border-zinc-50' : ''}
+              className={p === page ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-primary' : ''}
             >
               {p}
             </Button>

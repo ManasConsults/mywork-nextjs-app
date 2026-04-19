@@ -182,13 +182,13 @@ export default async function TimesheetsPage({
           )}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {clientGroups.map((group) => (
             <ClientTimesheetGroup key={group.clientId} group={group} currency={currency} />
           ))}
 
-          {/* Grand total row */}
-          <div className="flex items-center justify-between rounded-xl border border-primary/30/60 bg-primary/5 px-5 py-4">
+          {/* Grand total card */}
+          <div className="bg-card border-border flex items-center justify-between rounded-xl border px-5 py-4">
             <span className="text-sm font-semibold text-foreground">
               Grand Total
             </span>

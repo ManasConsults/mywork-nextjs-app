@@ -98,20 +98,20 @@ export function CategoryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {rootError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
         <Input id="name" name="name" type="text" defaultValue={category?.name ?? ''} placeholder="e.g. Groceries" required disabled={isPending} aria-invalid={!!fieldErrors.name} />
         {fieldErrors.name?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.name[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Type <span className="text-red-500">*</span></Label>
         <Select value={type} onValueChange={(v) => setType(v as typeof type)} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.type}>
@@ -126,7 +126,7 @@ export function CategoryForm({
         {fieldErrors.type?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.type[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="colour">Colour (optional)</Label>
         <Input id="colour" name="colour" type="text" defaultValue={category?.colour ?? ''} placeholder="e.g. #3b82f6 or teal" maxLength={20} disabled={isPending} aria-invalid={!!fieldErrors.colour} />
         {fieldErrors.colour?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.colour[0]}</p>}

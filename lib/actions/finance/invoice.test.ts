@@ -61,7 +61,7 @@ const mockSendInvoiceEmail = sendInvoiceEmail as jest.MockedFunction<typeof send
 const mockSendPaymentReminderEmail = sendPaymentReminderEmail as jest.MockedFunction<typeof sendPaymentReminderEmail>;
 const mockFetchAndGeneratePdfBuffer = fetchAndGeneratePdfBuffer as jest.MockedFunction<typeof fetchAndGeneratePdfBuffer>;
 
-const session = { user: { id: 'user-1', role: 'MEMBER', currency: 'GBP' }, expires: '' };
+const session = { user: { id: 'user-1', name: 'Alice Sender', email: 'alice@example.com', role: 'MEMBER', currency: 'GBP' }, expires: '' };
 const invoiceId = 'inv-1';
 const clientId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const now = new Date('2026-03-07T12:00:00Z');
@@ -244,7 +244,7 @@ describe('deleteInvoiceAction', () => {
 
 const baseInvoiceWithClient = {
   ...baseInvoice,
-  client: { id: clientId, name: 'Acme Ltd', email: 'acme@example.com' },
+  client: { id: clientId, name: 'Acme Ltd', contactName: null, email: 'acme@example.com' },
   lineItems: [],
 };
 
@@ -305,6 +305,43 @@ describe('sendInvoiceAction', () => {
       expect((result as { emailWarning?: string }).emailWarning).toBeUndefined();
     }
     expect(mockSendInvoiceEmail).toHaveBeenCalled();
+  });
+
+  it('passes session user name as senderName and email as cc', async () => {
+    mockGetServerSession.mockResolvedValue(session as never);
+    mockGetInvoiceById.mockResolvedValue(baseInvoiceWithClient as never);
+    mockSendInvoice.mockResolvedValue({ ...baseInvoice, status: 'SENT' });
+    mockFetchAndGeneratePdfBuffer.mockResolvedValue(Buffer.from('pdf') as never);
+    mockSendInvoiceEmail.mockResolvedValue({ sent: true });
+
+    await sendInvoiceAction(invoiceId);
+
+    expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
+      'acme@example.com',
+      expect.objectContaining({
+        senderName: 'Alice Sender',
+        cc: 'alice@example.com',
+        contactName: null,
+      }),
+    );
+  });
+
+  it('forwards contactName from client to sendInvoiceEmail', async () => {
+    mockGetServerSession.mockResolvedValue(session as never);
+    mockGetInvoiceById.mockResolvedValue({
+      ...baseInvoiceWithClient,
+      client: { ...baseInvoiceWithClient.client, contactName: 'Jane Smith' },
+    } as never);
+    mockSendInvoice.mockResolvedValue({ ...baseInvoice, status: 'SENT' });
+    mockFetchAndGeneratePdfBuffer.mockResolvedValue(Buffer.from('pdf') as never);
+    mockSendInvoiceEmail.mockResolvedValue({ sent: true });
+
+    await sendInvoiceAction(invoiceId);
+
+    expect(mockSendInvoiceEmail).toHaveBeenCalledWith(
+      'acme@example.com',
+      expect.objectContaining({ contactName: 'Jane Smith' }),
+    );
   });
 
   it('propagates service error when sendInvoice throws', async () => {
@@ -457,5 +494,42 @@ describe('sendPaymentReminderAction', () => {
     }
     expect(mockSendPaymentReminderEmail).toHaveBeenCalled();
     expect(mockSendPaymentReminder).toHaveBeenCalledWith('user-1', invoiceId);
+  });
+
+  it('passes session user name as senderName and email as cc', async () => {
+    mockGetServerSession.mockResolvedValue(session as never);
+    mockGetInvoiceById.mockResolvedValue(overdueInvoice as never);
+    mockFetchAndGeneratePdfBuffer.mockResolvedValue(Buffer.from('pdf') as never);
+    mockSendPaymentReminderEmail.mockResolvedValue(undefined);
+    mockSendPaymentReminder.mockResolvedValue({ reminderCount: 1, lastReminderAt: now });
+
+    await sendPaymentReminderAction(invoiceId);
+
+    expect(mockSendPaymentReminderEmail).toHaveBeenCalledWith(
+      'acme@example.com',
+      expect.objectContaining({
+        senderName: 'Alice Sender',
+        cc: 'alice@example.com',
+        contactName: null,
+      }),
+    );
+  });
+
+  it('forwards contactName from client to sendPaymentReminderEmail', async () => {
+    mockGetServerSession.mockResolvedValue(session as never);
+    mockGetInvoiceById.mockResolvedValue({
+      ...overdueInvoice,
+      client: { ...overdueInvoice.client, contactName: 'Jane Smith' },
+    } as never);
+    mockFetchAndGeneratePdfBuffer.mockResolvedValue(Buffer.from('pdf') as never);
+    mockSendPaymentReminderEmail.mockResolvedValue(undefined);
+    mockSendPaymentReminder.mockResolvedValue({ reminderCount: 1, lastReminderAt: now });
+
+    await sendPaymentReminderAction(invoiceId);
+
+    expect(mockSendPaymentReminderEmail).toHaveBeenCalledWith(
+      'acme@example.com',
+      expect.objectContaining({ contactName: 'Jane Smith' }),
+    );
   });
 });

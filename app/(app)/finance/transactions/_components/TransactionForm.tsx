@@ -129,7 +129,7 @@ export function TransactionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {rootError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
@@ -142,7 +142,7 @@ export function TransactionForm({
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Type <span className="text-red-500">*</span></Label>
         <Select value={selectedType} onValueChange={(v) => setSelectedType(v as TxType)} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.type}><SelectValue /></SelectTrigger>
@@ -153,7 +153,7 @@ export function TransactionForm({
         {fieldErrors.type?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.type[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Account <span className="text-red-500">*</span></Label>
         <Select value={accountId} onValueChange={setAccountId} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.accountId}><SelectValue placeholder="Select an account…" /></SelectTrigger>
@@ -165,7 +165,7 @@ export function TransactionForm({
       </div>
 
       {showTransferDest && (
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Transfer to account <span className="text-red-500">*</span></Label>
           <Select value={transferToAccountId} onValueChange={setTransferToAccountId} disabled={isPending}>
             <SelectTrigger aria-invalid={!!fieldErrors.transferToAccountId}><SelectValue placeholder="Select destination account…" /></SelectTrigger>
@@ -177,13 +177,13 @@ export function TransactionForm({
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="amount">Amount <span className="text-red-500">*</span></Label>
         <Input id="amount" name="amount" type="number" step="0.01" min="0.01" defaultValue={defaultAmountDecimal} placeholder="0.00" disabled={isPending} aria-invalid={!!fieldErrors.amount} />
         {fieldErrors.amount?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.amount[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="date">Date <span className="text-red-500">*</span></Label>
         <Input id="date" name="date" type="date" defaultValue={defaultDate} disabled={isPending} aria-invalid={!!fieldErrors.date} />
         {fieldErrors.date?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.date[0]}</p>}
@@ -197,8 +197,8 @@ export function TransactionForm({
           </label>
 
           {isRecurring && (
-            <div className="mt-4 space-y-4">
-              <div className="space-y-1.5">
+            <div className="mt-4 flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
                 <Label>Frequency <span className="text-red-500">*</span></Label>
                 <Select value={selectedFrequency} onValueChange={setSelectedFrequency} disabled={isPending}>
                   <SelectTrigger aria-invalid={!!fieldErrors.recurFrequency}><SelectValue /></SelectTrigger>
@@ -212,7 +212,7 @@ export function TransactionForm({
                 </Select>
                 {fieldErrors.recurFrequency?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.recurFrequency[0]}</p>}
               </div>
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="recurEndsAt">Repeat until (optional)</Label>
                 <Input id="recurEndsAt" name="recurEndsAt" type="date" min={todayIso()} disabled={isPending} aria-invalid={!!fieldErrors.recurEndsAt} />
                 <p className="text-xs text-muted-foreground">Leave blank to repeat indefinitely.</p>
@@ -223,7 +223,7 @@ export function TransactionForm({
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Category <span className="text-red-500">*</span></Label>
         <Select value={categoryId} onValueChange={setCategoryId} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.categoryId}><SelectValue placeholder="Select a category…" /></SelectTrigger>
@@ -234,20 +234,20 @@ export function TransactionForm({
         {fieldErrors.categoryId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.categoryId[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="description">Description (optional)</Label>
         <Input id="description" name="description" type="text" defaultValue={transaction?.description ?? ''} placeholder="e.g. Weekly groceries" maxLength={500} disabled={isPending} />
         {fieldErrors.description?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="reference">Reference (optional)</Label>
         <Input id="reference" name="reference" type="text" defaultValue={transaction?.reference ?? ''} placeholder="e.g. INV-0042" maxLength={100} disabled={isPending} />
         {fieldErrors.reference?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.reference[0]}</p>}
       </div>
 
       {showWorkContext && (
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Work context (optional)</Label>
           <Select value={workContext} onValueChange={setWorkContext} disabled={isPending}>
             <SelectTrigger aria-invalid={!!fieldErrors.workContext}><SelectValue placeholder="Not specified" /></SelectTrigger>

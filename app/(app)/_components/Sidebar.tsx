@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -99,8 +100,13 @@ function UserAvatar({ user, size }: { user: SidebarUser; size: 'sm' | 'md' }): R
 
   if (user.image) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={user.image} alt="Avatar" className={cn('shrink-0 rounded-full object-cover', dim)} />
+      <Image
+        src={user.image}
+        alt="Avatar"
+        width={28}
+        height={28}
+        className={cn('shrink-0 rounded-full object-cover', dim)}
+      />
     );
   }
 

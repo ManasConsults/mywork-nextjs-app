@@ -19,6 +19,7 @@ export type InvoiceForPdf = {
   currency: string;
   client: {
     name: string;
+    contactName: string | null;
     email: string | null;
     address: string | null;
   };
@@ -149,7 +150,12 @@ export function InvoiceTemplate({ invoice }: { invoice: InvoiceForPdf }): React.
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Text style={styles.sectionTitle}>Bill To</Text>
-            <Text style={styles.billTo}>{invoice.client.name}</Text>
+            {invoice.client.contactName && (
+              <Text style={styles.billTo}>{invoice.client.contactName}</Text>
+            )}
+            <Text style={invoice.client.contactName ? styles.userInfo : styles.billTo}>
+              {invoice.client.name}
+            </Text>
             {invoice.client.email && <Text style={styles.userInfo}>{invoice.client.email}</Text>}
             {invoice.client.address && <Text style={styles.userInfo}>{invoice.client.address}</Text>}
           </View>

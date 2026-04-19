@@ -39,8 +39,8 @@ export function EmploymentTypeForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         {EMPLOYMENT_OPTIONS.map(({ value, label, description }) => (
           <label
             key={value}

@@ -62,7 +62,7 @@ export function BusinessDetailsForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
@@ -74,7 +74,7 @@ export function BusinessDetailsForm({
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="businessName">Business / Trading Name</Label>
         <Input
           id="businessName"
@@ -88,7 +88,7 @@ export function BusinessDetailsForm({
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="abn">ABN</Label>
         <Input
           id="abn"
@@ -103,7 +103,7 @@ export function BusinessDetailsForm({
         <p className="text-xs text-muted-foreground">Australian Business Number — included on invoices</p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="businessEmail">Business Email</Label>
         <Input
           id="businessEmail"
@@ -117,7 +117,7 @@ export function BusinessDetailsForm({
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="businessPhone">Phone / Contact</Label>
         <Input
           id="businessPhone"
@@ -131,7 +131,7 @@ export function BusinessDetailsForm({
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="businessAddress">Business Address</Label>
         <Textarea
           id="businessAddress"

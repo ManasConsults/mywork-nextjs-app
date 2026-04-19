@@ -45,7 +45,7 @@ export function ChangePasswordForm(): React.JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && !Object.keys(fieldErrors).length && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
@@ -57,7 +57,7 @@ export function ChangePasswordForm(): React.JSX.Element {
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="currentPassword">Current password</Label>
         <Input
           id="currentPassword"
@@ -73,7 +73,7 @@ export function ChangePasswordForm(): React.JSX.Element {
         )}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="newPassword">New password</Label>
         <Input
           id="newPassword"
@@ -89,7 +89,7 @@ export function ChangePasswordForm(): React.JSX.Element {
         )}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="confirmPassword">Confirm new password</Label>
         <Input
           id="confirmPassword"

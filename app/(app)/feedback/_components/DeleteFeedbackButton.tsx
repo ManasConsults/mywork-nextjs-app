@@ -32,7 +32,7 @@ export function DeleteFeedbackButton({ id }: { id: string }): React.JSX.Element 
       onClick={handleDelete}
       disabled={deleting}
       aria-label="Delete submission"
-      className="h-8 w-8 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+      className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
     >
       {deleting
         ? <Loader2 size={14} className="animate-spin" aria-hidden="true" />

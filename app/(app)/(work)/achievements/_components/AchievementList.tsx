@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import type { Achievement } from '@prisma/client';
 
+import { cn } from '@/lib/utils';
 import { deleteAchievementAction } from '@/lib/actions/achievement';
 import { Button } from '@/components/ui/button';
 
@@ -23,7 +24,7 @@ function Stars({ rating }: { rating: number | null }): React.JSX.Element {
   return (
     <span className="text-sm" aria-label={`${rating} out of 5 stars`}>
       {[1, 2, 3, 4, 5].map((s) => (
-        <span key={s} className={s <= rating ? 'text-amber-400' : 'text-zinc-300 dark:text-zinc-600'}>
+        <span key={s} className={s <= rating ? 'text-amber-400' : 'text-muted-foreground/40'}>
           ★
         </span>
       ))}
@@ -62,7 +63,7 @@ export function AchievementList({
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="flex flex-col gap-3">
       {achievements.map((a) => (
         <li
           key={a.id}
@@ -72,13 +73,13 @@ export function AchievementList({
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 href={`/achievements/${a.id}`}
-                className="text-sm font-semibold text-zinc-900 hover:underline dark:text-zinc-50"
+                className="text-sm font-semibold text-foreground hover:underline"
               >
                 {a.title}
               </Link>
               {a.category && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_BADGE[a.category] ?? 'bg-zinc-100 text-zinc-700'}`}
+                  className={cn('rounded-full px-2 py-0.5 text-xs font-medium', CATEGORY_BADGE[a.category] ?? 'bg-muted text-foreground')}
                 >
                   {a.category}
                 </span>
@@ -88,7 +89,7 @@ export function AchievementList({
               <Stars rating={a.impactRating} />
               <Link
                 href={`/achievements/${a.id}`}
-                className="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                className="text-xs text-muted-foreground underline hover:text-foreground"
               >
                 Edit
               </Link>

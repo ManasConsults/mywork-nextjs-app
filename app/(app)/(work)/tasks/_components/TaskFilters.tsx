@@ -56,7 +56,7 @@ export function TaskFilters({
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      <Select value={currentStatus ?? ''} onValueChange={(v) => updateParam('status', v === '_all' ? '' : v)}>
+      <Select value={currentStatus ?? ''} onValueChange={(v) => updateParam('status', v === '_all' ? '_all' : v)}>
         <SelectTrigger className="w-36">
           <SelectValue placeholder="All statuses" />
         </SelectTrigger>

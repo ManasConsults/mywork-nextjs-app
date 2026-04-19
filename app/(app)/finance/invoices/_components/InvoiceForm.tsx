@@ -98,14 +98,14 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {rootError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Client <span className="text-red-500">*</span></Label>
         <Select value={clientId} onValueChange={setClientId} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.clientId}>
@@ -120,7 +120,7 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
         {fieldErrors.clientId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.clientId[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Payment Account</Label>
         <Select value={paymentAccountId} onValueChange={setPaymentAccountId} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.paymentAccountId}>
@@ -144,20 +144,20 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
         {fieldErrors.paymentAccountId?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.paymentAccountId[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="issueDate">Issue Date <span className="text-red-500">*</span></Label>
         <Input id="issueDate" name="issueDate" type="date" defaultValue={today} required disabled={isPending} aria-invalid={!!fieldErrors.issueDate} />
         {fieldErrors.issueDate?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.issueDate[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="dueDate">Due Date</Label>
         <Input id="dueDate" name="dueDate" type="date" disabled={isPending} aria-invalid={!!fieldErrors.dueDate} />
         <p className="text-xs text-muted-foreground">Optional</p>
         {fieldErrors.dueDate?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.dueDate[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Tax Rate</Label>
         <Select value={taxRate} onValueChange={setTaxRate} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.taxRate}>
@@ -175,7 +175,7 @@ export function InvoiceForm({ clients, paymentAccounts }: InvoiceFormProps): Rea
         {fieldErrors.taxRate?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.taxRate[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="notes">Notes</Label>
         <Textarea id="notes" name="notes" rows={4} placeholder="Optional notes for the client" maxLength={2000} disabled={isPending} aria-invalid={!!fieldErrors.notes} />
         {fieldErrors.notes?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.notes[0]}</p>}
