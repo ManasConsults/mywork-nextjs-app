@@ -111,7 +111,7 @@ export function ProfileTabs({
         )}
 
         <TabsContent value="account">
-          <dl className="space-y-4 text-sm">
+          <dl className="flex flex-col gap-4 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Role</dt>
               <dd className="font-medium text-foreground">

@@ -8,6 +8,7 @@ import { MessageSquarePlus, X, CheckCircle, Loader2 } from 'lucide-react';
 import { submitFeedbackAction } from '@/lib/actions/feedback';
 import { normaliseModuleFromPath } from '@/lib/utils/feedback-module';
 import type { CreateFeedbackInput } from '@/lib/schemas/feedback.schema';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -134,9 +135,10 @@ export function FeedbackButton(): React.JSX.Element {
         <>
           {/* Backdrop */}
           <div
-            className={`fixed inset-0 z-200 bg-black/40 backdrop-blur-sm transition-opacity duration-200 ease-out motion-reduce:transition-none ${
-              isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+            className={cn(
+              'fixed inset-0 z-200 bg-black/40 backdrop-blur-sm transition-opacity duration-200 ease-out motion-reduce:transition-none',
+              isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
+            )}
             onClick={handleClose}
             aria-hidden="true"
           />
@@ -147,14 +149,15 @@ export function FeedbackButton(): React.JSX.Element {
             aria-modal="true"
             aria-labelledby="feedback-modal-title"
             aria-hidden={!isOpen}
-            className={`fixed z-201 w-full bg-background border border-border
-              bottom-0 left-0 right-0 rounded-t-2xl
-              sm:inset-0 sm:m-auto sm:max-w-lg sm:rounded-xl sm:h-fit
-              transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none
-              ${isOpen
+            className={cn(
+              'fixed z-201 w-full bg-background border border-border',
+              'bottom-0 left-0 right-0 rounded-t-2xl',
+              'sm:inset-0 sm:m-auto sm:max-w-lg sm:rounded-xl sm:h-fit',
+              'transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none',
+              isOpen
                 ? 'translate-y-0 opacity-100 sm:scale-100'
-                : 'translate-y-full opacity-0 sm:scale-95 sm:translate-y-0 pointer-events-none'
-              }`}
+                : 'translate-y-full opacity-0 sm:scale-95 sm:translate-y-0 pointer-events-none',
+            )}
           >
             <div className="mx-auto mb-4 mt-3 h-1 w-10 rounded-full bg-muted sm:hidden" aria-hidden="true" />
 
@@ -174,7 +177,7 @@ export function FeedbackButton(): React.JSX.Element {
               </div>
             ) : (
               <form onSubmit={handleSubmit} noValidate>
-                <div className="space-y-4 px-5 py-5">
+                <div className="flex flex-col gap-4 px-5 py-5">
                   {/* Type selector */}
                   <fieldset>
                     <legend className="mb-1.5 block text-sm font-medium text-foreground">
@@ -187,11 +190,12 @@ export function FeedbackButton(): React.JSX.Element {
                           type="button"
                           ref={value === 'FEATURE_REQUEST' ? firstFocusRef : undefined}
                           onClick={() => setForm((f) => ({ ...f, type: value }))}
-                          className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                          className={cn(
+                            'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
                             form.type === value
                               ? 'border-primary/80 bg-primary/5 text-primary dark:border-primary'
-                              : 'border-border bg-background text-muted-foreground hover:border-border hover:bg-accent/40'
-                          }`}
+                              : 'border-border bg-background text-muted-foreground hover:border-border hover:bg-accent/40',
+                          )}
                           aria-pressed={form.type === value}
                         >
                           {label}
@@ -202,7 +206,7 @@ export function FeedbackButton(): React.JSX.Element {
                   </fieldset>
 
                   {/* Title */}
-                  <div className="space-y-1.5">
+                  <div className="flex flex-col gap-1.5">
                     <Label htmlFor="feedback-title">
                       Title <span className="text-destructive" aria-hidden="true">*</span>
                     </Label>
@@ -219,7 +223,7 @@ export function FeedbackButton(): React.JSX.Element {
                   </div>
 
                   {/* Description */}
-                  <div className="space-y-1.5">
+                  <div className="flex flex-col gap-1.5">
                     <Label htmlFor="feedback-description">
                       Description <span className="text-destructive" aria-hidden="true">*</span>
                     </Label>
@@ -237,7 +241,7 @@ export function FeedbackButton(): React.JSX.Element {
                         ? <p id="feedback-description-error" className="text-xs text-destructive" role="alert">{fieldErrors.description[0]}</p>
                         : <span />
                       }
-                      <span className={`shrink-0 ${descCountCls}`}>{descLen}/{DESC_MAX}</span>
+                      <span className={cn('shrink-0', descCountCls)}>{descLen}/{DESC_MAX}</span>
                     </div>
                   </div>
 

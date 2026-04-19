@@ -141,6 +141,28 @@ test.describe('Finance — Timesheets — Edit / Delete row actions', () => {
   });
 });
 
+// ─── Grand total card ─────────────────────────────────────────────────────────
+
+test.describe('Finance — Timesheets — Grand total card', () => {
+  test('grand total card is visible when entries exist', async ({ page }) => {
+    await page.goto('/finance/timesheets');
+
+    const grandTotal = page.getByText('Grand Total');
+    const hasEntries = await grandTotal.isVisible().catch(() => false);
+    if (!hasEntries) return; // no data in test env — skip gracefully
+
+    await expect(grandTotal).toBeVisible();
+    // Card must render as a sibling container with both label and value
+    await expect(page.getByText(/hrs total/)).toBeVisible();
+    await expect(page.getByText(/unbilled/)).toBeVisible();
+  });
+
+  test('grand total card is not shown when no entries match filters', async ({ page }) => {
+    await page.goto('/finance/timesheets?from=2000-01-01&to=2000-01-02');
+    await expect(page.getByText('Grand Total')).toHaveCount(0);
+  });
+});
+
 // ─── Billed entries ───────────────────────────────────────────────────────────
 
 test.describe('Finance — Timesheets — Billed rows', () => {

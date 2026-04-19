@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
@@ -14,6 +15,12 @@ export default async function NewNotePage(): Promise<React.JSX.Element> {
 
   return (
     <div className="mx-auto max-w-3xl">
+      <Link
+        href="/notes"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        ← Notes
+      </Link>
       <NoteEditor tasks={tasks.map((t) => ({ id: t.id, title: t.title }))} />
     </div>
   );

@@ -6,9 +6,11 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import { TableKit } from '@tiptap/extension-table';
 import { Markdown } from 'tiptap-markdown';
 
 import { createNoteAction, updateNoteAction, saveDraftAction } from '@/lib/actions/note';
+import { cn } from '@/lib/utils';
 
 const AUTOSAVE_INTERVAL_MS = 30_000;
 
@@ -36,19 +38,20 @@ interface ToolbarButtonProps {
   title: string;
   isActive: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }
 
-function ToolbarButton({ label, title, isActive, onClick }: ToolbarButtonProps): React.JSX.Element {
+function ToolbarButton({ label, title, isActive, onClick, disabled = false }: ToolbarButtonProps): React.JSX.Element {
   return (
     <button
       type="button"
       title={title}
       onClick={onClick}
-      className={`rounded px-2 py-1 text-sm font-medium transition-colors ${
-        isActive
-          ? 'bg-primary/10 text-primary'
-          : 'text-zinc-500 hover:bg-zinc-100 dark:text-muted-foreground'
-      }`}
+      disabled={disabled}
+      className={cn(
+        'rounded px-2 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-35',
+        isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted',
+      )}
     >
       {label}
     </button>
@@ -74,6 +77,9 @@ export function NoteEditor({
   const [taskId, setTaskId] = useState(initialTaskId ?? '');
   const [rootError, setRootError] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  // Tracks whether the cursor is inside a table cell — updated on every selection
+  // change so toolbar buttons enable/disable reactively.
+  const [inTable, setInTable] = useState(false);
 
   const bodyRef = useRef<Record<string, unknown>>(
     initialBody ?? { type: 'doc', content: [] },
@@ -81,10 +87,12 @@ export function NoteEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      // StarterKit v3 bundles link — disable it so our custom LinkExtension doesn't duplicate
+      StarterKit.configure({ link: false }),
       LinkExtension.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder: 'Start writing… (markdown shortcuts supported)' }),
       Markdown.configure({ html: false, transformPastedText: true }),
+      TableKit.configure({ table: { resizable: false } }),
     ],
     content: initialBody,
     onUpdate({ editor: e }) {
@@ -92,6 +100,9 @@ export function NoteEditor({
       // tiptap-markdown list items). React's flight protocol cannot serialize undefined
       // and would produce a "temporary client reference" error on the server.
       bodyRef.current = JSON.parse(JSON.stringify(e.getJSON())) as Record<string, unknown>;
+    },
+    onSelectionUpdate({ editor: e }) {
+      setInTable(e.isActive('tableCell') || e.isActive('tableHeader'));
     },
     immediatelyRender: false,
   });
@@ -189,7 +200,63 @@ export function NoteEditor({
       : null;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
+      {/* Scoped table styles for the ProseMirror editor.
+          Placed here (not globals.css) so they win over Tailwind preflight's
+          border-width:0 reset regardless of stylesheet load order. */}
+      <style>{`
+        .tiptap table {
+          border-collapse: collapse;
+          table-layout: fixed;
+          width: 100%;
+          margin: 0.75rem 0;
+          overflow: hidden;
+        }
+        .tiptap td,
+        .tiptap th {
+          border: 1px solid #c8d0d0;
+          padding: 0.375rem 0.625rem;
+          vertical-align: top;
+          position: relative;
+          box-sizing: border-box;
+          min-width: 80px;
+        }
+        .dark .tiptap td,
+        .dark .tiptap th {
+          border-color: rgba(255,255,255,0.2);
+        }
+        .tiptap th {
+          background: rgba(0,0,0,0.04);
+          font-weight: 600;
+          text-align: left;
+        }
+        .dark .tiptap th {
+          background: rgba(255,255,255,0.06);
+        }
+        .tiptap .selectedCell::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: var(--primary, #0891b2);
+          opacity: 0.12;
+          pointer-events: none;
+          z-index: 2;
+        }
+        .tiptap .tableWrapper {
+          overflow-x: auto;
+        }
+        .tiptap .column-resize-handle {
+          position: absolute;
+          right: -2px;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          background: var(--primary, #0891b2);
+          opacity: 0.5;
+          pointer-events: none;
+          z-index: 20;
+        }
+      `}</style>
       {rootError && (
         <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
@@ -203,7 +270,7 @@ export function NoteEditor({
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Note title (optional)"
         maxLength={200}
-        className="w-full rounded-md border border-border bg-card px-3 py-2 text-lg font-medium text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-ring dark:text-zinc-50 dark:placeholder-zinc-600"
+        className="w-full rounded-md border border-border bg-card px-3 py-2 text-lg font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
 
       {/* Task + Tags row */}
@@ -246,7 +313,7 @@ export function NoteEditor({
             onKeyDown={handleTagKeyDown}
             onBlur={handleTagBlur}
             placeholder={tags.length === 0 ? 'Add tags…' : ''}
-            className="min-w-[80px] bg-transparent text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none dark:text-zinc-300 dark:placeholder-zinc-600"
+            className="min-w-20 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
         </div>
       </div>
@@ -316,12 +383,57 @@ export function NoteEditor({
           isActive={editor?.isActive('link') ?? false}
           onClick={handleAddLink}
         />
+        <span className="mx-1 border-l border-border" />
+        <ToolbarButton
+          label="⊞ Table"
+          title="Insert table"
+          isActive={false}
+          onClick={() =>
+            editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+          }
+        />
+        <span className="mx-1 border-l border-border" />
+        <ToolbarButton
+          label="+Row"
+          title="Add row below"
+          isActive={false}
+          disabled={!inTable}
+          onClick={() => editor?.chain().focus().addRowAfter().run()}
+        />
+        <ToolbarButton
+          label="−Row"
+          title="Delete row"
+          isActive={false}
+          disabled={!inTable}
+          onClick={() => editor?.chain().focus().deleteRow().run()}
+        />
+        <ToolbarButton
+          label="+Col"
+          title="Add column after"
+          isActive={false}
+          disabled={!inTable}
+          onClick={() => editor?.chain().focus().addColumnAfter().run()}
+        />
+        <ToolbarButton
+          label="−Col"
+          title="Delete column"
+          isActive={false}
+          disabled={!inTable}
+          onClick={() => editor?.chain().focus().deleteColumn().run()}
+        />
+        <ToolbarButton
+          label="Del Table"
+          title="Delete table"
+          isActive={false}
+          disabled={!inTable}
+          onClick={() => editor?.chain().focus().deleteTable().run()}
+        />
       </div>
 
       {/* Editor content */}
       <EditorContent
         editor={editor}
-        className="min-h-[320px] rounded-b-md border border-border bg-card px-4 py-3 text-sm text-foreground focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 [&_.ProseMirror]:min-h-70 [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-zinc-400 [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-zinc-300 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_h2]:text-lg [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-zinc-100 [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-xs [&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline dark:[&_.ProseMirror_code]:bg-zinc-800"
+        className="min-h-80 rounded-b-md border border-border bg-card px-4 py-3 text-sm text-foreground focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 [&_.ProseMirror]:min-h-70 [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-border [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_h2]:text-lg [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h3]:font-semibold [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-muted [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-xs [&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline"
       />
 
       {/* Footer: last saved + actions */}
@@ -334,7 +446,7 @@ export function NoteEditor({
             <button
               type="button"
               onClick={() => window.open(`/notes-print/${noteId}`, '_blank')}
-              className="text-sm text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+              className="text-sm text-muted-foreground underline hover:text-foreground"
             >
               Print PDF
             </button>
@@ -342,14 +454,14 @@ export function NoteEditor({
           <button
             type="button"
             onClick={handleDownloadMarkdown}
-            className="text-sm text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+            className="text-sm text-muted-foreground underline hover:text-foreground"
           >
             Download .md
           </button>
           <button
             type="button"
             onClick={() => router.push(noteId ? `/notes/${noteId}` : '/notes')}
-            className="rounded-md px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-muted-foreground"
+            className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
           >
             {noteId ? 'View note' : 'Cancel'}
           </button>
@@ -357,7 +469,7 @@ export function NoteEditor({
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50 dark:bg-accent/40 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             {isPending ? 'Saving…' : noteId ? 'Save changes' : 'Create note'}
           </button>

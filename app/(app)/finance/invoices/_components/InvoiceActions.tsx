@@ -70,7 +70,7 @@ export function InvoiceActions({
     : null;
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}

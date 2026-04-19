@@ -99,20 +99,20 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {rootError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="name">Account name <span className="text-red-500">*</span></Label>
         <Input id="name" name="name" type="text" defaultValue={account?.name ?? ''} placeholder="e.g. Main Current Account" required disabled={isPending} aria-invalid={!!fieldErrors.name} />
         {fieldErrors.name?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.name[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Account type <span className="text-red-500">*</span></Label>
         <Select value={accountType} onValueChange={(v) => setAccountType(v as typeof accountType)} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.type}>
@@ -127,14 +127,14 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
         {fieldErrors.type?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.type[0]}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="openingBalance">Opening balance</Label>
         <Input id="openingBalance" name="openingBalance" type="number" step="0.01" min="0" defaultValue={defaultBalance} placeholder="0.00" disabled={isPending} aria-invalid={!!fieldErrors.openingBalance} />
         {fieldErrors.openingBalance?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.openingBalance[0]}</p>}
         <p className="text-xs text-muted-foreground">Enter the starting balance as a decimal, e.g. 1250.00</p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" name="description" defaultValue={account?.description ?? ''} rows={3} placeholder="Optional description" disabled={isPending} aria-invalid={!!fieldErrors.description} />
         {fieldErrors.description?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description[0]}</p>}
@@ -144,26 +144,26 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Payment details (shown on invoices)
         </p>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="bankName">Bank name</Label>
             <Input id="bankName" name="bankName" type="text" maxLength={100} defaultValue={account?.bankName ?? ''} placeholder="e.g. Commonwealth Bank" disabled={isPending} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="bsb">BSB</Label>
               <Input id="bsb" name="bsb" type="text" maxLength={20} defaultValue={account?.bsb ?? ''} placeholder="e.g. 062-000" disabled={isPending} />
             </div>
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="accountNumber">Account number</Label>
               <Input id="accountNumber" name="accountNumber" type="text" maxLength={50} defaultValue={account?.accountNumber ?? ''} placeholder="e.g. 12345678" disabled={isPending} />
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="iban">IBAN</Label>
             <Input id="iban" name="iban" type="text" maxLength={34} defaultValue={account?.iban ?? ''} placeholder="e.g. GB29NWBK60161331926819" disabled={isPending} />
           </div>
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="swiftBic">SWIFT / BIC</Label>
             <Input id="swiftBic" name="swiftBic" type="text" maxLength={11} defaultValue={account?.swiftBic ?? ''} placeholder="e.g. BARCGB22" disabled={isPending} />
           </div>
@@ -176,7 +176,7 @@ export function AccountForm({ account }: AccountFormProps): React.JSX.Element {
           name="isDefault"
           type="checkbox"
           defaultChecked={account?.isDefault ?? false}
-          className="h-4 w-4 rounded border-border text-primary focus:ring-ring dark:border-zinc-600"
+          className="size-4 rounded border-border text-primary focus:ring-ring"
         />
         <Label htmlFor="isDefault">Set as default account</Label>
       </div>

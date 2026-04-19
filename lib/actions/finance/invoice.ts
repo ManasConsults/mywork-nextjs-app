@@ -120,8 +120,12 @@ export async function updateInvoiceAction(
 // ─── Send ─────────────────────────────────────────────────────────────────────
 
 export async function sendInvoiceAction(id: string): Promise<SendInvoiceResult> {
-  const userId = await getAuthUserId();
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
   if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
+
+  const senderName = session.user.name ?? null;
+  const senderEmail = session.user.email ?? undefined;
 
   // Guard: client must have an email address before transitioning to SENT (AC-FIN-11-4)
   const invoiceData = await getInvoiceById(userId, id);
@@ -143,11 +147,13 @@ export async function sendInvoiceAction(id: string): Promise<SendInvoiceResult> 
       const pdfBuffer = await fetchAndGeneratePdfBuffer(userId, id);
       const emailResult = await sendInvoiceEmail(invoiceData.client.email, {
         invoiceNumber: invoice.invoiceNumber,
-        senderName: invoiceData.client.name,
+        senderName,
         clientName: invoiceData.client.name,
+        contactName: invoiceData.client.contactName ?? null,
         total: invoice.total,
         currency: invoice.currency,
         pdfBuffer,
+        cc: senderEmail,
       });
       if (!emailResult.sent) {
         emailWarning = emailResult.error ?? 'Invoice sent but email could not be delivered.';
@@ -247,8 +253,12 @@ export async function deleteInvoiceAction(id: string): Promise<ActionResult<void
 export async function sendPaymentReminderAction(
   id: string,
 ): Promise<ActionResult<{ reminderCount: number; lastReminderAt: Date }>> {
-  const userId = await getAuthUserId();
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
   if (!userId) return { success: false, error: { message: 'You must be signed in.' } };
+
+  const senderName = session.user.name ?? null;
+  const senderEmail = session.user.email ?? undefined;
 
   // Fetch invoice with client to validate and gather data for email (AC-FIN-18-1, 18-3)
   const invoiceData = await getInvoiceById(userId, id);
@@ -272,13 +282,15 @@ export async function sendPaymentReminderAction(
     const pdfBuffer = await fetchAndGeneratePdfBuffer(userId, id);
     await sendPaymentReminderEmail(invoiceData.client.email, {
       invoiceNumber: invoiceData.invoiceNumber,
-      senderName: invoiceData.client.name,
+      senderName,
       clientName: invoiceData.client.name,
+      contactName: invoiceData.client.contactName ?? null,
       issueDate: invoiceData.issueDate,
       dueDate: invoiceData.dueDate,
       total: invoiceData.total,
       currency: invoiceData.currency,
       pdfBuffer,
+      cc: senderEmail,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to send reminder email.';

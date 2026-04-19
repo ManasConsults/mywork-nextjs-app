@@ -102,6 +102,7 @@ const invoiceParams = {
   invoiceNumber: 'INV-2026-001',
   senderName: 'Acme Ltd',
   clientName: 'Bob',
+  contactName: null,
   total: 1250,
   currency: 'GBP',
   pdfBuffer: PDF,
@@ -114,6 +115,32 @@ describe('sendInvoiceEmail', () => {
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({ to: TO, subject: expect.stringContaining('INV-2026-001') }),
     );
+  });
+
+  it('addresses the email to contactName when set', async () => {
+    await sendInvoiceEmail(TO, { ...invoiceParams, contactName: 'Jane Smith' });
+    const call = mockSend.mock.calls[0][0] as { html: string };
+    expect(call.html).toContain('Jane Smith');
+    expect(call.html).not.toContain('Dear Bob');
+  });
+
+  it('falls back to clientName when contactName is null', async () => {
+    await sendInvoiceEmail(TO, { ...invoiceParams, contactName: null });
+    const call = mockSend.mock.calls[0][0] as { html: string };
+    expect(call.html).toContain('Dear Bob');
+  });
+
+  it('includes cc when provided', async () => {
+    await sendInvoiceEmail(TO, { ...invoiceParams, cc: 'sender@example.com' });
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({ cc: ['sender@example.com'] }),
+    );
+  });
+
+  it('omits cc when not provided', async () => {
+    await sendInvoiceEmail(TO, invoiceParams);
+    const call = mockSend.mock.calls[0][0] as Record<string, unknown>;
+    expect(call).not.toHaveProperty('cc');
   });
 
   it('returns { sent: false } when resend is not configured', async () => {
@@ -139,6 +166,7 @@ const reminderParams = {
   invoiceNumber: 'INV-2026-001',
   senderName: 'Acme Ltd',
   clientName: 'Bob',
+  contactName: null,
   issueDate: new Date('2026-01-01'),
   dueDate: new Date('2026-02-01'),
   total: 1250,
@@ -158,6 +186,32 @@ describe('sendPaymentReminderEmail', () => {
     await sendPaymentReminderEmail(TO, reminderParams);
     const call = mockSend.mock.calls[0][0] as { html: string };
     expect(call.html).toContain('Feb');
+  });
+
+  it('addresses the email to contactName when set', async () => {
+    await sendPaymentReminderEmail(TO, { ...reminderParams, contactName: 'Jane Smith' });
+    const call = mockSend.mock.calls[0][0] as { html: string };
+    expect(call.html).toContain('Jane Smith');
+    expect(call.html).not.toContain('Dear Bob');
+  });
+
+  it('falls back to clientName when contactName is null', async () => {
+    await sendPaymentReminderEmail(TO, { ...reminderParams, contactName: null });
+    const call = mockSend.mock.calls[0][0] as { html: string };
+    expect(call.html).toContain('Dear Bob');
+  });
+
+  it('includes cc when provided', async () => {
+    await sendPaymentReminderEmail(TO, { ...reminderParams, cc: 'sender@example.com' });
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({ cc: ['sender@example.com'] }),
+    );
+  });
+
+  it('omits cc when not provided', async () => {
+    await sendPaymentReminderEmail(TO, reminderParams);
+    const call = mockSend.mock.calls[0][0] as Record<string, unknown>;
+    expect(call).not.toHaveProperty('cc');
   });
 
   it('throws when send fails', async () => {

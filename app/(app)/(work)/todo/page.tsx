@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getTasksByUser } from '@/lib/services/task.service';
 import { todoFiltersSchema } from '@/lib/schemas/todo.schema';
 import { AddTodoForm } from './_components/AddTodoForm';
@@ -19,11 +20,11 @@ function TodoListSkeleton(): React.JSX.Element {
   return (
     <div className="divide-y divide-border/60 rounded-lg border border-border bg-card">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="flex animate-pulse items-center gap-3 px-4 py-3">
-          <div className="h-5 w-5 shrink-0 rounded-full bg-zinc-100" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-4 w-2/3 rounded bg-zinc-100" />
-            <div className="h-3 w-1/4 rounded bg-zinc-100" />
+        <div key={i} className="flex items-center gap-3 px-4 py-3">
+          <Skeleton className="h-5 w-5 shrink-0 rounded-full bg-muted" />
+          <div className="flex-1 flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-2/3 rounded bg-muted" />
+            <Skeleton className="h-3 w-1/4 rounded bg-muted" />
           </div>
         </div>
       ))}
@@ -49,7 +50,7 @@ export default async function TodoPage({ searchParams }: TodoPageProps): Promise
   const taskOptions = tasks.map((t) => ({ id: t.id, title: t.title }));
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         {/* Legend */}

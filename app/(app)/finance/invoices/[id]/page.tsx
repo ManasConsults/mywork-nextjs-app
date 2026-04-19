@@ -69,7 +69,7 @@ export default async function InvoiceDetailPage({
     : [];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl flex flex-col gap-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-3">
         <Link
@@ -85,7 +85,7 @@ export default async function InvoiceDetailPage({
       {/* Invoice header */}
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-semibold text-foreground">
                 {invoice.invoiceNumber}
@@ -112,7 +112,7 @@ export default async function InvoiceDetailPage({
             <Link
               href={`/api/finance/invoices/${invoice.id}/pdf`}
               target="_blank"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-accent dark:text-zinc-300"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path fillRule="evenodd" d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm4.75 6.75a.75.75 0 011.5 0v2.546l.943-1.048a.75.75 0 111.114 1.004l-2.25 2.5a.75.75 0 01-1.114 0l-2.25-2.5a.75.75 0 111.114-1.004l.943 1.048V8.75z" clipRule="evenodd" />
@@ -120,7 +120,7 @@ export default async function InvoiceDetailPage({
               Export PDF
             </Link>
 
-            <div className="text-sm text-muted-foreground text-right space-y-1">
+            <div className="text-sm text-muted-foreground text-right flex flex-col gap-1">
             <p>
               <span className="font-medium">Issue date:</span> {formatDate(invoice.issueDate)}
             </p>
@@ -199,7 +199,7 @@ export default async function InvoiceDetailPage({
 
         {/* Totals */}
         <div className="border-t border-border px-6 py-4">
-          <div className="ml-auto max-w-xs space-y-2 text-sm">
+          <div className="ml-auto max-w-xs flex flex-col gap-2 text-sm">
             <div className="flex justify-between text-muted-foreground">
               <span>Subtotal</span>
               <span>{fromMinorUnit(invoice.subtotal, invoice.currency)}</span>
@@ -229,7 +229,7 @@ export default async function InvoiceDetailPage({
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-green-800 dark:text-green-400">
             Payment Details
           </h2>
-          <dl className="space-y-1.5 text-sm">
+          <dl className="flex flex-col gap-1.5 text-sm">
             <div className="flex gap-4">
               <dt className="w-36 shrink-0 text-muted-foreground">Account name</dt>
               <dd className="font-medium text-foreground">{invoice.paymentAccount.name}</dd>

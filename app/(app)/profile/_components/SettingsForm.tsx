@@ -77,7 +77,7 @@ export function SettingsForm({ initialFiscalYearStartMonth, initialCurrency, ini
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
@@ -89,7 +89,7 @@ export function SettingsForm({ initialFiscalYearStartMonth, initialCurrency, ini
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="fiscalMonth">Fiscal year start month</Label>
         <Select value={month} onValueChange={setMonth} disabled={isPending}>
           <SelectTrigger id="fiscalMonth" className="w-48">
@@ -108,7 +108,7 @@ export function SettingsForm({ initialFiscalYearStartMonth, initialCurrency, ini
         </p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="currency">Default currency</Label>
         <Select value={currency} onValueChange={setCurrency} disabled={isPending}>
           <SelectTrigger id="currency" className="w-64">
@@ -127,7 +127,7 @@ export function SettingsForm({ initialFiscalYearStartMonth, initialCurrency, ini
         </p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label>Theme colour</Label>
         <div className="flex flex-wrap gap-2.5">
           {THEME_COLORS.map((key) => {

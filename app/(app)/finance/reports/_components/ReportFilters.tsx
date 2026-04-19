@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -93,11 +94,12 @@ export function ReportFilters({
             variant="ghost"
             size="sm"
             onClick={() => switchTab(tab.key)}
-            className={`flex-1 rounded-lg text-sm font-medium transition-colors ${
+            className={cn(
+              'flex-1 rounded-lg text-sm font-medium transition-colors',
               type === tab.key
                 ? 'bg-card text-primary shadow-sm hover:bg-card'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+                : 'text-muted-foreground hover:text-foreground',
+            )}
           >
             {tab.label}
           </Button>

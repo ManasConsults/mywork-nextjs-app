@@ -10,11 +10,11 @@ export default function NewAccountPage(): React.JSX.Element {
     <div className="mx-auto max-w-xl">
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/finance" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+        <Link href="/finance" className="hover:text-foreground">
           Finance
         </Link>
         <span>/</span>
-        <Link href="/finance/accounts" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+        <Link href="/finance/accounts" className="hover:text-foreground">
           Accounts
         </Link>
         <span>/</span>

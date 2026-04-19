@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { updateTodoAction, deleteTodoAction } from '@/lib/actions/todo';
 import type { TodoItemWithTask } from '@/lib/services/todo.service';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -107,7 +108,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
   }
 
   return (
-    <ul className="space-y-2 py-2">
+    <ul className="flex flex-col gap-2 py-2">
       {optimisticTodos.map((todo) => {
         const status = getDueStatus(todo.dueDate, todo.isDone);
         const edit = editState?.id === todo.id ? editState : null;
@@ -119,7 +120,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
           >
             {edit ? (
               /* ── Edit mode ── */
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 <Input
                   type="text"
                   value={edit.title}
@@ -156,7 +157,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                       type="checkbox"
                       checked={edit.isDone}
                       onChange={(e) => setEditState({ ...edit, isDone: e.target.checked })}
-                      className="h-4 w-4 rounded border-zinc-300 accent-primary"
+                      className="size-4 rounded border-input accent-primary"
                     />
                     Mark as done
                   </label>
@@ -188,11 +189,12 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                   type="button"
                   onClick={() => handleToggle(todo)}
                   aria-label={todo.isDone ? 'Mark as not done' : 'Mark as done'}
-                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                  className={cn(
+                    'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
                     todo.isDone
                       ? 'border-primary/80 bg-primary/50'
-                      : 'border-zinc-300 hover:border-primary/50 dark:border-zinc-600 dark:hover:border-primary/80'
-                  }`}
+                      : 'border-input hover:border-primary/50',
+                  )}
                 >
                   {todo.isDone && (
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -203,11 +205,10 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
 
                 {/* Content */}
                 <div className="min-w-0 flex-1">
-                  <span className={`text-sm ${
-                    todo.isDone
-                      ? 'text-zinc-400 line-through dark:text-zinc-500'
-                      : 'text-zinc-800 dark:text-zinc-100'
-                  }`}>
+                  <span className={cn(
+                    'text-sm',
+                    todo.isDone ? 'text-muted-foreground line-through' : 'text-foreground',
+                  )}>
                     {todo.title}
                   </span>
 
@@ -216,7 +217,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                     {todo.task && (
                       <Link
                         href={`/tasks/${todo.task.id}`}
-                        className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                        className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground"
                       >
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
@@ -250,11 +251,12 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleToggle(todo)}
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                    className={cn(
+                      'rounded-full px-2.5 py-1 text-xs font-medium',
                       todo.isDone
-                        ? 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700'
-                        : 'bg-primary/5 text-primary hover:bg-primary/10'
-                    }`}
+                        ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        : 'bg-primary/5 text-primary hover:bg-primary/10',
+                    )}
                   >
                     {todo.isDone ? 'Undo' : 'Mark done'}
                   </Button>
@@ -269,7 +271,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                       taskId: todo.taskId ?? '',
                       isDone: todo.isDone,
                     })}
-                    className="h-auto p-0 text-xs text-zinc-400 underline hover:text-zinc-600 hover:bg-transparent dark:text-zinc-500 dark:hover:text-zinc-300"
+                    className="h-auto p-0 text-xs text-muted-foreground underline hover:text-foreground hover:bg-transparent"
                   >
                     Edit
                   </Button>

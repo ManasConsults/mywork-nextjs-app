@@ -70,7 +70,7 @@ export function WorkLogList({ logs }: { logs: WorkLogWithTask[] }): React.JSX.El
                   {formatHours(log.timeSpent)}
                 </span>
               )}
-              <Link href={`/work-logs/${log.id}/edit`} className="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+              <Link href={`/work-logs/${log.id}/edit`} className="text-xs text-muted-foreground underline hover:text-foreground">
                 Edit
               </Link>
               <Button variant="ghost" size="sm" onClick={() => handleDelete(log.id)} disabled={isPending} className="h-auto p-0 text-xs text-red-500 underline hover:text-red-700 hover:bg-transparent dark:text-red-400">

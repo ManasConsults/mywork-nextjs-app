@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
+import { cn } from '@/lib/utils';
 import { getAccountById, getAccountBalance } from '@/lib/services/finance/account.service';
 import { getTransactions } from '@/lib/services/finance/transaction.service';
 import { fromMinorUnit } from '@/lib/utils/money';
@@ -46,11 +47,11 @@ export default async function AccountDetailPage({
     <div className="mx-auto max-w-3xl">
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/finance" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+        <Link href="/finance" className="hover:text-foreground">
           Finance
         </Link>
         <span>/</span>
-        <Link href="/finance/accounts" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+        <Link href="/finance/accounts" className="hover:text-foreground">
           Accounts
         </Link>
         <span>/</span>
@@ -186,18 +187,17 @@ export default async function AccountDetailPage({
                       </td>
                       <td className="px-4 py-3 text-sm text-foreground">
                         {tx.description ?? (
-                          <span className="italic text-zinc-400">—</span>
+                          <span className="italic text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-muted-foreground sm:table-cell">
                         {tx.category.name}
                       </td>
                       <td
-                        className={`whitespace-nowrap px-4 py-3 text-right text-sm font-medium ${
-                          isIncome
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
+                        className={cn(
+                          'whitespace-nowrap px-4 py-3 text-right text-sm font-medium',
+                          isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                        )}
                       >
                         {isIncome ? '+' : '-'}
                         {fromMinorUnit(tx.amount, currency)}

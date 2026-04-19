@@ -6,6 +6,7 @@ import type { Task } from '@prisma/client';
 
 import { TASK_STATUSES } from '@/lib/schemas/task.schema';
 import { updateTaskAction } from '@/lib/actions/task';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -40,15 +41,15 @@ export function TaskCard({ task }: { task: Task }): React.JSX.Element {
   }
 
   return (
-    <div className="rounded-md border border-border bg-card p-3 shadow-sm">
+    <div className="rounded-md border border-border bg-card p-3">
       <div className="mb-2 flex items-start justify-between gap-2">
         <Link
           href={`/tasks/${task.id}`}
-          className="text-sm font-medium text-zinc-900 hover:underline dark:text-zinc-50"
+          className="text-sm font-medium text-foreground hover:underline"
         >
           {task.title}
         </Link>
-        <Badge className={`shrink-0 ${PRIORITY_BADGE_VARIANT[task.priority]}`}>
+        <Badge className={cn('shrink-0', PRIORITY_BADGE_VARIANT[task.priority])}>
           {PRIORITY_LABELS[task.priority]}
         </Badge>
       </div>

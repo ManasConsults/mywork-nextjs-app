@@ -104,7 +104,7 @@ export function WorkLogForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {rootError && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {rootError}
@@ -112,7 +112,7 @@ export function WorkLogForm({
       )}
 
       {!isEdit && (
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Task</Label>
           <Select value={taskId} onValueChange={setTaskId} disabled={isPending}>
             <SelectTrigger aria-invalid={!!fieldErrors.taskId}>
@@ -133,7 +133,7 @@ export function WorkLogForm({
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="date">Date</Label>
           <Input
             id="date"
@@ -148,7 +148,7 @@ export function WorkLogForm({
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="timeSpent">Time spent (hours)</Label>
           <Input
             id="timeSpent"
@@ -168,7 +168,7 @@ export function WorkLogForm({
         </div>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
@@ -184,7 +184,7 @@ export function WorkLogForm({
         )}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="outcome">Outcome (optional)</Label>
         <Input
           id="outcome"

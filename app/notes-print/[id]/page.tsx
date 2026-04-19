@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 import { generateHTML } from '@tiptap/html';
 import StarterKit from '@tiptap/starter-kit';
-import LinkExtension from '@tiptap/extension-link';
+import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 
 import { authOptions } from '@/lib/auth/auth';
 import { getNoteById, noteDisplayTitle } from '@/lib/services/note.service';
@@ -26,7 +26,10 @@ export default async function NotePrintPage({ params }: NotePrintPageProps): Pro
 
   const html = generateHTML(note.body as Parameters<typeof generateHTML>[0], [
     StarterKit,
-    LinkExtension,
+    Table,
+    TableRow,
+    TableCell,
+    TableHeader,
   ]);
 
   const title = noteDisplayTitle(note);
@@ -66,6 +69,9 @@ export default async function NotePrintPage({ params }: NotePrintPageProps): Pro
         .body-content strong { font-weight: bold; }
         .body-content em { font-style: italic; }
         .body-content s { text-decoration: line-through; }
+        .body-content table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+        .body-content th, .body-content td { border: 1px solid #ccc; padding: 5px 8px; text-align: left; vertical-align: top; }
+        .body-content th { background: #f4f4f4; font-weight: bold; }
       `}</style>
 
       <CloseButton />

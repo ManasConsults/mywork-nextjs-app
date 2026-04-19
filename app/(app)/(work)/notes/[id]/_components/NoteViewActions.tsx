@@ -30,10 +30,10 @@ export function NoteViewActions({
   return (
     <div className="mb-8 flex flex-wrap items-center gap-3">
       <Button onClick={() => router.push(`/notes/${noteId}/edit`)}>Edit</Button>
-      <Button variant="ghost" onClick={() => window.open(`/notes-print/${noteId}`, '_blank')} className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+      <Button variant="ghost" onClick={() => window.open(`/notes-print/${noteId}`, '_blank')} className="text-muted-foreground hover:text-foreground">
         Print PDF
       </Button>
-      <Button variant="ghost" onClick={handleDownloadMarkdown} className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+      <Button variant="ghost" onClick={handleDownloadMarkdown} className="text-muted-foreground hover:text-foreground">
         Download .md
       </Button>
     </div>
