@@ -73,6 +73,30 @@ export async function sendAccountRejectedEmail(
   }
 }
 
+export async function sendPasswordResetEmail(
+  to: string,
+  name: string | null,
+  token: string,
+): Promise<void> {
+  if (!resend) return;
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to,
+      subject: 'Reset your MyWork password',
+      html: `
+        <p>${greeting(name)},</p>
+        <p>We received a request to reset your MyWork password. Click the link below to choose a new one:</p>
+        <p><a href="${APP_URL}/reset-password?token=${token}">Reset your password</a></p>
+        <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+        <p>— The MyWork Team</p>
+      `,
+    });
+  } catch {
+    console.error('[email] Failed to send password reset email to', to);
+  }
+}
+
 // ─── Invoice emails ────────────────────────────────────────────────────────────
 
 function fmtCurrency(minor: number, currency: string): string {
