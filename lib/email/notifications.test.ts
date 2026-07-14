@@ -2,6 +2,7 @@ import {
   sendRegistrationPendingEmail,
   sendAccountApprovedEmail,
   sendAccountRejectedEmail,
+  sendPasswordResetEmail,
   sendInvoiceEmail,
   sendPaymentReminderEmail,
 } from './notifications';
@@ -94,6 +95,37 @@ describe('sendAccountRejectedEmail', () => {
   it('does not throw when send fails', async () => {
     mockSend.mockRejectedValue(new Error('Network error'));
     await expect(sendAccountRejectedEmail(TO, NAME)).resolves.toBeUndefined();
+  });
+});
+
+describe('sendPasswordResetEmail', () => {
+  const TOKEN = 'raw-reset-token';
+
+  it('sends to the correct address with the correct subject', async () => {
+    await sendPasswordResetEmail(TO, NAME, TOKEN);
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: TO,
+        subject: 'Reset your MyWork password',
+      }),
+    );
+  });
+
+  it('includes a reset link with the token', async () => {
+    await sendPasswordResetEmail(TO, NAME, TOKEN);
+    const call = mockSend.mock.calls[0][0] as { html: string };
+    expect(call.html).toContain(`/reset-password?token=${TOKEN}`);
+  });
+
+  it('uses fallback greeting when name is null', async () => {
+    await sendPasswordResetEmail(TO, null, TOKEN);
+    const call = mockSend.mock.calls[0][0] as { html: string };
+    expect(call.html).toContain('Hi there');
+  });
+
+  it('does not throw when send fails', async () => {
+    mockSend.mockRejectedValue(new Error('Network error'));
+    await expect(sendPasswordResetEmail(TO, NAME, TOKEN)).resolves.toBeUndefined();
   });
 });
 
