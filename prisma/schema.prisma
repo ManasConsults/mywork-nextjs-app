@@ -128,8 +128,25 @@ model User {
   clients              Client[]
   invoices             Invoice[]
   feedbackSubmissions  FeedbackSubmission[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@map("users")
+}
+
+/// Single-use, time-limited token for the forgot-password flow. Only the SHA-256
+/// hash of the token is stored — the raw value is emailed to the user and never persisted.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Task {
