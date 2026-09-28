@@ -54,6 +54,8 @@ export const authOptions: NextAuthOptions = {
     GitHubProvider({
       clientId: process.env.GITHUB_ID ?? '',
       clientSecret: process.env.GITHUB_SECRET ?? '',
+      // GitHub sends `iss` on the callback (RFC 9207); openid-client rejects it unless the issuer is declared.
+      issuer: 'https://github.com/login/oauth',
     }),
 
     GoogleProvider({
