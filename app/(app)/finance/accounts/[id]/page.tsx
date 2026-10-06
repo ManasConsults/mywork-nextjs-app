@@ -151,14 +151,14 @@ export default async function AccountDetailPage({
             </Link>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="overflow-x-auto rounded-xl border border-border bg-card">
             <table className="min-w-full divide-y divide-border">
               <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
                     Date
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="px-4 sm:min-w-48 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Description
                   </th>
                   <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
@@ -173,22 +173,24 @@ export default async function AccountDetailPage({
                 {recentTransactions.map((tx) => {
                   const isIncome =
                     tx.type === 'INCOME' || tx.type === 'TRANSFER_IN';
+                  const dateLabel = new Date(tx.date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  });
                   return (
                     <tr
                       key={tx.id}
                       className="hover:bg-accent/40"
                     >
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground">
-                        {new Date(tx.date).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                      <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-muted-foreground sm:table-cell">
+                        {dateLabel}
                       </td>
                       <td className="px-4 py-3 text-sm text-foreground">
                         {tx.description ?? (
                           <span className="italic text-muted-foreground">—</span>
                         )}
+                        <span className="mt-0.5 block text-xs text-muted-foreground sm:hidden">{dateLabel}</span>
                       </td>
                       <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-muted-foreground sm:table-cell">
                         {tx.category.name}
@@ -196,7 +198,7 @@ export default async function AccountDetailPage({
                       <td
                         className={cn(
                           'whitespace-nowrap px-4 py-3 text-right text-sm font-medium',
-                          isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                          isIncome ? 'text-success' : 'text-destructive',
                         )}
                       >
                         {isIncome ? '+' : '-'}

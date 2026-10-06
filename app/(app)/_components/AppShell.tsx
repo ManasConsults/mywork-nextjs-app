@@ -52,28 +52,28 @@ export function AppShell({
             )}
           >
             {/* Left: hamburger (mobile) + page title */}
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-1 md:gap-3">
               <button
                 onClick={() => setMobileOpen(true)}
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:hidden"
+                className="-ml-2 inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:hidden"
                 aria-label="Open navigation"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 12h18M3 6h18M3 18h18" />
                 </svg>
               </button>
-              <span className="text-base font-semibold text-foreground">
+              <span className="truncate text-base font-semibold text-foreground">
                 {pageTitle}
               </span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               <FeedbackButton />
               {isAdmin && (
                 <Link
                   href="/admin/users"
                   aria-label={hasPending ? `${pendingCount} pending approval${(pendingCount ?? 0) > 1 ? 's' : ''}` : 'Notifications'}
-                  className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:size-auto md:p-1.5"
                 >
                   <span className="relative inline-flex">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -88,7 +88,10 @@ export function AppShell({
                   </span>
                 </Link>
               )}
-              <ThemeToggle />
+              {/* No room for the 3-way toggle at phone width — the mobile drawer carries it instead */}
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
             </div>
           </header>
         </div>

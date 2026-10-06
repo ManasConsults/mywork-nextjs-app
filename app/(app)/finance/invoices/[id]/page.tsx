@@ -163,7 +163,7 @@ export default async function InvoiceDetailPage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60">
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="min-w-48 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Description
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">

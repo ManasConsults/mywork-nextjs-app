@@ -174,7 +174,7 @@ export function NoteFiltersBar({
         </Button>
       )}
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
         <Select value={currentSortBy} onValueChange={(v) => updateParams({ sortBy: v }, false)}>
           <SelectTrigger className="w-36" aria-label="Sort by">
             <SelectValue />
@@ -197,7 +197,7 @@ export function NoteFiltersBar({
         </Select>
 
         <Select value={String(currentPageSize)} onValueChange={(v) => updateParams({ pageSize: v })}>
-          <SelectTrigger className="w-28" aria-label="Items per page">
+          <SelectTrigger className="w-32" aria-label="Items per page">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

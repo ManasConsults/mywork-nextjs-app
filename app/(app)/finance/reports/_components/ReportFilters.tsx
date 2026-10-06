@@ -68,7 +68,7 @@ export function ReportFilters({
 
   return (
     <div className="mb-6">
-      <div className="mb-5 flex gap-1 rounded-xl border border-border bg-muted/50 p-1/60">
+      <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl border border-border/60 bg-muted/50 p-1 sm:flex">
         {tabs.map((tab) => (
           <Button
             key={tab.key}

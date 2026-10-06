@@ -125,14 +125,14 @@ export default async function TransactionsPage({
           </Link>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <table className="min-w-full divide-y divide-border">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
                   Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 sm:min-w-48 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Description
                 </th>
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
@@ -144,7 +144,7 @@ export default async function TransactionsPage({
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Amount
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <th className="hidden px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
                   Actions
                 </th>
               </tr>
@@ -155,18 +155,19 @@ export default async function TransactionsPage({
                   tx.type === 'INCOME' || tx.type === 'TRANSFER_IN';
                 const badgeCls =
                   TYPE_BADGE_CLS[tx.type] ?? TYPE_BADGE_CLS.EXPENSE;
+                const dateLabel = new Date(tx.date).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                });
 
                 return (
                   <tr
                     key={tx.id}
                     className="hover:bg-accent/40"
                   >
-                    <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground">
-                      {new Date(tx.date).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-muted-foreground sm:table-cell">
+                      {dateLabel}
                     </td>
                     <td className="px-4 py-3 text-sm text-foreground">
                       <div className="flex flex-wrap items-center gap-1.5">
@@ -186,9 +187,19 @@ export default async function TransactionsPage({
                           </span>
                         )}
                       </div>
+                      <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground sm:hidden">
+                        <span className="whitespace-nowrap">{dateLabel}</span>
+                        <Link
+                          href={`/finance/transactions/${tx.id}/edit`}
+                          className="inline-flex min-h-11 items-center text-primary underline underline-offset-2"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteTransactionButton id={tx.id} />
+                      </div>
                     </td>
-                    <td className="hidden whitespace-nowrap px-4 py-3 sm:table-cell">
-                      <div className="flex items-center gap-2">
+                    <td className="hidden px-4 py-3 sm:table-cell">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span className="text-sm text-foreground">
                           {tx.category.name}
                         </span>
@@ -199,19 +210,21 @@ export default async function TransactionsPage({
                         </span>
                       </div>
                     </td>
-                    <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-muted-foreground md:table-cell">
-                      {tx.account.name}
+                    <td className="hidden px-4 py-3 text-sm text-muted-foreground md:table-cell">
+                      <span className="block max-w-40 truncate" title={tx.account.name}>
+                        {tx.account.name}
+                      </span>
                     </td>
                     <td
                       className={cn(
-                        'whitespace-nowrap px-4 py-3 text-right text-sm font-semibold',
-                        isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                        'whitespace-nowrap px-4 py-3 text-right align-top text-sm font-semibold sm:align-middle',
+                        isIncome ? 'text-success' : 'text-destructive',
                       )}
                     >
                       {isIncome ? '+' : '-'}
                       {fromMinorUnit(tx.amount, currency)}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm sm:table-cell">
                       <span className="inline-flex items-center gap-3">
                         <Link
                           href={`/finance/transactions/${tx.id}/edit`}

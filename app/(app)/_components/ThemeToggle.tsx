@@ -64,7 +64,7 @@ export function ThemeToggle(): React.JSX.Element {
             aria-pressed={isActive}
             title={label}
             className={cn(
-              'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97]',
+              'flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97] pointer-coarse:min-h-10 pointer-coarse:min-w-11',
               isActive
                 ? 'bg-background text-foreground shadow-sm shadow-black/8 dark:shadow-black/30'
                 : 'text-foreground/60 hover:bg-accent/60 hover:text-foreground',

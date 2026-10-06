@@ -29,6 +29,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarUser {
   name?: string | null;
@@ -174,7 +175,7 @@ function NavContent({
                       title={collapsed ? label : undefined}
                       aria-current={isActive ? 'page' : undefined}
                       className={cn(
-                        'flex min-h-9 items-center rounded-lg px-2 py-1.5 text-sm font-medium transition-colors',
+                        'flex min-h-11 md:min-h-9 items-center rounded-lg px-2 py-1.5 text-sm font-medium transition-colors',
                         collapsed ? 'justify-center' : 'gap-3',
                         isActive
                           ? 'bg-primary/10 text-primary'
@@ -200,7 +201,7 @@ function NavContent({
             onClick={onLinkClick}
             title={collapsed ? 'Admin' : undefined}
             className={cn(
-              'flex min-h-9 items-center rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
+              'flex min-h-11 md:min-h-9 items-center rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
               collapsed ? 'justify-center' : 'gap-3',
             )}
           >
@@ -218,14 +219,14 @@ function NavContent({
               href="/profile"
               title="Profile"
               onClick={onLinkClick}
-              className="flex min-h-9 w-full items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-accent"
+              className="flex min-h-11 md:min-h-9 w-full items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-accent"
             >
               <UserAvatar user={user} size="sm" />
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               title="Sign out"
-              className="flex min-h-9 w-full items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="flex min-h-11 md:min-h-9 w-full items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <LogOut className="size-4" />
             </button>
@@ -249,7 +250,7 @@ function NavContent({
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="mt-1 flex min-h-9 w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="mt-1 flex min-h-11 md:min-h-9 w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <LogOut className="size-4 shrink-0" />
               Sign out
@@ -302,12 +303,16 @@ export function Sidebar({ user, mobileOpen, onMobileClose }: SidebarProps): Reac
             </span>
             <button
               onClick={onMobileClose}
-              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="-mr-2 inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               aria-label="Close navigation"
             >
               <X className="size-4" />
             </button>
           </div>
+        </div>
+        <div className="flex shrink-0 items-center justify-between px-4 py-2">
+          <span className="text-xs font-medium text-muted-foreground">Theme</span>
+          <ThemeToggle />
         </div>
         <NavContent user={user} collapsed={false} onLinkClick={onMobileClose} />
       </aside>
