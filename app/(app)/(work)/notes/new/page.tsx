@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getTasksByUser } from '@/lib/services/task.service';
+import { getOpenTasksByUser } from '@/lib/services/task.service';
 import { NoteEditor } from '../_components/NoteEditor';
 
 export const metadata: Metadata = { title: 'MyWork — New Note' };
@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: 'MyWork — New Note' };
 export default async function NewNotePage(): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
-  const tasks = await getTasksByUser(userId);
+  const tasks = await getOpenTasksByUser(userId);
 
   return (
     <div className="mx-auto max-w-3xl">
