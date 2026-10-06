@@ -47,12 +47,13 @@ export function TaskList({ tasks }: { tasks: TaskListItem[] }): React.JSX.Elemen
   }
 
   return (
-    <ul className="divide-y divide-border/60 rounded-lg border border-border bg-card">
+    <ul className="flex flex-col gap-2">
       {tasks.map((task) => (
         <li key={task.id}>
+          {/* Each row is its own card so the global card hover lifts the row, not the whole list */}
           <Link
             href={`/tasks/${task.id}`}
-            className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-accent/40/50"
+            className="flex min-h-[44px] items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-foreground">

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
@@ -8,6 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { taskFiltersSchema } from '@/lib/schemas/task.schema';
 import { TaskFilters } from './_components/TaskFilters';
 import { TaskListServer } from './_components/TaskListServer';
+import { RememberTaskView } from './_components/RememberTaskView';
+import { TASK_VIEW_COOKIE } from './_components/task-view';
 
 export const metadata: Metadata = { title: 'MyWork — Tasks' };
 
@@ -17,9 +21,9 @@ interface TasksPageProps {
 
 function TaskListSkeleton(): React.JSX.Element {
   return (
-    <div className="divide-y divide-border/60 rounded-lg border border-border bg-card">
+    <div className="flex flex-col gap-2">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-4 py-3">
+        <div key={i} className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3">
           <div className="flex-1 flex flex-col gap-1.5">
             <Skeleton className="h-4 w-2/3 rounded bg-muted" />
             <Skeleton className="h-3 w-1/4 rounded bg-muted" />
@@ -40,6 +44,11 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
 
   const params = await searchParams;
 
+  // Only a bare /tasks (nav, dashboard, post-create) reopens the remembered board; any query
+  // string — filters, pagination or the List link's ?view=list — means the user wants the list.
+  const rememberedView = (await cookies()).get(TASK_VIEW_COOKIE)?.value;
+  if (rememberedView === 'board' && Object.keys(params).length === 0) redirect('/tasks/board');
+
   // 'status=_all' means the user explicitly cleared the filter (show everything).
   // Absent 'status' param means first visit — default to IN_PROGRESS.
   const rawStatus = typeof params.status === 'string' ? params.status : undefined;
@@ -56,6 +65,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps): Promi
 
   return (
     <div className="mx-auto max-w-4xl">
+      <RememberTaskView view="list" />
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link

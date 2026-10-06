@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Search, X } from 'lucide-react';
 
-import { NOTE_SORT_BY, NOTE_PAGE_SIZES } from '@/lib/schemas/note.schema';
+import { NOTE_SORT_BY, NOTE_PAGE_SIZES, NOTE_SEARCH_MAX_LENGTH } from '@/lib/schemas/note.schema';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ interface TaskOption {
 
 interface NoteFiltersBarProps {
   tasks: TaskOption[];
+  currentQuery?: string;
   currentTag?: string;
   currentTaskId?: string;
   currentSortBy: string;
@@ -29,6 +31,7 @@ const SORT_BY_LABELS: Record<string, string> = {
 
 export function NoteFiltersBar({
   tasks,
+  currentQuery,
   currentTag,
   currentTaskId,
   currentSortBy,
@@ -38,6 +41,7 @@ export function NoteFiltersBar({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tagInput, setTagInput] = useState('');
+  const [searchInput, setSearchInput] = useState(currentQuery ?? '');
 
   function updateParams(updates: Record<string, string | undefined>, resetPage = true): void {
     const params = new URLSearchParams(searchParams.toString());
@@ -50,6 +54,16 @@ export function NoteFiltersBar({
     }
     if (resetPage) params.delete('page');
     router.push(`/notes?${params.toString()}`);
+  }
+
+  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>): void {
+    e.preventDefault();
+    updateParams({ q: searchInput.trim() || undefined });
+  }
+
+  function clearSearch(): void {
+    setSearchInput('');
+    updateParams({ q: undefined });
   }
 
   function handleTagSubmit(e: React.FormEvent<HTMLFormElement>): void {
@@ -66,13 +80,42 @@ export function NoteFiltersBar({
     if (searchParams.get('sortBy')) params.set('sortBy', searchParams.get('sortBy')!);
     if (searchParams.get('sortOrder')) params.set('sortOrder', searchParams.get('sortOrder')!);
     if (searchParams.get('pageSize')) params.set('pageSize', searchParams.get('pageSize')!);
+    setSearchInput('');
     router.push(`/notes?${params.toString()}`);
   }
 
-  const hasFilters = Boolean(currentTag || currentTaskId);
+  const hasFilters = Boolean(currentQuery || currentTag || currentTaskId);
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
+      <form role="search" onSubmit={handleSearchSubmit} className="relative w-full sm:w-64">
+        <Search
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search notes…"
+          aria-label="Search notes"
+          maxLength={NOTE_SEARCH_MAX_LENGTH}
+          className="pl-9 pr-10"
+        />
+        {searchInput && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={clearSearch}
+            aria-label="Clear search"
+            className="absolute right-0 top-1/2 size-11 -translate-y-1/2 sm:size-9 text-muted-foreground hover:bg-transparent hover:text-foreground"
+          >
+            <X />
+          </Button>
+        )}
+      </form>
+
       {currentTag ? (
         <span className="flex items-center gap-1 rounded-full bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
           #{currentTag}

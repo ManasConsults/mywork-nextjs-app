@@ -110,7 +110,7 @@ model User {
   createdAt      DateTime       @default(now())
   updatedAt    DateTime  @updatedAt
   fiscalYearStartMonth Int      @default(4)
-  currency        String    @default("GBP")
+  currency        String    @default("AUD")
   themeColor      String    @default("teal")
   businessName    String?
   abn             String?
@@ -268,7 +268,7 @@ model Account {
   name           String
   type           AccountType
   openingBalance Int           @default(0)
-  currency       String        @default("GBP")
+  currency       String        @default("AUD")
   isDefault      Boolean       @default(false)
   description    String?
   // Payment / banking details (shown on invoices)
@@ -338,7 +338,7 @@ model Client {
   phone       String?
   address     String?
   defaultRate Int?
-  currency    String    @default("GBP")
+  currency    String    @default("AUD")
   notes       String?
   archivedAt  DateTime?
   createdAt   DateTime  @default(now())
@@ -364,7 +364,7 @@ model Invoice {
   subtotal         Int             @default(0)
   taxAmount        Int             @default(0)
   total            Int             @default(0)
-  currency         String          @default("GBP")
+  currency         String          @default("AUD")
   sentAt           DateTime?
   paidAt           DateTime?
   reminderCount    Int             @default(0)

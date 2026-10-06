@@ -24,6 +24,7 @@ jest.mock('@/lib/db/prisma', () => ({
       count: jest.fn(),
     },
     $transaction: jest.fn(),
+    $queryRaw: jest.fn(),
   },
 }));
 
@@ -32,6 +33,7 @@ jest.mock('@/lib/services/task.service', () => ({
 }));
 
 const mockNote = prisma.note as jest.Mocked<typeof prisma.note>;
+const mockQueryRaw = prisma.$queryRaw as unknown as jest.Mock;
 const mockGetTaskById = taskService.getTaskById as jest.MockedFunction<typeof taskService.getTaskById>;
 
 const userId = 'user-1';
@@ -338,6 +340,43 @@ describe('getNotesByUserPaged', () => {
     expect(result.page).toBe(1);
     expect(result.pageSize).toBe(10);
     expect(result.totalPages).toBe(1);
+  });
+
+  it('does not run the search query when q is absent', async () => {
+    mockPagedQuery([], 0);
+
+    await getNotesByUserPaged(userId, defaultFilters);
+
+    expect(mockQueryRaw).not.toHaveBeenCalled();
+    expect(mockNote.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.not.objectContaining({ id: expect.anything() }) }),
+    );
+  });
+
+  it('restricts results to note ids matched by the search query', async () => {
+    mockQueryRaw.mockResolvedValue([{ id: 'note-1' }, { id: 'note-2' }]);
+    mockPagedQuery([], 0);
+
+    await getNotesByUserPaged(userId, noteFiltersSchema.parse({ q: 'standup' }));
+
+    expect(mockNote.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: { in: ['note-1', 'note-2'] } }) }),
+    );
+    expect(mockNote.count).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: { in: ['note-1', 'note-2'] } }) }),
+    );
+  });
+
+  it('scopes the search to the user and escapes LIKE wildcards', async () => {
+    mockQueryRaw.mockResolvedValue([]);
+    mockPagedQuery([], 0);
+
+    await getNotesByUserPaged(userId, noteFiltersSchema.parse({ q: '50%_off\\' }));
+
+    // Tagged template: first arg is the SQL strings, the rest are bound parameters
+    const [, ...values] = mockQueryRaw.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+    expect(values[0]).toBe(userId);
+    expect(values.slice(1)).toEqual(Array(3).fill('%50\\%\\_off\\\\%'));
   });
 
   it('applies tag filter', async () => {

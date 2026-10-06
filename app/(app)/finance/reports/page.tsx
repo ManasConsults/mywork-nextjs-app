@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 import type { CategoryType } from '@prisma/client';
+import { z } from 'zod';
 
 import { authOptions } from '@/lib/auth/auth';
 import {
@@ -10,7 +11,17 @@ import {
   getTaxSummary,
   getUnbilledHours,
 } from '@/lib/services/finance/report.service';
-import { fromMinorUnit } from '@/lib/utils/money';
+import { fromMinorUnit, DEFAULT_CURRENCY } from '@/lib/utils/money';
+import {
+  DEFAULT_TAX_REGION,
+  TAX_REGION_CODES,
+  TAX_REGIONS,
+  currentTaxYear,
+  getTaxYearStart,
+  taxYearLabel,
+  taxYearOptions,
+  type TaxRegion,
+} from '@/lib/utils/tax-year';
 import { cn } from '@/lib/utils';
 import { ReportFilters } from './_components/ReportFilters';
 
@@ -27,6 +38,7 @@ interface ReportsPageProps {
     to?: string;
     categoryType?: string;
     months?: string;
+    taxRegion?: string;
     taxYear?: string;
   }>;
 }
@@ -44,25 +56,12 @@ function isValidCategoryType(v: string): v is CategoryType {
   return (VALID_CATEGORY_TYPES as string[]).includes(v);
 }
 
-/**
- * Parse the taxYear param (e.g. "uk-2025" or "cal-2025") into a Date.
- * UK mode: April 6; Calendar mode: January 1.
- */
-function parseTaxYearStart(taxYear: string | undefined): Date {
-  if (!taxYear) {
-    const year = new Date().getFullYear();
-    return new Date(`${year}-04-06`);
-  }
-  if (taxYear.startsWith('uk-')) {
-    const year = parseInt(taxYear.replace('uk-', ''), 10);
-    return new Date(`${year}-04-06`);
-  }
-  if (taxYear.startsWith('cal-')) {
-    const year = parseInt(taxYear.replace('cal-', ''), 10);
-    return new Date(`${year}-01-01`);
-  }
-  const year = new Date().getFullYear();
-  return new Date(`${year}-04-06`);
+const taxRegionSchema = z.enum(TAX_REGION_CODES).catch(DEFAULT_TAX_REGION);
+
+/** Anything outside the offered years (including legacy "uk-2025" values) falls back to the current year. */
+function parseTaxYear(region: TaxRegion, raw: string | undefined): number {
+  const year = Number(raw);
+  return taxYearOptions(region).includes(year) ? year : currentTaxYear(region);
 }
 
 function defaultMonthRange(): { from: Date; to: Date } {
@@ -84,7 +83,7 @@ function SummaryCard({
   value,
   change,
   changeLabel,
-  currency = 'GBP',
+  currency = DEFAULT_CURRENCY,
   isExpense = false,
   highlight = false,
 }: {
@@ -398,15 +397,16 @@ async function CashFlowReport({
 
 async function TaxSummaryReport({
   userId,
+  taxRegion,
   taxYear,
   currency,
 }: {
   userId: string;
-  taxYear: string | undefined;
+  taxRegion: TaxRegion;
+  taxYear: number;
   currency: string;
 }): Promise<React.JSX.Element> {
-  const taxYearStart = parseTaxYearStart(taxYear);
-  const data = await getTaxSummary(userId, taxYearStart);
+  const data = await getTaxSummary(userId, getTaxYearStart(taxRegion, taxYear));
 
   const totalBusinessExpenses = data.businessExpenses.reduce((s, e) => s + e.amount, 0);
   const totalWorkRelated = data.workRelatedExpenses.reduce((s, e) => s + e.amount, 0);
@@ -420,6 +420,10 @@ async function TaxSummaryReport({
           filing your tax return.
         </p>
       </div>
+
+      <p className="text-sm text-muted-foreground">
+        {TAX_REGIONS[taxRegion].label} · {taxYearLabel(taxYear)} tax year
+      </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <SummaryCard label="Business Income" value={fromMinorUnit(data.businessIncome, currency)} />
@@ -579,7 +583,7 @@ export default async function ReportsPage({
 }: ReportsPageProps): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
-  const currency = (session!.user.currency as string) ?? 'GBP';
+  const currency = (session!.user.currency as string) ?? DEFAULT_CURRENCY;
 
   const params = await searchParams;
   const reportType: ReportType =
@@ -594,6 +598,8 @@ export default async function ReportsPage({
   const from = params.from ? new Date(params.from) : defaultFrom;
   const to = params.to ? new Date(params.to) : defaultTo;
   const months = params.months ? Math.min(12, Math.max(1, parseInt(params.months, 10))) : 12;
+  const taxRegion = taxRegionSchema.parse(params.taxRegion);
+  const taxYear = parseTaxYear(taxRegion, params.taxYear);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -610,7 +616,8 @@ export default async function ReportsPage({
           currentTo={params.to}
           currentCategoryType={params.categoryType}
           currentMonths={params.months}
-          currentTaxYear={params.taxYear}
+          currentTaxRegion={taxRegion}
+          currentTaxYear={taxYear}
         />
       </Suspense>
 
@@ -627,7 +634,7 @@ export default async function ReportsPage({
         <CashFlowReport userId={userId} months={months} currency={currency} />
       )}
       {reportType === 'tax' && (
-        <TaxSummaryReport userId={userId} taxYear={params.taxYear} currency={currency} />
+        <TaxSummaryReport userId={userId} taxRegion={taxRegion} taxYear={taxYear} currency={currency} />
       )}
       {reportType === 'unbilled' && <UnbilledHoursReport userId={userId} currency={currency} />}
     </div>

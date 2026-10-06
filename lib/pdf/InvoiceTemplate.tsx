@@ -5,6 +5,9 @@ import {
   View,
   StyleSheet,
 } from '@react-pdf/renderer';
+
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type InvoiceForPdf = {
@@ -51,7 +54,7 @@ export type InvoiceForPdf = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fmt(minor: number, currency = 'GBP'): string {
+function fmt(minor: number, currency = DEFAULT_CURRENCY): string {
   return (minor / 100).toLocaleString('en-GB', {
     style: 'currency',
     currency,

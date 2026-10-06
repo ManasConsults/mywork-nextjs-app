@@ -6,7 +6,7 @@ import type { Prisma } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
-import { fromMinorUnit } from '@/lib/utils/money';
+import { fromMinorUnit, DEFAULT_CURRENCY } from '@/lib/utils/money';
 import { TimesheetFilters } from './_components/TimesheetFilters';
 import { AddTimesheetEntryForm } from './_components/AddTimesheetEntryForm';
 import { TimesheetRow } from './_components/TimesheetRowActions';
@@ -59,7 +59,7 @@ export default async function TimesheetsPage({
 }: TimesheetsPageProps): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
-  const currency = (session!.user.currency as string) ?? 'GBP';
+  const currency = (session!.user.currency as string) ?? DEFAULT_CURRENCY;
 
   const params = await searchParams;
   const filterClientId = params.clientId ?? undefined;

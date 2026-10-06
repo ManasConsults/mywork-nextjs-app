@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { authOptions } from '@/lib/auth/auth';
 import { getTasksByUser } from '@/lib/services/task.service';
 import { TaskBoard } from '../_components/TaskBoard';
+import { RememberTaskView } from '../_components/RememberTaskView';
 
 export const metadata: Metadata = { title: 'MyWork — Task Board' };
 
@@ -16,10 +17,11 @@ export default async function TaskBoardPage(): Promise<React.JSX.Element> {
 
   return (
     <div>
+      <RememberTaskView view="board" />
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href="/tasks"
+            href="/tasks?view=list"
             className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent/40 dark:text-muted-foreground"
           >
             List view

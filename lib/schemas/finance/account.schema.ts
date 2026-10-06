@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 export const createAccountSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or fewer'),
   type: z.enum(['CHECKING', 'SAVINGS', 'CASH', 'CREDIT', 'INVESTMENT']),
   openingBalance: z.number().int().min(0, 'Opening balance cannot be negative').default(0),
-  currency: z.string().min(3).max(3).default('GBP'),
+  currency: z.string().min(3).max(3).default(DEFAULT_CURRENCY),
   description: z.string().max(500, 'Description must be 500 characters or fewer').optional(),
   isDefault: z.boolean().default(false),
   // Payment / banking details shown on invoices
