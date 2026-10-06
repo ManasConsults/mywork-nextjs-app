@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/prisma';
 import type { Invoice, InvoiceLineItem, Client, InvoiceStatus, Account } from '@prisma/client';
 import type { CreateInvoiceData } from '@/lib/schemas/finance/invoice.schema';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 // Service-layer update type uses concrete types (post-Zod-parse)
 interface UpdateInvoiceData {
@@ -150,7 +151,7 @@ export async function createInvoice(
       dueDate: data.dueDate ?? null,
       notes: data.notes ?? null,
       taxRate: data.taxRate ?? 0,
-      currency: data.currency ?? 'GBP',
+      currency: data.currency ?? DEFAULT_CURRENCY,
       status: 'DRAFT',
     },
   });

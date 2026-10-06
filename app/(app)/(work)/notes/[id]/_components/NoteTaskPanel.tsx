@@ -30,7 +30,7 @@ const PRIORITY_CLASSES: Record<string, string> = {
   LOW: 'bg-muted text-muted-foreground',
   MEDIUM: 'bg-warning/15 text-warning-foreground',
   HIGH: 'bg-destructive/10 text-destructive',
-  CRITICAL: 'bg-destructive text-destructive-foreground',
+  CRITICAL: 'bg-destructive text-white dark:bg-destructive/60',
 };
 
 interface NoteTaskPanelProps {

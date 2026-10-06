@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db/prisma';
 import { verifyPassword } from '@/lib/auth/passwords';
 import { loginSchema } from '@/lib/schemas/auth.schema';
 import { sendRegistrationPendingEmail } from '@/lib/email/notifications';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt' },
@@ -81,7 +82,7 @@ export const authOptions: NextAuthOptions = {
           token.moduleWork = dbUser?.moduleWork ?? true;
           token.moduleFinance = dbUser?.moduleFinance ?? true;
           token.employmentType = dbUser?.employmentType ?? 'EMPLOYED';
-          token.currency = dbUser?.currency ?? 'GBP';
+          token.currency = dbUser?.currency ?? DEFAULT_CURRENCY;
           token.themeColor = dbUser?.themeColor ?? 'teal';
         } else {
           token.id = user.id;
@@ -89,7 +90,7 @@ export const authOptions: NextAuthOptions = {
           token.moduleWork = (user as User & { moduleWork?: boolean }).moduleWork ?? true;
           token.moduleFinance = (user as User & { moduleFinance?: boolean }).moduleFinance ?? true;
           token.employmentType = (user as User & { employmentType?: string }).employmentType ?? 'EMPLOYED';
-          token.currency = (user as User & { currency?: string }).currency ?? 'GBP';
+          token.currency = (user as User & { currency?: string }).currency ?? DEFAULT_CURRENCY;
           token.themeColor = (user as User & { themeColor?: string }).themeColor ?? 'teal';
         }
       }

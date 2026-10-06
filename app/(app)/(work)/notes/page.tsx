@@ -45,6 +45,7 @@ export default async function NotesPage({ searchParams }: NotesPageProps): Promi
 
   const params = await searchParams;
   const filters = noteFiltersSchema.parse({
+    q: typeof params.q === 'string' ? params.q : undefined,
     tag: typeof params.tag === 'string' ? params.tag : undefined,
     taskId: typeof params.taskId === 'string' ? params.taskId : undefined,
     sortBy: typeof params.sortBy === 'string' ? params.sortBy : undefined,
@@ -69,6 +70,7 @@ export default async function NotesPage({ searchParams }: NotesPageProps): Promi
 
       <Suspense>
         <NoteFiltersBar
+          currentQuery={filters.q}
           tasks={tasks.map((t) => ({ id: t.id, title: t.title }))}
           currentTag={filters.tag}
           currentTaskId={filters.taskId}

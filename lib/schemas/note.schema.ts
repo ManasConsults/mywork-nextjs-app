@@ -20,7 +20,11 @@ export const NOTE_SORT_BY = ['createdAt', 'updatedAt'] as const;
 export const NOTE_PAGE_SIZES = [10, 20, 50, 100] as const;
 export const NOTE_DEFAULT_PAGE_SIZE = 10;
 
+export const NOTE_SEARCH_MAX_LENGTH = 200;
+
 export const noteFiltersSchema = z.object({
+  // Over-long or malformed queries are dropped rather than failing the whole page parse
+  q: z.string().trim().max(NOTE_SEARCH_MAX_LENGTH).optional().catch(undefined),
   tag: z.string().optional(),
   taskId: z.string().uuid().optional(),
   sortBy: z.enum(NOTE_SORT_BY).default('updatedAt'),

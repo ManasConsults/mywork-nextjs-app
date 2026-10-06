@@ -1,3 +1,5 @@
+export const DEFAULT_CURRENCY = 'AUD';
+
 /**
  * Convert a decimal amount (e.g. 12.50) to minor currency units (e.g. 1250 pence).
  * All monetary values are stored as integers in the DB per AP-F1.
@@ -8,9 +10,9 @@ export function toMinorUnit(decimal: number): number {
 
 /**
  * Format minor-unit integer (e.g. 1250) as a locale currency string (e.g. "£12.50").
- * Defaults to GBP if no currency code is provided.
+ * Defaults to DEFAULT_CURRENCY if no currency code is provided.
  */
-export function fromMinorUnit(minor: number, currency = 'GBP'): string {
+export function fromMinorUnit(minor: number, currency = DEFAULT_CURRENCY): string {
   return (minor / 100).toLocaleString('en-GB', {
     style: 'currency',
     currency,

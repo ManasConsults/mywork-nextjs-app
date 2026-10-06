@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { getAccounts } from '@/lib/services/finance/account.service';
 import { getCategories } from '@/lib/services/finance/category.service';
 import { getTransactions, generateDueRecurrences } from '@/lib/services/finance/transaction.service';
-import { fromMinorUnit } from '@/lib/utils/money';
+import { fromMinorUnit, DEFAULT_CURRENCY } from '@/lib/utils/money';
 import { TransactionFilters } from './_components/TransactionFilters';
 import { DeleteTransactionButton } from './_components/DeleteTransactionButton';
 
@@ -58,7 +58,7 @@ export default async function TransactionsPage({
 }: TransactionsPageProps): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
-  const currency = (session!.user.currency as string) ?? 'GBP';
+  const currency = (session!.user.currency as string) ?? DEFAULT_CURRENCY;
 
   const { accountId, categoryId, type, from, to } = await searchParams;
 

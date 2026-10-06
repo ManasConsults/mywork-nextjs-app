@@ -13,6 +13,7 @@ import {
   archiveClient,
   deleteClient,
 } from '@/lib/services/finance/client.service';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 type ClientActionResult<T> =
   | { success: true; data: T }
@@ -23,7 +24,7 @@ async function getAuthUser(): Promise<{ userId: string; currency: string } | nul
   if (!session?.user?.id) return null;
   return {
     userId: session.user.id,
-    currency: (session.user as { currency?: string }).currency ?? 'GBP',
+    currency: (session.user as { currency?: string }).currency ?? DEFAULT_CURRENCY,
   };
 }
 

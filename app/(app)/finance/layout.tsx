@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { authOptions } from '@/lib/auth/auth';
 import { FinanceProvider } from './_components/FinanceProvider';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 export default async function FinanceModuleLayout({
   children,
@@ -15,7 +16,7 @@ export default async function FinanceModuleLayout({
 
   const employmentType =
     (session.user.employmentType as 'EMPLOYED' | 'SOLE_TRADER' | 'BOTH') ?? 'EMPLOYED';
-  const currency = (session.user.currency as string) ?? 'GBP';
+  const currency = (session.user.currency as string) ?? DEFAULT_CURRENCY;
 
   return (
     <FinanceProvider employmentType={employmentType} currency={currency}>

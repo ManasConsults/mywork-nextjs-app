@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth/auth';
 import { cn } from '@/lib/utils';
 import { getAccountById, getAccountBalance } from '@/lib/services/finance/account.service';
 import { getTransactions } from '@/lib/services/finance/transaction.service';
-import { fromMinorUnit } from '@/lib/utils/money';
+import { fromMinorUnit, DEFAULT_CURRENCY } from '@/lib/utils/money';
 import { ArchiveAccountButton } from '../_components/ArchiveAccountButton';
 
 export const metadata: Metadata = { title: 'MyWork — Account Detail' };
@@ -29,7 +29,7 @@ export default async function AccountDetailPage({
 }: AccountDetailPageProps): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
-  const currency = (session!.user.currency as string) ?? 'GBP';
+  const currency = (session!.user.currency as string) ?? DEFAULT_CURRENCY;
 
   const { id } = await params;
 
