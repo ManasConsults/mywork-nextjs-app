@@ -166,40 +166,42 @@ function ExpenseTable({
       <div className="border-b border-border px-4 py-3">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       </div>
-      <table className="min-w-full divide-y divide-border">
-        <thead>
-          <tr>
-            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Category
-            </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Amount
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border/60">
-          {rows.map((row) => (
-            <tr key={row.categoryName} className="hover:bg-accent/40/40">
-              <td className="px-4 py-2.5 text-sm text-foreground">
-                {row.categoryName}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-border">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Category
+              </th>
+              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Amount
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {rows.map((row) => (
+              <tr key={row.categoryName} className="hover:bg-accent/40/40">
+                <td className="px-4 py-2.5 text-sm text-foreground">
+                  {row.categoryName}
+                </td>
+                <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
+                  {fromMinorUnit(row.amount, currency)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-border bg-accent/40">
+              <td className="px-4 py-2.5 text-sm font-semibold text-foreground">
+                Total
               </td>
-              <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
-                {fromMinorUnit(row.amount, currency)}
+              <td className="px-4 py-2.5 text-right text-sm font-semibold text-red-600 dark:text-red-400">
+                {fromMinorUnit(total, currency)}
               </td>
             </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="border-t border-border bg-accent/40">
-            <td className="px-4 py-2.5 text-sm font-semibold text-foreground">
-              Total
-            </td>
-            <td className="px-4 py-2.5 text-right text-sm font-semibold text-red-600 dark:text-red-400">
-              {fromMinorUnit(total, currency)}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+          </tfoot>
+        </table>
+      </div>
     </div>
   );
 }
@@ -264,53 +266,55 @@ async function ProfitAndLossReport({
               Breakdown by Category
             </h2>
           </div>
-          <table className="min-w-full divide-y divide-border">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Category
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Type
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Income
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Expenses
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Net
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {data.byCategory.map((row) => (
-                <tr key={row.categoryId} className="hover:bg-accent/40/40">
-                  <td className="px-4 py-2.5 text-sm text-foreground">
-                    {row.categoryName}
-                  </td>
-                  <td className="px-4 py-2.5 text-sm">
-                    <CategoryTypeBadge type={row.categoryType} />
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-sm text-green-600 dark:text-green-400">
-                    {row.income > 0 ? fromMinorUnit(row.income, currency) : '—'}
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
-                    {row.expenses > 0 ? fromMinorUnit(row.expenses, currency) : '—'}
-                  </td>
-                  <td
-                    className={cn(
-                      'px-4 py-2.5 text-right text-sm font-medium',
-                      row.income - row.expenses >= 0 ? 'text-foreground' : 'text-red-600 dark:text-red-400',
-                    )}
-                  >
-                    {fromMinorUnit(row.income - row.expenses, currency)}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Category
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Type
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Income
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Expenses
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Net
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {data.byCategory.map((row) => (
+                  <tr key={row.categoryId} className="hover:bg-accent/40/40">
+                    <td className="px-4 py-2.5 text-sm text-foreground">
+                      {row.categoryName}
+                    </td>
+                    <td className="px-4 py-2.5 text-sm">
+                      <CategoryTypeBadge type={row.categoryType} />
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-sm text-green-600 dark:text-green-400">
+                      {row.income > 0 ? fromMinorUnit(row.income, currency) : '—'}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
+                      {row.expenses > 0 ? fromMinorUnit(row.expenses, currency) : '—'}
+                    </td>
+                    <td
+                      className={cn(
+                        'px-4 py-2.5 text-right text-sm font-medium',
+                        row.income - row.expenses >= 0 ? 'text-foreground' : 'text-red-600 dark:text-red-400',
+                      )}
+                    >
+                      {fromMinorUnit(row.income - row.expenses, currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <EmptyState message="No transactions found for this period." />
@@ -344,50 +348,52 @@ async function CashFlowReport({
           No data available.
         </div>
       ) : (
-        <table className="min-w-full divide-y divide-border">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Month
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Income
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Expenses
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Net
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
-            {data.months.map((m) => (
-              <tr
-                key={`${m.year}-${m.month}`}
-                className="hover:bg-accent/40/40"
-              >
-                <td className="px-4 py-2.5 text-sm text-foreground">
-                  {formatMonthLabel(m.year, m.month)}
-                </td>
-                <td className="px-4 py-2.5 text-right text-sm text-green-600 dark:text-green-400">
-                  {m.income > 0 ? fromMinorUnit(m.income, currency) : '—'}
-                </td>
-                <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
-                  {m.expenses > 0 ? fromMinorUnit(m.expenses, currency) : '—'}
-                </td>
-                <td
-                  className={cn(
-                    'px-4 py-2.5 text-right text-sm font-semibold',
-                    m.net >= 0 ? 'text-primary' : 'text-red-600 dark:text-red-400',
-                  )}
-                >
-                  {fromMinorUnit(m.net, currency)}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Month
+                </th>
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Income
+                </th>
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Expenses
+                </th>
+                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Net
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {data.months.map((m) => (
+                <tr
+                  key={`${m.year}-${m.month}`}
+                  className="hover:bg-accent/40/40"
+                >
+                  <td className="px-4 py-2.5 text-sm text-foreground">
+                    {formatMonthLabel(m.year, m.month)}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-sm text-green-600 dark:text-green-400">
+                    {m.income > 0 ? fromMinorUnit(m.income, currency) : '—'}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
+                    {m.expenses > 0 ? fromMinorUnit(m.expenses, currency) : '—'}
+                  </td>
+                  <td
+                    className={cn(
+                      'px-4 py-2.5 text-right text-sm font-semibold',
+                      m.net >= 0 ? 'text-primary' : 'text-red-600 dark:text-red-400',
+                    )}
+                  >
+                    {fromMinorUnit(m.net, currency)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -494,69 +500,71 @@ async function UnbilledHoursReport({
               {client.totalHours.toFixed(2)} hrs &middot; {fromMinorUnit(client.totalValue, currency)}
             </span>
           </div>
-          <table className="min-w-full divide-y divide-border">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Date
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Description
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Hours
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Rate/hr
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Est. Value
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {client.entries.map((entry) => (
-                <tr key={entry.workLogId} className="hover:bg-accent/40/40">
-                  <td className="whitespace-nowrap px-4 py-2.5 text-sm text-muted-foreground">
-                    {new Date(entry.date).toLocaleDateString('en-GB', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Date
+                  </th>
+                  <th className="min-w-48 px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Description
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Hours
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Rate/hr
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Est. Value
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {client.entries.map((entry) => (
+                  <tr key={entry.workLogId} className="hover:bg-accent/40/40">
+                    <td className="whitespace-nowrap px-4 py-2.5 text-sm text-muted-foreground">
+                      {new Date(entry.date).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </td>
+                    <td className="px-4 py-2.5 text-sm text-foreground">
+                      {entry.description}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-sm text-foreground">
+                      {entry.hours.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-sm text-muted-foreground">
+                      {entry.rate > 0 ? fromMinorUnit(entry.rate, currency) : '—'}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-sm font-medium text-foreground">
+                      {entry.rate > 0 ? fromMinorUnit(entry.estimatedValue, currency) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-border bg-accent/40">
+                  <td
+                    colSpan={2}
+                    className="px-4 py-2.5 text-sm font-semibold text-foreground"
+                  >
+                    Client Total
                   </td>
-                  <td className="px-4 py-2.5 text-sm text-foreground">
-                    {entry.description}
+                  <td className="px-4 py-2.5 text-right text-sm font-semibold text-foreground">
+                    {client.totalHours.toFixed(2)}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-sm text-foreground">
-                    {entry.hours.toFixed(2)}
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-sm text-muted-foreground">
-                    {entry.rate > 0 ? fromMinorUnit(entry.rate, currency) : '—'}
-                  </td>
-                  <td className="px-4 py-2.5 text-right text-sm font-medium text-foreground">
-                    {entry.rate > 0 ? fromMinorUnit(entry.estimatedValue, currency) : '—'}
+                  <td />
+                  <td className="px-4 py-2.5 text-right text-sm font-semibold text-primary">
+                    {fromMinorUnit(client.totalValue, currency)}
                   </td>
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-border bg-accent/40">
-                <td
-                  colSpan={2}
-                  className="px-4 py-2.5 text-sm font-semibold text-foreground"
-                >
-                  Client Total
-                </td>
-                <td className="px-4 py-2.5 text-right text-sm font-semibold text-foreground">
-                  {client.totalHours.toFixed(2)}
-                </td>
-                <td />
-                <td className="px-4 py-2.5 text-right text-sm font-semibold text-primary">
-                  {fromMinorUnit(client.totalValue, currency)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+              </tfoot>
+            </table>
+          </div>
         </div>
       ))}
 

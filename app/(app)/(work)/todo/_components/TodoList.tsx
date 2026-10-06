@@ -185,15 +185,16 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                 </div>
               </div>
             ) : (
-              /* ── View mode ── */
-              <div className="flex items-start gap-3">
+              /* ── View mode ── — actions drop to their own row on phones so the title keeps the width */
+              <div className="flex flex-wrap items-start gap-x-3 gap-y-1 sm:flex-nowrap">
                 {/* Circle checkbox — custom design, not a standard button */}
                 <button
                   type="button"
                   onClick={() => handleToggle(todo)}
                   aria-label={todo.isDone ? 'Mark as not done' : 'Mark as done'}
                   className={cn(
-                    'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                    // after: pseudo-element widens the tap area to 44px without changing the 20px circle
+                    "relative mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors after:absolute after:-inset-3 after:content-['']",
                     todo.isDone
                       ? 'border-primary/80 bg-primary/50'
                       : 'border-input hover:border-primary/50',
@@ -248,7 +249,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                 </div>
 
                 {/* Actions */}
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex w-full shrink-0 items-center justify-end gap-3 sm:w-auto sm:gap-2">
                   <Button
                     type="button"
                     variant="ghost"
@@ -283,7 +284,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(todo.id)}
-                    className="h-auto p-0 text-xs text-red-400 underline hover:text-red-600 hover:bg-transparent dark:text-red-500 dark:hover:text-red-300"
+                    className="h-auto p-0 text-xs text-destructive underline hover:text-destructive/80 hover:bg-transparent"
                   >
                     Delete
                   </Button>

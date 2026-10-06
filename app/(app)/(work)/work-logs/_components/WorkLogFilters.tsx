@@ -74,7 +74,7 @@ export function WorkLogFilters({
         />
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
         <Select value={currentSortOrder} onValueChange={(v) => updateParam('sortOrder', v, false)}>
           <SelectTrigger className="w-32" aria-label="Sort order">
             <SelectValue />
@@ -86,7 +86,7 @@ export function WorkLogFilters({
         </Select>
 
         <Select value={String(currentPageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
-          <SelectTrigger className="w-28" aria-label="Items per page">
+          <SelectTrigger className="w-32" aria-label="Items per page">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

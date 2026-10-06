@@ -278,7 +278,8 @@ export function NoteEditor({
         <select
           value={taskId}
           onChange={(e) => setTaskId(e.target.value)}
-          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground"
+          // A native select sizes to its longest option; cap it so a long task title can't overflow the page
+          className="w-full max-w-full rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground pointer-coarse:min-h-11 sm:w-auto sm:max-w-xs"
         >
           <option value="">No linked task</option>
           {tasks.map((t) => (

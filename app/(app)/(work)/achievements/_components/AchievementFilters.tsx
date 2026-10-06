@@ -77,7 +77,7 @@ export function AchievementFilters({
         </SelectContent>
       </Select>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
         <Select value={currentSortBy} onValueChange={(v) => updateParam('sortBy', v, false)}>
           <SelectTrigger className="w-36" aria-label="Sort by">
             <SelectValue />
@@ -100,7 +100,7 @@ export function AchievementFilters({
         </Select>
 
         <Select value={String(currentPageSize)} onValueChange={(v) => updateParam('pageSize', v)}>
-          <SelectTrigger className="w-28" aria-label="Items per page">
+          <SelectTrigger className="w-32" aria-label="Items per page">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
