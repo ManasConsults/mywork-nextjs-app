@@ -6,6 +6,7 @@ import { Settings } from 'lucide-react';
 
 import { updateFiscalYearSettingAction } from '@/lib/actions/achievement';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MONTHS = [
@@ -41,36 +42,30 @@ export function FiscalYearSettings({
   }
 
   return (
-    <div className="relative">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen((o) => !o)}
-        title="Fiscal year settings"
-        className="gap-1.5"
-      >
-        <Settings className="h-3.5 w-3.5" />
-        FY settings
-      </Button>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" title="Fiscal year settings" className="gap-1.5 border border-border">
+          <Settings />
+          FY settings
+        </Button>
+      </PopoverTrigger>
 
-      {open && (
-        <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-border bg-card p-3 shadow-lg">
-          <p className="mb-2 text-xs font-medium text-foreground">
-            Fiscal year starts in
-          </p>
-          <Select value={String(currentMonth)} onValueChange={handleChange} disabled={isPending}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTHS.map((m) => (
-                <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {isPending && <p className="mt-1 text-xs text-muted-foreground">Saving…</p>}
-        </div>
-      )}
-    </div>
+      <PopoverContent align="start" className="w-56 p-3">
+        <p className="mb-2 text-xs font-medium text-foreground">
+          Fiscal year starts in
+        </p>
+        <Select value={String(currentMonth)} onValueChange={handleChange} disabled={isPending}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {MONTHS.map((m) => (
+              <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {isPending && <p className="mt-1 text-xs text-muted-foreground">Saving…</p>}
+      </PopoverContent>
+    </Popover>
   );
 }

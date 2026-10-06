@@ -18,9 +18,9 @@ interface WorkLogsPageProps {
 
 function WorkLogListSkeleton(): React.JSX.Element {
   return (
-    <div className="divide-y divide-border/60 rounded-lg border border-border bg-card">
+    <div className="flex flex-col gap-2">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="flex items-start gap-4 px-4 py-3">
+        <div key={i} className="flex items-start gap-4 rounded-lg border border-border bg-card px-4 py-3">
           <div className="flex-1 flex flex-col gap-1.5">
             <div className="flex gap-2">
               <Skeleton className="h-3 w-20 rounded bg-muted" />

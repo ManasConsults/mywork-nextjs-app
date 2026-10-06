@@ -42,9 +42,9 @@ export function WorkLogList({ logs }: { logs: WorkLogWithTask[] }): React.JSX.El
   }
 
   return (
-    <ul className="divide-y divide-border/60 rounded-lg border border-border bg-card">
+    <ul className="flex flex-col gap-2">
       {logs.map((log) => (
-        <li key={log.id} className="px-4 py-3">
+        <li key={log.id} className="rounded-lg border border-border bg-card px-4 py-3">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -73,7 +73,7 @@ export function WorkLogList({ logs }: { logs: WorkLogWithTask[] }): React.JSX.El
               <Link href={`/work-logs/${log.id}/edit`} className="text-xs text-muted-foreground underline hover:text-foreground">
                 Edit
               </Link>
-              <Button variant="ghost" size="sm" onClick={() => handleDelete(log.id)} disabled={isPending} className="h-auto p-0 text-xs text-red-500 underline hover:text-red-700 hover:bg-transparent dark:text-red-400">
+              <Button variant="ghost" size="sm" onClick={() => handleDelete(log.id)} disabled={isPending} className="h-auto p-0 text-xs text-destructive underline hover:text-destructive/80 hover:bg-transparent">
                 Delete
               </Button>
             </div>
