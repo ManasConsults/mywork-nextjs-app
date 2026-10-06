@@ -1,12 +1,17 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
+import { z } from 'zod';
 
 import { authOptions } from '@/lib/auth/auth';
+import { prisma } from '@/lib/db/prisma';
 import { cn } from '@/lib/utils';
 import { getAccounts, getAccountBalance } from '@/lib/services/finance/account.service';
 import { getTransactions, getTransactionSummary, generateDueRecurrences } from '@/lib/services/finance/transaction.service';
-import { fromMinorUnit } from '@/lib/utils/money';
+import { fromMinorUnit, DEFAULT_CURRENCY } from '@/lib/utils/money';
+import { currentFiscalYear, fiscalYearLabel, getFiscalYearRange } from '@/lib/utils/fiscal-year';
+import { SummaryPeriodToggle, type SummaryPeriod } from './_components/SummaryPeriodToggle';
 
 export const metadata: Metadata = { title: 'MyWork — Finance' };
 
@@ -18,22 +23,56 @@ const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   INVESTMENT: 'Investment',
 };
 
-export default async function FinancePage(): Promise<React.JSX.Element> {
+const periodSchema = z.enum(['day', 'month', 'fy']).catch('month');
+
+function getPeriodRange(
+  period: Exclude<SummaryPeriod, 'fy'>,
+  now: Date,
+): { start: Date; end: Date } {
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const d = now.getDate();
+  return period === 'day'
+    ? { start: new Date(y, m, d), end: new Date(y, m, d, 23, 59, 59, 999) }
+    : { start: new Date(y, m, 1), end: new Date(y, m + 1, 0, 23, 59, 59, 999) };
+}
+
+interface FinancePageProps {
+  searchParams: Promise<{ period?: string | string[] }>;
+}
+
+export default async function FinancePage({ searchParams }: FinancePageProps): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
-  const currency = (session!.user.currency as string) ?? 'GBP';
+  const currency = (session!.user.currency as string) ?? DEFAULT_CURRENCY;
 
   // Trigger recurring transaction generation (idempotent, SAD-002 §6.6)
   await generateDueRecurrences(userId);
 
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const period = periodSchema.parse((await searchParams).period);
+
+  let start: Date;
+  let end: Date;
+  let heading: string;
+  if (period === 'fy') {
+    // Same per-user FY setting as Achievements, so both modules agree on what "the FY" is.
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { fiscalYearStartMonth: true },
+    });
+    const startMonth = user?.fiscalYearStartMonth ?? 4;
+    const fy = currentFiscalYear(startMonth);
+    ({ from: start, to: end } = getFiscalYearRange(fy, startMonth));
+    heading = `Financial year · ${fiscalYearLabel(fy, startMonth)}`;
+  } else {
+    ({ start, end } = getPeriodRange(period, new Date()));
+    heading = period === 'day' ? 'Today' : 'This month';
+  }
 
   const [accounts, recentTransactions, summary] = await Promise.all([
     getAccounts(userId),
     getTransactions(userId, { from: undefined, to: undefined }),
-    getTransactionSummary(userId, monthStart, monthEnd),
+    getTransactionSummary(userId, start, end),
   ]);
 
   const accountsWithBalances = await Promise.all(
@@ -59,14 +98,19 @@ export default async function FinancePage(): Promise<React.JSX.Element> {
         </Link>
       </div>
 
-      {/* Summary cards — current month */}
+      {/* Summary cards — selected period */}
       <section aria-labelledby="summary-heading" className="mb-8">
-        <h2
-          id="summary-heading"
-          className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-        >
-          This month
-        </h2>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2
+            id="summary-heading"
+            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+          >
+            {heading}
+          </h2>
+          <Suspense>
+            <SummaryPeriodToggle current={period} />
+          </Suspense>
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <SummaryCard
             label="Total Income"
@@ -221,7 +265,7 @@ export default async function FinancePage(): Promise<React.JSX.Element> {
                       <td
                         className={cn(
                           'whitespace-nowrap px-4 py-3 text-right text-sm font-medium',
-                          isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                          isIncome ? 'text-success' : 'text-destructive',
                         )}
                       >
                         {isIncome ? '+' : '-'}
@@ -251,8 +295,8 @@ function SummaryCard({
   accent: 'green' | 'red';
 }): React.JSX.Element {
   const styles = accent === 'green'
-    ? { ring: 'border-emerald-100 dark:border-emerald-900/40', value: 'text-emerald-600 dark:text-emerald-400' }
-    : { ring: 'border-red-100 dark:border-red-900/40', value: 'text-red-600 dark:text-red-400' };
+    ? { ring: 'border-success/25', value: 'text-success' }
+    : { ring: 'border-destructive/25', value: 'text-destructive' };
 
   return (
     <div className={cn('rounded-xl border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5', styles.ring)}>

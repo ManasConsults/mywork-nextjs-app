@@ -45,15 +45,39 @@ export async function getNotesByUser(
   });
 }
 
+/**
+ * Case-insensitive substring match on title, tags and body text. The body is Tiptap JSON,
+ * so only `text` node values are searched — matching `body::text` would also hit JSON keys
+ * like "paragraph". Prisma can't express jsonb_path_query, hence raw SQL.
+ */
+async function findNoteIdsMatching(userId: string, query: string): Promise<string[]> {
+  const pattern = `%${query.replace(/[\\%_]/g, '\\$&')}%`;
+  const rows = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT n.id FROM notes n
+    WHERE n."userId" = ${userId}
+      AND n."deletedAt" IS NULL
+      AND (
+        n.title ILIKE ${pattern}
+        OR EXISTS (SELECT 1 FROM unnest(n.tags) AS t(tag) WHERE t.tag ILIKE ${pattern})
+        OR EXISTS (
+          SELECT 1 FROM jsonb_path_query(n.body, 'strict $.**.text') AS j(txt)
+          WHERE j.txt #>> '{}' ILIKE ${pattern}
+        )
+      )
+  `;
+  return rows.map((r) => r.id);
+}
+
 export async function getNotesByUserPaged(
   userId: string,
   filters: NoteFilters,
 ): Promise<PagedNotes> {
-  const { tag, taskId, sortBy, sortOrder, page, pageSize } = filters;
+  const { q, tag, taskId, sortBy, sortOrder, page, pageSize } = filters;
 
   const where: Prisma.NoteWhereInput = {
     userId,
     deletedAt: null,
+    ...(q ? { id: { in: await findNoteIdsMatching(userId, q) } } : {}),
     ...(tag ? { tags: { has: tag } } : {}),
     ...(taskId ? { taskId } : {}),
   };

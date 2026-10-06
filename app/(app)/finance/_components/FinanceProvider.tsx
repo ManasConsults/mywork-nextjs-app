@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 interface FinanceContextValue {
   employmentType: 'EMPLOYED' | 'SOLE_TRADER' | 'BOTH';
@@ -13,7 +14,7 @@ const FinanceContext = createContext<FinanceContextValue>({
   employmentType: 'EMPLOYED',
   isSoleTrader: false,
   isDualRole: false,
-  currency: 'GBP',
+  currency: DEFAULT_CURRENCY,
 });
 
 export function useFinance(): FinanceContextValue {

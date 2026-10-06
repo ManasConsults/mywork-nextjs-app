@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
 import { getAccounts, getAccountBalance } from '@/lib/services/finance/account.service';
-import { fromMinorUnit } from '@/lib/utils/money';
+import { fromMinorUnit, DEFAULT_CURRENCY } from '@/lib/utils/money';
 import { ArchiveAccountButton } from './_components/ArchiveAccountButton';
 
 export const metadata: Metadata = { title: 'MyWork — Accounts' };
@@ -20,7 +20,7 @@ const ACCOUNT_TYPE_LABELS: Record<string, string> = {
 export default async function AccountsPage(): Promise<React.JSX.Element> {
   const session = await getServerSession(authOptions);
   const userId = session!.user.id;
-  const currency = (session!.user.currency as string) ?? 'GBP';
+  const currency = (session!.user.currency as string) ?? DEFAULT_CURRENCY;
 
   const accounts = await getAccounts(userId);
   const accountsWithBalances = await Promise.all(

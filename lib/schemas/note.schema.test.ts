@@ -114,4 +114,14 @@ describe('noteFiltersSchema', () => {
   it('rejects invalid taskId UUID', () => {
     expect(noteFiltersSchema.safeParse({ taskId: 'bad' }).success).toBe(false);
   });
+
+  it('trims the search query', () => {
+    expect(noteFiltersSchema.parse({ q: '  standup  ' }).q).toBe('standup');
+  });
+
+  it('drops an over-long search query instead of failing', () => {
+    const r = noteFiltersSchema.safeParse({ q: 'a'.repeat(201) });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.q).toBeUndefined();
+  });
 });

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/prisma';
 import type { Client, Invoice } from '@prisma/client';
 import type { CreateClientInput, UpdateClientInput } from '@/lib/schemas/finance/client.schema';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 export type ClientWithTotals = Client & {
   totalInvoiced: number;
@@ -56,7 +57,7 @@ export async function getClientById(
 export async function createClient(
   userId: string,
   data: CreateClientInput,
-  currency = 'GBP',
+  currency = DEFAULT_CURRENCY,
 ): Promise<Client> {
   return prisma.client.create({ data: { ...data, userId, currency } });
 }

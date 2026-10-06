@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 export const createInvoiceSchema = z.object({
   clientId: z.string().uuid('Client ID must be a valid UUID'),
@@ -8,7 +9,7 @@ export const createInvoiceSchema = z.object({
   dueDate: z.coerce.date().optional(),
   notes: z.string().max(2000, 'Notes must be 2000 characters or fewer').optional(),
   taxRate: z.number().int().min(0).max(5000).default(0),
-  currency: z.string().length(3).optional().default('GBP'),
+  currency: z.string().length(3).optional().default(DEFAULT_CURRENCY),
 });
 
 export const updateInvoiceSchema = createInvoiceSchema.partial();

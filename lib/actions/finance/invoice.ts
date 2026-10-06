@@ -24,6 +24,7 @@ import {
 } from '@/lib/services/finance/invoice.service';
 import { fetchAndGeneratePdfBuffer } from '@/lib/pdf/generateInvoicePdf';
 import { sendInvoiceEmail, sendPaymentReminderEmail } from '@/lib/email/notifications';
+import { DEFAULT_CURRENCY } from '@/lib/utils/money';
 
 type ActionResult<T> =
   | { success: true; data: T }
@@ -39,7 +40,7 @@ async function getAuthSession(): Promise<{ userId: string; currency: string } | 
   if (!session?.user?.id) return null;
   return {
     userId: session.user.id,
-    currency: (session.user.currency as string | undefined) ?? 'GBP',
+    currency: (session.user.currency as string | undefined) ?? DEFAULT_CURRENCY,
   };
 }
 

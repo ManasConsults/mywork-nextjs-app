@@ -22,16 +22,20 @@ describe('toMinorUnit', () => {
 });
 
 describe('fromMinorUnit', () => {
-  it('formats GBP by default', () => {
-    expect(fromMinorUnit(1250)).toBe('£12.50');
+  it('formats AUD by default', () => {
+    expect(fromMinorUnit(1250)).toBe('A$12.50');
   });
 
-  it('formats a whole-pound amount with two decimal places', () => {
-    expect(fromMinorUnit(1000)).toBe('£10.00');
+  it('formats a whole-dollar amount with two decimal places', () => {
+    expect(fromMinorUnit(1000)).toBe('A$10.00');
   });
 
   it('formats zero correctly', () => {
-    expect(fromMinorUnit(0)).toBe('£0.00');
+    expect(fromMinorUnit(0)).toBe('A$0.00');
+  });
+
+  it('still formats an explicit GBP amount', () => {
+    expect(fromMinorUnit(1250, 'GBP')).toBe('£12.50');
   });
 
   it('formats a different currency when specified', () => {

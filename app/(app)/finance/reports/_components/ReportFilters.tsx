@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
+import { TAX_REGIONS, TAX_REGION_CODES, taxYearLabel, taxYearOptions, type TaxRegion } from '@/lib/utils/tax-year';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,8 @@ interface ReportFiltersProps {
   currentTo?: string;
   currentCategoryType?: string;
   currentMonths?: string;
-  currentTaxYear?: string;
+  currentTaxRegion: TaxRegion;
+  currentTaxYear: number;
 }
 
 const CATEGORY_TYPES = [
@@ -31,31 +33,13 @@ const MONTHS_OPTIONS = [
   { value: '12', label: 'Last 12 months' },
 ] as const;
 
-function buildTaxYearOptions(): { value: string; label: string }[] {
-  const currentYear = new Date().getFullYear();
-  const options: { value: string; label: string }[] = [];
-
-  for (let i = 0; i < 3; i++) {
-    const year = currentYear - i;
-    options.push({
-      value: `uk-${year}`,
-      label: `${year}/${String(year + 1).slice(-2)} (UK Apr–Mar)`,
-    });
-    options.push({
-      value: `cal-${year}`,
-      label: `${year} (Calendar Jan–Dec)`,
-    });
-  }
-
-  return options;
-}
-
 export function ReportFilters({
   type,
   currentFrom,
   currentTo,
   currentCategoryType,
   currentMonths,
+  currentTaxRegion,
   currentTaxYear,
 }: ReportFiltersProps): React.JSX.Element {
   const router = useRouter();
@@ -81,8 +65,6 @@ export function ReportFilters({
     { key: 'tax', label: 'Tax Summary' },
     { key: 'unbilled', label: 'Unbilled Hours' },
   ];
-
-  const taxYearOptions = buildTaxYearOptions();
 
   return (
     <div className="mb-6">
@@ -146,13 +128,23 @@ export function ReportFilters({
 
       {type === 'tax' && (
         <div className="flex flex-wrap items-center gap-3">
-          <Select value={currentTaxYear ?? taxYearOptions[0]?.value ?? ''} onValueChange={(v) => updateParam('taxYear', v)}>
-            <SelectTrigger className="w-52" aria-label="Select tax year">
+          <Select value={currentTaxRegion} onValueChange={(v) => updateParam('taxRegion', v)}>
+            <SelectTrigger className="w-44" aria-label="Select tax region">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {taxYearOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              {TAX_REGION_CODES.map((code) => (
+                <SelectItem key={code} value={code}>{TAX_REGIONS[code].label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(currentTaxYear)} onValueChange={(v) => updateParam('taxYear', v)}>
+            <SelectTrigger className="w-44" aria-label="Select tax year">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {taxYearOptions(currentTaxRegion).map((year) => (
+                <SelectItem key={year} value={String(year)}>{taxYearLabel(year)}</SelectItem>
               ))}
             </SelectContent>
           </Select>

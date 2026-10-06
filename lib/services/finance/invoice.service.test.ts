@@ -868,7 +868,7 @@ describe('createInvoice — default field branches', () => {
     );
   });
 
-  it('applies currency=GBP default when not provided', async () => {
+  it('persists the provided currency', async () => {
     mockInvoiceFindMany.mockResolvedValue([]);
     mockInvoiceCreate.mockResolvedValue({ ...baseInvoice } as never);
 
