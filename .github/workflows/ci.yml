@@ -49,6 +49,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
     timeout-minutes: 25
+    # Every run shares one database and the same fixed e2e.* users; global-teardown deletes
+    # them, so overlapping runs (e.g. a develop PR and the main push) break each other's logins.
+    concurrency:
+      group: e2e-shared-database
+      cancel-in-progress: false
     env:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
