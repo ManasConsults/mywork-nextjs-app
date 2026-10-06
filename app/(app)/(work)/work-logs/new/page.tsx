@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getTasksByUser } from '@/lib/services/task.service';
+import { getOpenTasksByUser } from '@/lib/services/task.service';
 import { WorkLogForm } from '../_components/WorkLogForm';
 
 export const metadata: Metadata = { title: 'MyWork — New Work Log' };
@@ -16,7 +16,7 @@ export default async function NewWorkLogPage({ searchParams }: NewWorkLogPagePro
   const userId = session!.user.id;
 
   const { taskId } = await searchParams;
-  const tasks = await getTasksByUser(userId);
+  const tasks = await getOpenTasksByUser(userId, taskId);
 
   return (
     <div className="mx-auto max-w-xl">

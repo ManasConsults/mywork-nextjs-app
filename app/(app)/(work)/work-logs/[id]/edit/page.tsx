@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
-import { getTasksByUser } from '@/lib/services/task.service';
+import { getOpenTasksByUser } from '@/lib/services/task.service';
 import { prisma } from '@/lib/db/prisma';
 import { WorkLogForm } from '../../_components/WorkLogForm';
 
@@ -19,12 +19,11 @@ export default async function EditWorkLogPage({ params }: EditWorkLogPageProps):
 
   const { id } = await params;
 
-  const [workLog, tasks] = await Promise.all([
-    prisma.workLog.findFirst({ where: { id, userId } }),
-    getTasksByUser(userId),
-  ]);
+  const workLog = await prisma.workLog.findFirst({ where: { id, userId } });
 
   if (!workLog) notFound();
+
+  const tasks = await getOpenTasksByUser(userId, workLog.taskId ?? undefined);
 
   return (
     <div className="mx-auto max-w-xl">

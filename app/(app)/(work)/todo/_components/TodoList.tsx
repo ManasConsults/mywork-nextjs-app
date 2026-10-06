@@ -112,6 +112,9 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
       {optimisticTodos.map((todo) => {
         const status = getDueStatus(todo.dueDate, todo.isDone);
         const edit = editState?.id === todo.id ? editState : null;
+        // `tasks` excludes closed tasks; keep this todo's existing link selectable while editing.
+        const editTaskOptions =
+          todo.task && !tasks.some((t) => t.id === todo.task?.id) ? [todo.task, ...tasks] : tasks;
 
         return (
           <li
@@ -135,7 +138,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                     onChange={(e) => setEditState({ ...edit, dueDate: e.target.value })}
                     className="w-auto"
                   />
-                  {tasks.length > 0 && (
+                  {editTaskOptions.length > 0 && (
                     <Select
                       value={edit.taskId}
                       onValueChange={(v) => setEditState({ ...edit, taskId: v === '_none' ? '' : v })}
@@ -145,7 +148,7 @@ export function TodoList({ todos, tasks }: TodoListProps): React.JSX.Element {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="_none">No linked task</SelectItem>
-                        {tasks.map((t) => (
+                        {editTaskOptions.map((t) => (
                           <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
                         ))}
                       </SelectContent>

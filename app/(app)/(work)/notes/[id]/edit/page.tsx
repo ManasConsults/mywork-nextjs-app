@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
 import { getNoteById, noteDisplayTitle } from '@/lib/services/note.service';
-import { getTasksByUser, getTaskById } from '@/lib/services/task.service';
+import { getOpenTasksByUser, getTaskById } from '@/lib/services/task.service';
 import { getWorkLogsByTask } from '@/lib/services/work-log.service';
 import { deleteNoteAction } from '@/lib/actions/note';
 import { NoteEditor } from '../../_components/NoteEditor';
@@ -26,11 +26,12 @@ export default async function NoteEditPage({
 
   const { id } = await params;
 
-  const [note, tasks] = await Promise.all([getNoteById(userId, id), getTasksByUser(userId)]);
+  const note = await getNoteById(userId, id);
 
   if (!note) notFound();
 
-  const [task, workLogs] = await Promise.all([
+  const [tasks, task, workLogs] = await Promise.all([
+    getOpenTasksByUser(userId, note.taskId ?? undefined),
     note.taskId ? getTaskById(userId, note.taskId) : Promise.resolve(null),
     note.taskId ? getWorkLogsByTask(userId, note.taskId) : Promise.resolve([]),
   ]);
