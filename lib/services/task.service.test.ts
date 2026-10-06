@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma';
 import { taskFiltersSchema } from '@/lib/schemas/task.schema';
 import {
   getTasksByUser,
+  getOpenTasksByUser,
   getTasksByUserPaged,
   getTaskById,
   createTask,
@@ -84,6 +85,33 @@ describe('getTasksByUser', () => {
     expect(mockPrismaTask.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ priority: 'HIGH' }),
+      }),
+    );
+  });
+});
+
+describe('getOpenTasksByUser', () => {
+  it('excludes DONE tasks for the user', async () => {
+    mockPrismaTask.findMany.mockResolvedValue([baseTask]);
+
+    const result = await getOpenTasksByUser(userId);
+
+    expect(mockPrismaTask.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId, deletedAt: null, OR: [{ status: { not: 'DONE' } }] },
+      }),
+    );
+    expect(result).toEqual([baseTask]);
+  });
+
+  it('keeps the already-linked task even if it is DONE', async () => {
+    mockPrismaTask.findMany.mockResolvedValue([]);
+
+    await getOpenTasksByUser(userId, taskId);
+
+    expect(mockPrismaTask.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId, deletedAt: null, OR: [{ status: { not: 'DONE' } }, { id: taskId }] },
       }),
     );
   });

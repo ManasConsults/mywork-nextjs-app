@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 import { authOptions } from '@/lib/auth/auth';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getTasksByUser } from '@/lib/services/task.service';
+import { getOpenTasksByUser } from '@/lib/services/task.service';
 import { todoFiltersSchema } from '@/lib/schemas/todo.schema';
 import { AddTodoForm } from './_components/AddTodoForm';
 import { TodoFiltersBar } from './_components/TodoFiltersBar';
@@ -46,7 +46,7 @@ export default async function TodoPage({ searchParams }: TodoPageProps): Promise
   });
 
   // Fast indexed lookup — needed for AddTodoForm and inline edit dropdowns
-  const tasks = await getTasksByUser(userId);
+  const tasks = await getOpenTasksByUser(userId);
   const taskOptions = tasks.map((t) => ({ id: t.id, title: t.title }));
 
   return (

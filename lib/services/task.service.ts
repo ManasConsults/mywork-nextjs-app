@@ -31,6 +31,21 @@ export async function getTasksByUser(
   });
 }
 
+/**
+ * Tasks offered in "link to task" pickers. Closed (DONE) tasks are excluded, but
+ * `includeTaskId` keeps an already-linked task selectable so edit forms don't drop it.
+ */
+export async function getOpenTasksByUser(userId: string, includeTaskId?: string): Promise<Task[]> {
+  return prisma.task.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+      OR: [{ status: { not: 'DONE' } }, ...(includeTaskId ? [{ id: includeTaskId }] : [])],
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+}
+
 /** Paged list — projects only the five fields rendered by TaskList. */
 export async function getTasksByUserPaged(
   userId: string,

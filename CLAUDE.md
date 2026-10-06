@@ -10,14 +10,14 @@ Apply the relevant role lens per task automatically. Always state which lens you
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| Framework | Next.js App Router | `^16.1.7` |
+| Framework | Next.js App Router | `^16.3.8` |
 | Language | TypeScript (strict) | `^5` |
 | Styling | Tailwind CSS v4 | `^4` |
 | Components | shadcn/ui | (install on demand — approved) |
 | Icons | lucide-react | `^0.576.0` |
 | ORM | Prisma + `@prisma/adapter-pg` | `^7.5.0` |
 | Database | PostgreSQL | — |
-| Auth | NextAuth.js | `^4.24.13` (v4, NOT v5) |
+| Auth | NextAuth.js | `^4.24.15` (v4, NOT v5) |
 | Rich text | Tiptap | `^3.20.0` |
 | Validation | Zod | `^4.3.6` |
 | Testing | Jest + React Testing Library + Playwright | — |
@@ -58,7 +58,7 @@ shadcn/ui is the **approved component library** for this project.
 
 ## Auth Pattern (NextAuth v4)
 
-Auth is implemented with **NextAuth.js v4** (`next-auth@^4.24.13`).
+Auth is implemented with **NextAuth.js v4** (`next-auth@^4.24.15`).
 
 ### Configuration — `lib/auth/auth.ts`
 ```ts
