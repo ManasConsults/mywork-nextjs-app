@@ -23,30 +23,31 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <div className="min-h-screen bg-background">
       <div className="shrink-0 px-3 pt-3 pb-1">
-        <header className="flex h-14 items-center justify-between gap-4 px-4 rounded-2xl border border-border/60 bg-background/90 backdrop-blur-sm
+        {/* Mobile: brand + back link on row one, nav on its own row. sm+: single 56px row. */}
+        <header className="flex flex-wrap items-center justify-between gap-x-5 px-4 py-1 rounded-2xl border border-border/60 bg-background/90 backdrop-blur-sm sm:h-14 sm:flex-nowrap sm:py-0
           shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)]
           dark:shadow-[0_4px_20px_rgba(0,0,0,0.4),0_1px_4px_rgba(0,0,0,0.25)]">
-          <div className="flex items-center gap-5 min-w-0">
-            <span className="shrink-0 font-bold text-[0.9375rem] text-primary">
-              MyWork Admin
-            </span>
-            <nav className="flex items-center gap-1">
-              {NAV_LINKS.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+          <span className="flex min-h-11 shrink-0 items-center font-bold text-[0.9375rem] text-primary">
+            MyWork Admin
+          </span>
+          <nav className="order-last -mx-3 flex w-[calc(100%+1.5rem)] items-center gap-1 border-t border-border/60 py-1 sm:order-none sm:mx-0 sm:mr-auto sm:w-auto sm:border-t-0 sm:py-0">
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors sm:min-h-0 sm:flex-none sm:py-1.5"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
           <div className="flex items-center gap-4 shrink-0">
-            <AdminPageTitle />
+            <span className="hidden sm:inline">
+              <AdminPageTitle />
+            </span>
             <Link
               href="/dashboard"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground transition-colors sm:min-h-0"
             >
               ← Back to app
             </Link>

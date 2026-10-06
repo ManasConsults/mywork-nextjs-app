@@ -72,9 +72,9 @@ export function ProfileTabs({
   return (
     <div className="rounded-xl border border-border bg-card p-6">
       <Tabs defaultValue={tabs[0].id}>
-        <TabsList className="mb-6 w-full">
+        <TabsList className="mb-6 grid h-auto! w-full grid-cols-3 gap-1 sm:flex sm:h-9! sm:gap-0">
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id} className="flex-1">
+            <TabsTrigger key={tab.id} value={tab.id} className="min-h-10 flex-1 sm:min-h-0">
               {tab.label}
             </TabsTrigger>
           ))}

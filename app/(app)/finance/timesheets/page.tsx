@@ -219,29 +219,29 @@ function ClientTimesheetGroup({
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       {/* Client header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <h2 className="text-sm font-semibold text-foreground">
           {group.clientName}
         </h2>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-xs text-muted-foreground">
-            <span className="text-amber-600 dark:text-amber-400">
+            <span className="text-warning">
               {group.totalUnbilledHours.toFixed(2)} hrs
             </span>{' '}
             unbilled &middot;{' '}
-            <span className="text-green-600 dark:text-green-400">
+            <span className="text-success">
               {group.totalBilledHours.toFixed(2)} hrs
             </span>{' '}
             billed
           </span>
           {group.totalUnbilledValue > 0 && (
-            <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+            <span className="text-xs font-medium text-warning">
               {fromMinorUnit(group.totalUnbilledValue, currency)} unbilled value
             </span>
           )}
           <Link
             href={`/finance/invoices/new?clientId=${group.clientId}`}
-            className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+            className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 pointer-coarse:min-h-11 sm:ml-auto"
           >
             Create Invoice
           </Link>
@@ -249,82 +249,84 @@ function ClientTimesheetGroup({
       </div>
 
       {/* Work log rows */}
-      <table className="min-w-full divide-y divide-border">
-        <thead>
-          <tr>
-            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Date
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Description
-            </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Hours
-            </th>
-            <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
-              Rate/hr
-            </th>
-            <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
-              Value
-            </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Status
-            </th>
-            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border/60">
-          {group.rows.map((log) => {
-            const hours = hoursFromMinutes(log.timeSpent);
-            const rate = log.client?.defaultRate ?? 0;
-            const value = Math.round(hours * rate);
-            const isBilled = log.billedAt !== null;
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-border">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Date
+              </th>
+              <th className="min-w-48 px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Description
+              </th>
+              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Hours
+              </th>
+              <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
+                Rate/hr
+              </th>
+              <th className="hidden px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:table-cell">
+                Value
+              </th>
+              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Status
+              </th>
+              <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {group.rows.map((log) => {
+              const hours = hoursFromMinutes(log.timeSpent);
+              const rate = log.client?.defaultRate ?? 0;
+              const value = Math.round(hours * rate);
+              const isBilled = log.billedAt !== null;
 
-            return (
-              <TimesheetRow
-                key={log.id}
-                id={log.id}
-                date={log.date}
-                description={log.description}
-                timeSpentMinutes={log.timeSpent}
-                rate={rate}
-                value={value}
-                currency={currency}
-                isBilled={isBilled}
-                formattedDate={new Date(log.date).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-                formattedRate={rate > 0 ? fromMinorUnit(rate, currency) : '—'}
-                formattedValue={rate > 0 ? fromMinorUnit(value, currency) : '—'}
-              />
-            );
-          })}
-        </tbody>
-        {/* Subtotal row */}
-        <tfoot>
-          <tr className="border-t border-border bg-accent/40">
-            <td
-              colSpan={2}
-              className="px-4 py-2.5 text-sm font-semibold text-foreground"
-            >
-              Subtotal
-            </td>
-            <td className="px-4 py-2.5 text-right text-sm font-semibold text-foreground">
-              {(group.totalUnbilledHours + group.totalBilledHours).toFixed(2)}
-            </td>
-            <td className="hidden sm:table-cell" />
-            <td className="hidden px-4 py-2.5 text-right text-sm font-semibold text-primary sm:table-cell">
-              {fromMinorUnit(group.totalUnbilledValue, currency)}
-            </td>
-            <td />
-            <td />
-          </tr>
-        </tfoot>
-      </table>
+              return (
+                <TimesheetRow
+                  key={log.id}
+                  id={log.id}
+                  date={log.date}
+                  description={log.description}
+                  timeSpentMinutes={log.timeSpent}
+                  rate={rate}
+                  value={value}
+                  currency={currency}
+                  isBilled={isBilled}
+                  formattedDate={new Date(log.date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                  formattedRate={rate > 0 ? fromMinorUnit(rate, currency) : '—'}
+                  formattedValue={rate > 0 ? fromMinorUnit(value, currency) : '—'}
+                />
+              );
+            })}
+          </tbody>
+          {/* Subtotal row */}
+          <tfoot>
+            <tr className="border-t border-border bg-accent/40">
+              <td
+                colSpan={2}
+                className="px-4 py-2.5 text-sm font-semibold text-foreground"
+              >
+                Subtotal
+              </td>
+              <td className="px-4 py-2.5 text-right text-sm font-semibold text-foreground">
+                {(group.totalUnbilledHours + group.totalBilledHours).toFixed(2)}
+              </td>
+              <td className="hidden sm:table-cell" />
+              <td className="hidden px-4 py-2.5 text-right text-sm font-semibold text-primary sm:table-cell">
+                {fromMinorUnit(group.totalUnbilledValue, currency)}
+              </td>
+              <td />
+              <td />
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
   );
 }
