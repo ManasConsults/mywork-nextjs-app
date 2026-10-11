@@ -2,6 +2,7 @@ import {
   TAX_YEAR_OPTION_COUNT,
   currentTaxYear,
   getTaxYearStart,
+  parseTaxParams,
   taxYearLabel,
   taxYearOptions,
 } from './tax-year';
@@ -43,5 +44,22 @@ describe('taxYearOptions', () => {
     expect(options).toHaveLength(TAX_YEAR_OPTION_COUNT);
     expect(options[0]).toBe(2026);
     expect(options).toEqual([2026, 2025, 2024, 2023, 2022]);
+  });
+});
+
+describe('parseTaxParams', () => {
+  const now = new Date(2026, 9, 6);
+
+  it('accepts a known region and an offered year', () => {
+    expect(parseTaxParams('AU', '2024', now)).toEqual({ taxRegion: 'AU', taxYear: 2024 });
+  });
+
+  it('falls back to the default region and current year for missing params', () => {
+    expect(parseTaxParams(null, undefined, now)).toEqual({ taxRegion: 'AU', taxYear: 2026 });
+  });
+
+  it('falls back for unknown regions and years outside the offered range', () => {
+    expect(parseTaxParams('UK', 'uk-2025', now)).toEqual({ taxRegion: 'AU', taxYear: 2026 });
+    expect(parseTaxParams('AU', '2010', now)).toEqual({ taxRegion: 'AU', taxYear: 2026 });
   });
 });

@@ -28,11 +28,28 @@ export interface CashFlowResult {
   }[];
 }
 
+export interface TaxTransaction {
+  id: string;
+  date: Date;
+  type: 'INCOME' | 'EXPENSE';
+  categoryName: string;
+  categoryType: 'BUSINESS' | 'WORK_RELATED';
+  description: string | null;
+  reference: string | null;
+  accountName: string;
+  amount: number;
+}
+
 export interface TaxSummaryResult {
+  taxYearStart: Date;
+  taxYearEnd: Date;
   businessIncome: number;
+  businessIncomeByCategory: { categoryName: string; amount: number }[];
   businessExpenses: { categoryName: string; amount: number }[];
   workRelatedExpenses: { categoryName: string; amount: number }[];
   netBusinessProfit: number;
+  /** Itemised rows behind the totals above, oldest first. */
+  transactions: TaxTransaction[];
 }
 
 export interface UnbilledHoursResult {
@@ -228,48 +245,68 @@ export async function getTaxSummary(
   taxYearEnd.setDate(taxYearEnd.getDate() - 1);
   taxYearEnd.setHours(23, 59, 59, 999);
 
-  const transactions = await prisma.transaction.findMany({
+  const rows = await prisma.transaction.findMany({
     where: {
       userId,
       date: { gte: taxYearStart, lte: taxYearEnd },
       type: { in: ['INCOME', 'EXPENSE'] },
       category: { type: { in: ['BUSINESS', 'WORK_RELATED'] } },
     },
-    include: { category: { select: { name: true, type: true } } },
+    include: {
+      category: { select: { name: true, type: true } },
+      account: { select: { name: true } },
+    },
+    orderBy: { date: 'asc' },
   });
 
-  let businessIncome = 0;
+  const businessIncomeMap = new Map<string, number>();
   const businessExpenseMap = new Map<string, number>();
   const workRelatedExpenseMap = new Map<string, number>();
+  const transactions: TaxTransaction[] = [];
 
-  for (const tx of transactions) {
+  for (const tx of rows) {
+    let target: Map<string, number> | null = null;
     if (tx.category.type === 'BUSINESS') {
-      if (tx.type === 'INCOME') {
-        businessIncome += tx.amount;
-      } else if (tx.type === 'EXPENSE') {
-        const existing = businessExpenseMap.get(tx.category.name) ?? 0;
-        businessExpenseMap.set(tx.category.name, existing + tx.amount);
-      }
+      target = tx.type === 'INCOME' ? businessIncomeMap : businessExpenseMap;
     } else if (tx.category.type === 'WORK_RELATED' && tx.type === 'EXPENSE') {
-      const existing = workRelatedExpenseMap.get(tx.category.name) ?? 0;
-      workRelatedExpenseMap.set(tx.category.name, existing + tx.amount);
+      target = workRelatedExpenseMap;
     }
+    // Work-related income is not part of the tax summary, so it is left out of the itemised list too
+    if (!target) continue;
+
+    target.set(tx.category.name, (target.get(tx.category.name) ?? 0) + tx.amount);
+    transactions.push({
+      id: tx.id,
+      date: tx.date,
+      type: tx.type as TaxTransaction['type'],
+      categoryName: tx.category.name,
+      categoryType: tx.category.type as TaxTransaction['categoryType'],
+      description: tx.description,
+      reference: tx.reference,
+      accountName: tx.account.name,
+      amount: tx.amount,
+    });
   }
 
-  const businessExpenses = Array.from(businessExpenseMap.entries()).map(
-    ([categoryName, amount]) => ({ categoryName, amount }),
-  );
-  const workRelatedExpenses = Array.from(workRelatedExpenseMap.entries()).map(
-    ([categoryName, amount]) => ({ categoryName, amount }),
-  );
+  const toRows = (map: Map<string, number>): { categoryName: string; amount: number }[] =>
+    Array.from(map.entries()).map(([categoryName, amount]) => ({ categoryName, amount }));
 
+  const businessIncomeByCategory = toRows(businessIncomeMap);
+  const businessExpenses = toRows(businessExpenseMap);
+  const workRelatedExpenses = toRows(workRelatedExpenseMap);
+
+  const businessIncome = businessIncomeByCategory.reduce((sum, e) => sum + e.amount, 0);
   const totalBusinessExpenses = businessExpenses.reduce((sum, e) => sum + e.amount, 0);
 
   return {
+    taxYearStart,
+    taxYearEnd,
     businessIncome,
+    businessIncomeByCategory,
     businessExpenses,
     workRelatedExpenses,
     netBusinessProfit: businessIncome - totalBusinessExpenses,
+    transactions,
   };
 }
 
