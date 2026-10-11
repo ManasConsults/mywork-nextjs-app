@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 /**
  * Tax-year utilities for the Finance tax summary report (FR-FIN-16).
  *
@@ -36,4 +38,21 @@ export function taxYearLabel(year: number): string {
 export function taxYearOptions(region: TaxRegion, now: Date = new Date()): number[] {
   const current = currentTaxYear(region, now);
   return Array.from({ length: TAX_YEAR_OPTION_COUNT }, (_, i) => current - i);
+}
+
+const taxRegionSchema = z.enum(TAX_REGION_CODES).catch(DEFAULT_TAX_REGION);
+
+/**
+ * Parse untrusted `taxRegion` / `taxYear` query params. Anything outside the offered years
+ * (including legacy "uk-2025" values) falls back to the current tax year.
+ */
+export function parseTaxParams(
+  rawRegion: string | null | undefined,
+  rawYear: string | null | undefined,
+  now: Date = new Date(),
+): { taxRegion: TaxRegion; taxYear: number } {
+  const taxRegion = taxRegionSchema.parse(rawRegion);
+  const year = Number(rawYear);
+  const taxYear = taxYearOptions(taxRegion, now).includes(year) ? year : currentTaxYear(taxRegion, now);
+  return { taxRegion, taxYear };
 }

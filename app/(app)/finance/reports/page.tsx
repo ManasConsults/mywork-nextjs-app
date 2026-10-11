@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { getServerSession } from 'next-auth';
 import type { Metadata } from 'next';
 import type { CategoryType } from '@prisma/client';
-import { z } from 'zod';
+import { Download } from 'lucide-react';
 
 import { authOptions } from '@/lib/auth/auth';
 import {
@@ -13,16 +13,14 @@ import {
 } from '@/lib/services/finance/report.service';
 import { fromMinorUnit, DEFAULT_CURRENCY } from '@/lib/utils/money';
 import {
-  DEFAULT_TAX_REGION,
-  TAX_REGION_CODES,
   TAX_REGIONS,
-  currentTaxYear,
   getTaxYearStart,
+  parseTaxParams,
   taxYearLabel,
-  taxYearOptions,
   type TaxRegion,
 } from '@/lib/utils/tax-year';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { ReportFilters } from './_components/ReportFilters';
 
 export const metadata: Metadata = { title: 'MyWork — Reports' };
@@ -54,14 +52,6 @@ function isValidReportType(v: string): v is ReportType {
 
 function isValidCategoryType(v: string): v is CategoryType {
   return (VALID_CATEGORY_TYPES as string[]).includes(v);
-}
-
-const taxRegionSchema = z.enum(TAX_REGION_CODES).catch(DEFAULT_TAX_REGION);
-
-/** Anything outside the offered years (including legacy "uk-2025" values) falls back to the current year. */
-function parseTaxYear(region: TaxRegion, raw: string | undefined): number {
-  const year = Number(raw);
-  return taxYearOptions(region).includes(year) ? year : currentTaxYear(region);
 }
 
 function defaultMonthRange(): { from: Date; to: Date } {
@@ -150,17 +140,21 @@ function CategoryTypeBadge({ type }: { type: string }): React.JSX.Element {
   );
 }
 
-function ExpenseTable({
+function CategoryTotalsTable({
   title,
   rows,
   total,
   currency,
+  isIncome = false,
 }: {
   title: string;
   rows: { categoryName: string; amount: number }[];
   total: number;
   currency: string;
+  isIncome?: boolean;
 }): React.JSX.Element {
+  const amountCls = isIncome ? 'text-success' : 'text-destructive';
+
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       <div className="border-b border-border px-4 py-3">
@@ -184,7 +178,7 @@ function ExpenseTable({
                 <td className="px-4 py-2.5 text-sm text-foreground">
                   {row.categoryName}
                 </td>
-                <td className="px-4 py-2.5 text-right text-sm text-red-600 dark:text-red-400">
+                <td className={cn('px-4 py-2.5 text-right text-sm', amountCls)}>
                   {fromMinorUnit(row.amount, currency)}
                 </td>
               </tr>
@@ -195,7 +189,7 @@ function ExpenseTable({
               <td className="px-4 py-2.5 text-sm font-semibold text-foreground">
                 Total
               </td>
-              <td className="px-4 py-2.5 text-right text-sm font-semibold text-red-600 dark:text-red-400">
+              <td className={cn('px-4 py-2.5 text-right text-sm font-semibold', amountCls)}>
                 {fromMinorUnit(total, currency)}
               </td>
             </tr>
@@ -416,6 +410,7 @@ async function TaxSummaryReport({
 
   const totalBusinessExpenses = data.businessExpenses.reduce((s, e) => s + e.amount, 0);
   const totalWorkRelated = data.workRelatedExpenses.reduce((s, e) => s + e.amount, 0);
+  const exportQuery = `taxRegion=${taxRegion}&taxYear=${taxYear}`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -427,9 +422,27 @@ async function TaxSummaryReport({
         </p>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        {TAX_REGIONS[taxRegion].label} · {taxYearLabel(taxYear)} tax year
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {TAX_REGIONS[taxRegion].label} · {taxYearLabel(taxYear)} tax year
+        </p>
+        {data.transactions.length > 0 && (
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm" className="border border-border">
+              <a href={`/api/finance/reports/tax?format=pdf&${exportQuery}`} download>
+                <Download />
+                Export PDF
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="border border-border">
+              <a href={`/api/finance/reports/tax?format=csv&${exportQuery}`} download>
+                <Download />
+                Export CSV
+              </a>
+            </Button>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <SummaryCard label="Business Income" value={fromMinorUnit(data.businessIncome, currency)} />
@@ -445,8 +458,18 @@ async function TaxSummaryReport({
         />
       </div>
 
+      {data.businessIncomeByCategory.length > 0 && (
+        <CategoryTotalsTable
+          title="Business Income"
+          rows={data.businessIncomeByCategory}
+          total={data.businessIncome}
+          currency={currency}
+          isIncome
+        />
+      )}
+
       {data.businessExpenses.length > 0 && (
-        <ExpenseTable
+        <CategoryTotalsTable
           title="Business Expenses"
           rows={data.businessExpenses}
           total={totalBusinessExpenses}
@@ -455,7 +478,7 @@ async function TaxSummaryReport({
       )}
 
       {data.workRelatedExpenses.length > 0 && (
-        <ExpenseTable
+        <CategoryTotalsTable
           title="Work-Related Expenses"
           rows={data.workRelatedExpenses}
           total={totalWorkRelated}
@@ -463,7 +486,7 @@ async function TaxSummaryReport({
         />
       )}
 
-      {data.businessExpenses.length === 0 && data.workRelatedExpenses.length === 0 && (
+      {data.transactions.length === 0 && (
         <EmptyState message="No business or work-related transactions found for this tax year." />
       )}
     </div>
@@ -606,8 +629,7 @@ export default async function ReportsPage({
   const from = params.from ? new Date(params.from) : defaultFrom;
   const to = params.to ? new Date(params.to) : defaultTo;
   const months = params.months ? Math.min(12, Math.max(1, parseInt(params.months, 10))) : 12;
-  const taxRegion = taxRegionSchema.parse(params.taxRegion);
-  const taxYear = parseTaxYear(taxRegion, params.taxYear);
+  const { taxRegion, taxYear } = parseTaxParams(params.taxRegion, params.taxYear);
 
   return (
     <div className="mx-auto max-w-5xl">

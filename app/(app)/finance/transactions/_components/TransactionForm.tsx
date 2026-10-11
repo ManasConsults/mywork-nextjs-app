@@ -79,6 +79,8 @@ export function TransactionForm({
   const [workContext, setWorkContext] = useState(transaction?.workContext ?? '');
 
   const showTransferDest = selectedType === 'TRANSFER_OUT';
+  // TRANSFER_IN is only created as the paired half of a TRANSFER_OUT; offer it solely when editing one
+  const typeOptions = TRANSACTION_TYPES.filter((t) => t.value !== 'TRANSFER_IN' || transaction?.type === 'TRANSFER_IN');
   const defaultDate = transaction?.date ? new Date(transaction.date).toISOString().split('T')[0] : todayIso();
   const defaultAmountDecimal = transaction?.amount != null ? (transaction.amount / 100).toFixed(2) : '';
 
@@ -147,7 +149,7 @@ export function TransactionForm({
         <Select value={selectedType} onValueChange={(v) => setSelectedType(v as TxType)} disabled={isPending}>
           <SelectTrigger aria-invalid={!!fieldErrors.type}><SelectValue /></SelectTrigger>
           <SelectContent>
-            {TRANSACTION_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+            {typeOptions.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
           </SelectContent>
         </Select>
         {fieldErrors.type?.[0] && <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.type[0]}</p>}
