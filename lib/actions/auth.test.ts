@@ -1,3 +1,4 @@
+import { LEGAL_VERSION } from '@/lib/legal/constants';
 import { registerUser, requestPasswordReset, resetPassword } from './auth';
 
 jest.mock('@/lib/db/prisma', () => ({
@@ -55,6 +56,7 @@ const VALID_INPUT = {
   employmentType: 'SOLE_TRADER' as const,
   password: 'Password1',
   confirmPassword: 'Password1',
+  acceptTerms: true as const,
 };
 
 beforeEach(() => {
@@ -68,7 +70,7 @@ beforeEach(() => {
 
 describe('registerUser', () => {
   it('returns field errors when input fails schema validation', async () => {
-    const result = await registerUser({ name: '', email: 'bad', employmentType: 'EMPLOYED', password: 'x', confirmPassword: 'y' });
+    const result = await registerUser({ name: '', email: 'bad', employmentType: 'EMPLOYED', password: 'x', confirmPassword: 'y', acceptTerms: true });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.fields).toBeDefined();
@@ -98,9 +100,20 @@ describe('registerUser', () => {
         role: 'MEMBER',
         isActive: false,
         employmentType: 'SOLE_TRADER',
+        termsAcceptedAt: expect.any(Date),
+        termsVersion: LEGAL_VERSION,
       },
     });
     expect(result).toEqual({ success: true });
+  });
+
+  it('rejects registration when the terms are not accepted', async () => {
+    const result = await registerUser({ ...VALID_INPUT, acceptTerms: false as unknown as true });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.fields?.acceptTerms).toBeDefined();
+    }
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it('sends a pending email after successful registration', async () => {

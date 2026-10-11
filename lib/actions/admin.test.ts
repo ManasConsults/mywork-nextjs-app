@@ -4,8 +4,9 @@ jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('@/lib/db/prisma', () => ({
-  prisma: { user: { update: jest.fn(), findUnique: jest.fn(), delete: jest.fn() } },
+  prisma: { user: { update: jest.fn(), findUnique: jest.fn() } },
 }));
+jest.mock('@/lib/services/account-data.service', () => ({ deleteUserAccount: jest.fn() }));
 jest.mock('@/lib/email/notifications', () => ({
   sendAccountApprovedEmail: jest.fn(),
   sendAccountRejectedEmail: jest.fn(),
@@ -14,12 +15,13 @@ jest.mock('@/lib/email/notifications', () => ({
 import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/prisma';
+import { deleteUserAccount } from '@/lib/services/account-data.service';
 import { sendAccountApprovedEmail, sendAccountRejectedEmail } from '@/lib/email/notifications';
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockUserUpdate = (prisma.user as jest.Mocked<typeof prisma.user>).update;
 const mockUserFindUnique = (prisma.user as jest.Mocked<typeof prisma.user>).findUnique;
-const mockUserDelete = (prisma.user as jest.Mocked<typeof prisma.user>).delete;
+const mockUserDelete = deleteUserAccount as jest.MockedFunction<typeof deleteUserAccount>;
 const mockRevalidatePath = revalidatePath as jest.MockedFunction<typeof revalidatePath>;
 const mockSendApproved = sendAccountApprovedEmail as jest.MockedFunction<typeof sendAccountApprovedEmail>;
 const mockSendRejected = sendAccountRejectedEmail as jest.MockedFunction<typeof sendAccountRejectedEmail>;
@@ -164,10 +166,29 @@ describe('deleteUserAction', () => {
 
   it('deletes the user and revalidates the path', async () => {
     mockGetServerSession.mockResolvedValue(adminSession as never);
+    mockUserDelete.mockResolvedValue({ ok: true });
     const result = await deleteUserAction(targetId);
-    expect(mockUserDelete).toHaveBeenCalledWith({ where: { id: targetId } });
+    expect(mockUserDelete).toHaveBeenCalledWith(targetId, adminId);
     expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
     expect(result).toEqual({ success: true });
+  });
+
+  it('maps LAST_ADMIN to the user-facing message', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    mockUserDelete.mockResolvedValue({ ok: false, reason: 'LAST_ADMIN' });
+    const result = await deleteUserAction(targetId);
+    expect(result).toEqual({
+      success: false,
+      error: 'You are the only administrator. Promote another user to Admin first.',
+    });
+    expect(mockRevalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('reports a missing user', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession as never);
+    mockUserDelete.mockResolvedValue({ ok: false, reason: 'NOT_FOUND' });
+    const result = await deleteUserAction(targetId);
+    expect(result).toEqual({ success: false, error: 'User not found.' });
   });
 });
 

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
+import { hasAcceptedCurrentTerms } from '@/lib/legal/consent';
 import { getThemeCSS } from '@/lib/theme';
 import { AppShell } from './_components/AppShell';
 import { AppSessionProvider } from './_components/AppSessionProvider';
@@ -21,11 +22,15 @@ export default async function AppLayout({ children }: { children: ReactNode }): 
       : Promise.resolve(0),
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { themeColor: true },
+      select: { themeColor: true, termsAcceptedAt: true, termsVersion: true },
     }),
   ]);
 
-  const themeCSS = getThemeCSS(userPrefs?.themeColor ?? 'teal');
+  // A live JWT can outlive a deleted account.
+  if (!userPrefs) redirect('/login');
+  if (!hasAcceptedCurrentTerms(userPrefs)) redirect('/accept-terms');
+
+  const themeCSS = getThemeCSS(userPrefs.themeColor);
 
   return (
     <AppSessionProvider>

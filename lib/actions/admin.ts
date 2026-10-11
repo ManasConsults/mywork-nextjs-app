@@ -6,6 +6,7 @@ import type { Role, EmploymentType } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
+import { deleteUserAccount } from '@/lib/services/account-data.service';
 import {
   sendAccountApprovedEmail,
   sendAccountRejectedEmail,
@@ -89,7 +90,15 @@ export async function deleteUserAction(userId: string): Promise<AdminActionResul
   if (!adminId) return { success: false, error: 'Unauthorized.' };
   if (userId === adminId) return { success: false, error: 'Cannot delete your own account.' };
 
-  await prisma.user.delete({ where: { id: userId } });
+  const result = await deleteUserAccount(userId, adminId);
+  if (!result.ok) {
+    return {
+      success: false,
+      error: result.reason === 'LAST_ADMIN'
+        ? 'You are the only administrator. Promote another user to Admin first.'
+        : 'User not found.',
+    };
+  }
   revalidatePath('/admin/users');
   return { success: true };
 }

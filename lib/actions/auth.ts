@@ -5,6 +5,7 @@ import { hashPassword } from '@/lib/auth/passwords';
 import { generateResetToken, hashResetToken } from '@/lib/auth/reset-token';
 import { registerSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/schemas/auth.schema';
 import type { RegisterInput, ForgotPasswordInput, ResetPasswordInput } from '@/lib/schemas/auth.schema';
+import { LEGAL_VERSION } from '@/lib/legal/constants';
 import { sendRegistrationPendingEmail, sendPasswordResetEmail } from '@/lib/email/notifications';
 
 export type RegisterResult =
@@ -33,7 +34,16 @@ export async function registerUser(input: RegisterInput): Promise<RegisterResult
   const passwordHash = await hashPassword(password);
 
   await prisma.user.create({
-    data: { name, email, passwordHash, role: 'MEMBER', isActive: false, employmentType },
+    data: {
+      name,
+      email,
+      passwordHash,
+      role: 'MEMBER',
+      isActive: false,
+      employmentType,
+      termsAcceptedAt: new Date(),
+      termsVersion: LEGAL_VERSION,
+    },
   });
 
   try { await sendRegistrationPendingEmail(email, name ?? null); } catch { /* email failure is non-fatal */ }

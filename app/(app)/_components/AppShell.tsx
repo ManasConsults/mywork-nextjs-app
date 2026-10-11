@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { ThemeToggle } from './ThemeToggle';
 import { FeedbackButton } from './FeedbackButton';
+import { PublicFooter } from '@/components/legal/PublicFooter';
 import { cn } from '@/lib/utils';
 import { getPageTitle } from '@/lib/utils/page-title';
 
@@ -96,7 +97,10 @@ export function AppShell({
           </header>
         </div>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {children}
+          <PublicFooter className="mt-8" />
+        </main>
       </div>
     </div>
   );

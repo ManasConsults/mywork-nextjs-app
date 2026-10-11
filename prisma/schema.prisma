@@ -117,6 +117,10 @@ model User {
   businessEmail   String?
   businessPhone   String?
   businessAddress String?
+  /// When the user accepted the Terms/Privacy Policy; null until first acceptance
+  termsAcceptedAt DateTime?
+  /// LEGAL_VERSION the user accepted
+  termsVersion    String?
   tasks                Task[]
   workLogs             WorkLog[]
   achievements         Achievement[]

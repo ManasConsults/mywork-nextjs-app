@@ -137,6 +137,18 @@ export function LoginForm(): React.JSX.Element {
         ))}
       </div>
 
+      <p className="-mt-3 mb-6 text-center text-xs text-muted-foreground">
+        When you sign in with a provider you will be asked to accept our{' '}
+        <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+          Terms of Use
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+          Privacy Policy
+        </Link>
+        .
+      </p>
+
       {/* Divider */}
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
