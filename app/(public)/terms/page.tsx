@@ -73,8 +73,13 @@ export default function TermsPage(): React.JSX.Element {
 
       <h2>7. Export your data and keep your records</h2>
       <p>
-        You can export your data at any time from Profile &rarr; Account. Deleting your account permanently
-        erases your data and cannot be undone, so export first. If you need to keep business or tax records, for
+        You can export your data at any time from Profile &rarr; Account. Once you ask to delete your account
+        you are signed out immediately and cannot export, so export first. Your account is then permanently
+        deleted after a 14-day grace period, within 30 days after that period ends. You can cancel before it is deleted by emailing{' '}
+        <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Cancel account deletion')}`}>
+          {CONTACT_EMAIL}
+        </a>{' '}
+        with the subject &ldquo;Cancel account deletion&rdquo;; once it is deleted it cannot be undone. If you need to keep business or tax records, for
         example the five years that the Australian Taxation Office generally requires, you are responsible for
         keeping your own copies. We do not act as your record keeper.
       </p>
@@ -101,7 +106,8 @@ export default function TermsPage(): React.JSX.Element {
 
       <h2>10. Suspension and termination</h2>
       <p>
-        You can stop using MyWork and delete your account at any time. We may suspend or end your access if you
+        You can stop using MyWork and ask to delete your account at any time; it is permanently deleted after the
+        14-day grace period described in section 7, within 30 days after that period ends. We may suspend or end your access if you
         breach these terms, if your use puts the service or other users at risk, or if we stop offering the
         service. Except where we need to act immediately to protect the service, other users or comply with the
         law, we will give you at least 30 days&rsquo; notice and a chance to export your data first.

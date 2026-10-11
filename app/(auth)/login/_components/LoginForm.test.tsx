@@ -8,10 +8,11 @@ import { LoginForm } from './LoginForm';
 const mockPush = jest.fn();
 const mockRefresh = jest.fn();
 const mockSignIn = jest.fn();
+let mockParams = new URLSearchParams();
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => mockParams,
 }));
 
 jest.mock('next-auth/react', () => ({
@@ -36,6 +37,7 @@ function setup() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockParams = new URLSearchParams();
 });
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
@@ -184,4 +186,49 @@ describe('LoginForm OAuth providers', () => {
       expect(mockSignIn).not.toHaveBeenCalled();
     },
   );
+});
+
+// ─── Deletion pending (ADR-010) ───────────────────────────────────────────────
+
+describe('LoginForm deletion-pending messages', () => {
+  async function submitWithError(error: string): Promise<void> {
+    mockSignIn.mockResolvedValue({ error });
+    const { user, emailInput, passwordInput, submitButton } = setup();
+    await user.type(emailInput(), 'jane@example.com');
+    await user.type(passwordInput(), 'Password1');
+    await user.click(submitButton());
+  }
+
+  it('shows the dated message for the exact DELETION_PENDING code', async () => {
+    await submitWithError('DELETION_PENDING:2026-10-26');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Your account is scheduled for deletion after 26 October 2026. To cancel, email manasm.dev@gmail.com.',
+    );
+  });
+
+  it.each(['DELETION_PENDING:2026-13-45', 'DELETION_PENDING:2026-10-26 extra', 'CredentialsSignin', 'boom: secret'])(
+    'shows the generic message for %s',
+    async (error) => {
+      await submitWithError(error);
+      expect(await screen.findByRole('alert')).toHaveTextContent('Invalid email or password. Please try again.');
+    },
+  );
+
+  it('shows the dated message for the OAuth redirect', () => {
+    mockParams = new URLSearchParams({ error: 'AccountDeletionPending', deletionDate: '2026-10-26' });
+    setup();
+    expect(screen.getByRole('alert')).toHaveTextContent('scheduled for deletion after 26 October 2026');
+  });
+
+  it('shows the generic message for a malformed OAuth redirect date', () => {
+    mockParams = new URLSearchParams({ error: 'AccountDeletionPending', deletionDate: '<b>x</b>' });
+    setup();
+    expect(screen.getByRole('alert')).toHaveTextContent('Invalid email or password');
+  });
+
+  it('shows nothing for unrelated error params', () => {
+    mockParams = new URLSearchParams({ error: 'AccessDenied' });
+    setup();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
 });

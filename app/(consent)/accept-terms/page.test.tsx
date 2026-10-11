@@ -48,4 +48,9 @@ describe('AcceptTermsPage', () => {
     mockFind.mockResolvedValue({ termsAcceptedAt: new Date(), termsVersion: 'old' });
     await expect(AcceptTermsPage()).resolves.toBeDefined();
   });
+
+  it('redirects a pending-deletion user to /login with the dated message, even with stale consent', async () => {
+    mockFind.mockResolvedValue({ termsAcceptedAt: null, termsVersion: null, deletionRequestedAt: new Date('2026-10-11T03:00:00.000Z') });
+    await expect(AcceptTermsPage()).rejects.toThrow('/login?error=AccountDeletionPending&deletionDate=2026-10-25');
+  });
 });

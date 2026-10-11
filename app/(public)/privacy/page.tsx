@@ -135,10 +135,14 @@ export default function PrivacyPage(): React.JSX.Element {
         database is restricted. No online service can be guaranteed to be completely secure.
       </p>
       <p>
-        We keep your information for as long as your account exists. When you delete your account, your account
-        and all of your content are permanently erased from the live database. Our database provider keeps a
-        short restore history for disaster recovery, so deleted data can remain there for up to 30 days before
-        it is permanently removed. We do not restore deleted accounts from it.
+        We keep your information for as long as your account exists. When you ask us to delete your account,
+        there is a 14-day grace period. During it your data is kept unchanged so you can change your mind, and
+        we are notified of your request by email (sent through Resend, which receives only your account
+        reference, not your content). After the 14-day period, your account and all of your content are
+        permanently deleted from the live database by an administrator, within 30 days after that period
+        ends. Until then your email address stays reserved. Our database provider keeps a short restore history for disaster
+        recovery, so deleted data can remain there for up to 30 days after permanent deletion before it is
+        removed. We do not restore deleted accounts from it.
       </p>
       <p>
         If a data breach is likely to result in serious harm to you, we will notify you and the Office of the
@@ -155,10 +159,11 @@ export default function PrivacyPage(): React.JSX.Element {
 
       <h2>10. Deleting your data</h2>
       <p>
-        You can permanently delete your account and data yourself from Profile &rarr; Account &rarr; Delete
-        account. If you cannot sign in, email us. Full steps are on the{' '}
-        <Link href="/data-deletion">data deletion page</Link>. Deletion cannot be undone, so export your data
-        first if you want a copy.
+        You can ask to delete your account and data yourself from Profile &rarr; Account &rarr; Delete
+        account. You are signed out straight away and cannot sign in or export your data afterwards, so export
+        first if you want a copy. Your account is permanently deleted after a 14-day period, within 30 days after
+        that period ends, and you can cancel before then by emailing us. If you cannot sign in, email us. Full steps are on the{' '}
+        <Link href="/data-deletion">data deletion page</Link>.
       </p>
 
       <h2>11. Complaints</h2>

@@ -1,14 +1,25 @@
 /** @jest-environment node */
 import { ACCOUNT_DATA_REGISTRY, EXPORT_PAGE_SIZE } from './account-data.registry';
-import { deleteUserAccount, exportAccountChunks } from './account-data.service';
+import {
+  cancelAccountDeletion,
+  deleteUserAccount,
+  exportAccountChunks,
+  purgeScheduledAccount,
+  requestAccountDeletion,
+} from './account-data.service';
 
-jest.mock('@/lib/db/prisma', () => ({ prisma: { $transaction: jest.fn() } }));
+jest.mock('@/lib/db/prisma', () => ({
+  prisma: {
+    $transaction: jest.fn(),
+    user: { findMany: jest.fn(), count: jest.fn(), updateMany: jest.fn() },
+  },
+}));
 
 import { prisma } from '@/lib/db/prisma';
 
 const mockTransaction = prisma.$transaction as jest.Mock;
 
-type Row = { id: string; role: string; isActive: boolean };
+type Row = { id: string; role: string; isActive: boolean; isPending?: boolean };
 
 function lowerFirst(s: string): string {
   return s[0].toLowerCase() + s.slice(1);
@@ -18,7 +29,12 @@ function buildTx(lockedRows: Row[], failOn?: string) {
   const calls: { model: string; where: unknown }[] = [];
   const tx: Record<string, unknown> = {
     $queryRaw: jest.fn().mockResolvedValue(lockedRows),
-    user: { delete: jest.fn().mockResolvedValue({}) },
+    user: {
+      delete: jest.fn().mockResolvedValue({}),
+      findFirst: jest.fn().mockResolvedValue({ id: 'due' }),
+      findUnique: jest.fn().mockResolvedValue({ deletionRequestedAt: new Date('2026-10-01T00:00:00.000Z') }),
+      update: jest.fn().mockResolvedValue({}),
+    },
   };
   for (const { model } of ACCOUNT_DATA_REGISTRY) {
     tx[lowerFirst(model)] = {
@@ -230,5 +246,174 @@ describe('exportAccountChunks (content rules)', () => {
     for await (const c of exportAccountChunks('u1', { id: 'u1', email: 'a@b.c' }, new Date())) out += c;
 
     expect(out).not.toMatch(/passwordHash|resetToken|PasswordResetToken/i);
+  });
+});
+
+function useTx(tx: Record<string, unknown>): void {
+  mockTransaction.mockImplementation((cb: (t: unknown) => unknown) => cb(tx));
+}
+
+const userDelegate = (tx: Record<string, unknown>): Record<string, jest.Mock> =>
+  tx.user as Record<string, jest.Mock>;
+
+describe('lock statement (ADR-010)', () => {
+  it('locks target + effective admins ordered by id and flags pending rows', async () => {
+    const { tx } = buildTx([{ id: 'u1', role: 'MEMBER', isActive: true }]);
+    useTx(tx);
+    await deleteUserAccount('u1', 'u1');
+
+    const sql = (tx.$queryRaw as jest.Mock).mock.calls[0][0].join('?') as string;
+    expect(sql).toContain(`"deletionRequestedAt" IS NOT NULL) AS "isPending"`);
+    expect(sql).toContain(`role = 'ADMIN' AND "isActive" = true AND "deletionRequestedAt" IS NULL`);
+    expect(sql).toMatch(/ORDER BY id\s+FOR UPDATE/);
+  });
+});
+
+describe('effective-admin rule', () => {
+  it('lets a pending admin be deleted even when no effective admin remains', async () => {
+    const { tx } = buildTx([{ id: 'a1', role: 'ADMIN', isActive: true, isPending: true }]);
+    useTx(tx);
+    await expect(deleteUserAccount('a1', 'a2')).resolves.toEqual({ ok: true });
+  });
+
+  it('refuses the sole effective admin', async () => {
+    const { tx } = buildTx([{ id: 'a1', role: 'ADMIN', isActive: true }]);
+    useTx(tx);
+    await expect(deleteUserAccount('a1', 'a1')).resolves.toEqual({ ok: false, reason: 'LAST_ADMIN' });
+  });
+});
+
+describe('requestAccountDeletion', () => {
+  const now = new Date('2026-10-11T00:00:00.000Z');
+
+  it('sets deletionRequestedAt and touches nothing else', async () => {
+    const { tx, calls } = buildTx([{ id: 'u1', role: 'MEMBER', isActive: true }]);
+    useTx(tx);
+
+    await expect(requestAccountDeletion('u1', now)).resolves.toEqual({ ok: true, requestedAt: now, created: true });
+    expect(userDelegate(tx).update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { deletionRequestedAt: now } });
+    expect(userDelegate(tx).delete).not.toHaveBeenCalled();
+    expect(calls).toHaveLength(0);
+  });
+
+  it('is idempotent: returns the existing date and writes nothing', async () => {
+    const { tx } = buildTx([{ id: 'u1', role: 'MEMBER', isActive: true, isPending: true }]);
+    useTx(tx);
+
+    const result = await requestAccountDeletion('u1', now);
+    expect(result).toEqual({ ok: true, requestedAt: new Date('2026-10-01T00:00:00.000Z'), created: false });
+    expect(userDelegate(tx).update).not.toHaveBeenCalled();
+  });
+
+  it('refuses the only effective admin', async () => {
+    const { tx } = buildTx([{ id: 'a1', role: 'ADMIN', isActive: true }]);
+    useTx(tx);
+    await expect(requestAccountDeletion('a1', now)).resolves.toEqual({ ok: false, reason: 'LAST_ADMIN' });
+    expect(userDelegate(tx).update).not.toHaveBeenCalled();
+  });
+
+  it('allows an admin when another effective admin exists', async () => {
+    const { tx } = buildTx([
+      { id: 'a1', role: 'ADMIN', isActive: true },
+      { id: 'a2', role: 'ADMIN', isActive: true },
+    ]);
+    useTx(tx);
+    await expect(requestAccountDeletion('a1', now)).resolves.toMatchObject({ ok: true, created: true });
+  });
+
+  it('refuses B when A (the other admin) is already pending, so only B is effective', async () => {
+    // The lock query excludes pending admins, so B is the only row.
+    const { tx } = buildTx([{ id: 'b', role: 'ADMIN', isActive: true }]);
+    useTx(tx);
+    await expect(requestAccountDeletion('b', now)).resolves.toEqual({ ok: false, reason: 'LAST_ADMIN' });
+  });
+
+  it('returns NOT_FOUND for a missing user', async () => {
+    const { tx } = buildTx([]);
+    useTx(tx);
+    await expect(requestAccountDeletion('x', now)).resolves.toEqual({ ok: false, reason: 'NOT_FOUND' });
+  });
+});
+
+describe('purgeScheduledAccount', () => {
+  const cutoff = new Date('2026-10-11T00:00:00.000Z');
+
+  it('erases a due user and checks dueness under the lock', async () => {
+    const { tx, calls } = buildTx([{ id: 'u1', role: 'MEMBER', isActive: true, isPending: true }]);
+    useTx(tx);
+
+    await expect(purgeScheduledAccount('u1', cutoff, 'admin1')).resolves.toEqual({ ok: true });
+    expect(userDelegate(tx).findFirst).toHaveBeenCalledWith({
+      where: { id: 'u1', deletionRequestedAt: { lte: cutoff } },
+      select: { id: true },
+    });
+    expect(calls).toHaveLength(ACCOUNT_DATA_REGISTRY.length);
+    expect(userDelegate(tx).delete).toHaveBeenCalledWith({ where: { id: 'u1' } });
+  });
+
+  it('skips with NOT_DUE and erases nothing when the request was cancelled', async () => {
+    const { tx, calls } = buildTx([{ id: 'u1', role: 'MEMBER', isActive: true }]);
+    userDelegate(tx).findFirst.mockResolvedValue(null);
+    useTx(tx);
+
+    await expect(purgeScheduledAccount('u1', cutoff, 'admin1')).resolves.toEqual({ ok: false, reason: 'NOT_DUE' });
+    expect(calls).toHaveLength(0);
+    expect(userDelegate(tx).delete).not.toHaveBeenCalled();
+  });
+
+  it('returns NOT_FOUND when already erased', async () => {
+    const { tx } = buildTx([]);
+    useTx(tx);
+    await expect(purgeScheduledAccount('u1', cutoff, 'admin1')).resolves.toEqual({ ok: false, reason: 'NOT_FOUND' });
+  });
+
+  it('scopes every erase to the purged user only (isolation)', async () => {
+    const { tx, calls } = buildTx([{ id: 'userA', role: 'MEMBER', isActive: true, isPending: true }]);
+    useTx(tx);
+    await purgeScheduledAccount('userA', cutoff, 'admin1');
+    for (const { where } of calls) expect(JSON.stringify(where)).not.toContain('userB');
+  });
+
+  it('logs the system actor with counts only', async () => {
+    const loggerModule = jest.requireActual<typeof import('@/lib/utils/logger')>('@/lib/utils/logger');
+    const warn = jest.spyOn(loggerModule.default, 'warn');
+    const { tx } = buildTx([{ id: 'u1', role: 'MEMBER', isActive: true, isPending: true }]);
+    useTx(tx);
+    await purgeScheduledAccount('u1', cutoff, 'admin1');
+    expect(warn.mock.calls[0][0]).toMatchObject({ userId: 'u1', actorId: 'admin1' });
+    warn.mockRestore();
+  });
+});
+
+describe('cancelAccountDeletion', () => {
+  const updateMany = prisma.user.updateMany as jest.Mock;
+
+  it('clears a pending request and reports true', async () => {
+    updateMany.mockResolvedValue({ count: 1 });
+    await expect(cancelAccountDeletion('u1')).resolves.toBe(true);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: 'u1', deletionRequestedAt: { not: null } },
+      data: { deletionRequestedAt: null },
+    });
+  });
+
+  it('reports false when nothing was pending', async () => {
+    updateMany.mockResolvedValue({ count: 0 });
+    await expect(cancelAccountDeletion('u1')).resolves.toBe(false);
+  });
+});
+
+describe('lock statement (C2 exact text)', () => {
+  it('matches the binding SQL, whitespace-normalised, with the user id bound once', async () => {
+    const { tx } = buildTx([{ id: 'u1', role: 'MEMBER', isActive: true }]);
+    mockTransaction.mockImplementation(async (cb: (t: unknown) => unknown) => cb(tx));
+    await deleteUserAccount('u1', 'u1');
+
+    const call = (tx.$queryRaw as jest.Mock).mock.calls[0] as [string[], ...unknown[]];
+    const sql = call[0].join('$').replace(/\s+/g, ' ').trim();
+    expect(sql).toBe(
+      `SELECT id, role::text AS role, "isActive", ("deletionRequestedAt" IS NOT NULL) AS "isPending" FROM users WHERE id = $ OR (role = 'ADMIN' AND "isActive" = true AND "deletionRequestedAt" IS NULL) ORDER BY id FOR UPDATE`,
+    );
+    expect(call.slice(1)).toEqual(['u1']);
   });
 });

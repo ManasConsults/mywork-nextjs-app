@@ -1,22 +1,21 @@
 /** @jest-environment node */
 import { GET } from './route';
 
-jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
-jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
+jest.mock('@/lib/auth/live-session', () => ({ getLiveSession: jest.fn() }));
 jest.mock('@/lib/services/account-data.registry', () => ({ readExportUser: jest.fn() }));
 jest.mock('@/lib/services/account-data.service', () => ({ exportAccountChunks: jest.fn() }));
 
-import { getServerSession } from 'next-auth';
+import { getLiveSession } from '@/lib/auth/live-session';
 import { readExportUser } from '@/lib/services/account-data.registry';
 import { exportAccountChunks } from '@/lib/services/account-data.service';
 
-const mockSession = getServerSession as jest.Mock;
+const mockSession = getLiveSession as jest.Mock;
 const mockReadUser = readExportUser as jest.Mock;
 const mockChunks = exportAccountChunks as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockSession.mockResolvedValue({ user: { id: 'u1' } });
+  mockSession.mockResolvedValue({ userId: 'u1', role: 'MEMBER', isActive: true });
   mockReadUser.mockResolvedValue({ id: 'u1' });
   mockChunks.mockImplementation(async function* () {
     yield '{"a":';
@@ -25,6 +24,13 @@ beforeEach(() => {
 });
 
 describe('GET /api/account/export', () => {
+  it('returns 401 for a user pending deletion (live session is null)', async () => {
+    mockSession.mockResolvedValue(null);
+    const res = await GET();
+    expect(res.status).toBe(401);
+    await expect(res.json()).resolves.toEqual({ error: 'Unauthorized' });
+  });
+
   it('returns 401 for anonymous callers', async () => {
     mockSession.mockResolvedValue(null);
     const res = await GET();

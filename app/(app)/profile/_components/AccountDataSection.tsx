@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ACCOUNT_DELETION_GRACE_DAYS } from '@/lib/legal/deletion';
+import { CONTACT_EMAIL } from '@/lib/legal/constants';
 
 export function AccountDataSection({ hasPassword }: { hasPassword: boolean }): React.JSX.Element {
   const [open, setOpen] = useState(false);
@@ -44,7 +46,7 @@ export function AccountDataSection({ hasPassword }: { hasPassword: boolean }): R
         setError(result.error.message);
         return;
       }
-      await signOut({ callbackUrl: '/?accountDeleted=1' });
+      await signOut({ callbackUrl: `/?deletionRequested=${result.data.purgeDate}` });
     });
   }
 
@@ -67,8 +69,9 @@ export function AccountDataSection({ hasPassword }: { hasPassword: boolean }): R
       <section className="flex flex-col gap-2">
         <h3 className="text-base font-medium text-destructive">Delete account</h3>
         <p className="text-sm text-muted-foreground">
-          Permanently deletes your account and all of your data. This cannot be undone. Export your data first
-          if you need a copy, for example for your own tax record keeping.
+          Permanently deletes your account and all of your data after a {ACCOUNT_DELETION_GRACE_DAYS}-day period,
+          within 30 days after that period ends.
+          Export your data first if you need a copy, for example for your own tax record keeping.
         </p>
         <div>
           <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -80,8 +83,12 @@ export function AccountDataSection({ hasPassword }: { hasPassword: boolean }): R
                 <DialogHeader>
                   <DialogTitle>Delete your account?</DialogTitle>
                   <DialogDescription>
-                    All of your tasks, notes, work logs, achievements, finance records and feedback will be
-                    permanently erased. You will be signed out immediately.
+                    Export your data first: you will be signed out immediately and cannot sign in or export
+                    during the {ACCOUNT_DELETION_GRACE_DAYS}-day period. After it, all of your tasks, notes, work logs,
+                    achievements, finance records and feedback are permanently deleted, within 30 days after
+                    the period ends. To cancel before then, email {CONTACT_EMAIL} with the subject &quot;Cancel
+                    account deletion&quot;. Your email address stays reserved until deletion, and disaster-recovery
+                    backups may hold a copy for up to 30 days after permanent deletion.
                   </DialogDescription>
                 </DialogHeader>
 
@@ -114,7 +121,7 @@ export function AccountDataSection({ hasPassword }: { hasPassword: boolean }): R
                     className="size-5"
                   />
                   <Label htmlFor="deleteAcknowledged" className="text-sm font-normal leading-snug">
-                    I understand this is permanent and cannot be undone.
+                    I understand my account will be permanently deleted after the {ACCOUNT_DELETION_GRACE_DAYS}-day period.
                   </Label>
                 </div>
 
@@ -129,7 +136,7 @@ export function AccountDataSection({ hasPassword }: { hasPassword: boolean }): R
                     Cancel
                   </Button>
                   <Button type="submit" variant="destructive" className="min-h-11" disabled={!canSubmit} aria-busy={isPending}>
-                    {isPending ? 'Deleting…' : 'Delete my account'}
+                    {isPending ? 'Requesting…' : 'Delete my account'}
                   </Button>
                 </DialogFooter>
               </form>

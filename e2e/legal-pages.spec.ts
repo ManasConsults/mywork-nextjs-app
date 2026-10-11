@@ -20,6 +20,13 @@ test.describe('Public legal pages (anonymous)', () => {
     });
   }
 
+  test('/data-deletion explains the 14-day grace period and the cancel email', async ({ page }) => {
+    await page.goto('/data-deletion');
+    await expect(page.getByText('14-day period').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'manasm.dev@gmail.com' }).first()).toBeVisible();
+    await expect(page.getByText('Cancel account deletion').first()).toBeVisible();
+  });
+
   test('the export endpoint rejects anonymous requests', async ({ request }) => {
     const response = await request.get('/api/account/export');
     expect(response.status()).toBe(401);

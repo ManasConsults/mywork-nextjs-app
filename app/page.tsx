@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/auth';
 import { features } from '@/components/marketing/features';
 import { PublicFooter } from '@/components/legal/PublicFooter';
+import { CONTACT_EMAIL } from '@/lib/legal/constants';
+import { formatDeletionDate, isValidIsoDate } from '@/lib/legal/deletion';
 
 // next-auth/react (SessionProvider in root layout) calls new URL(NEXTAUTH_URL)
 // during module evaluation — prevent pre-rendering so it only runs at request time.
@@ -20,9 +22,9 @@ const steps = [
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ accountDeleted?: string }>;
+  searchParams: Promise<{ deletionRequested?: string }>;
 }): Promise<React.JSX.Element> {
-  const { accountDeleted } = await searchParams;
+  const { deletionRequested } = await searchParams;
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;
 
@@ -60,12 +62,19 @@ export default async function HomePage({
         </header>
       </div>
 
-      {accountDeleted === '1' && (
+      {deletionRequested && isValidIsoDate(deletionRequested) && (
         <div
           role="status"
           className="mx-auto mt-4 max-w-6xl rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground"
         >
-          Your account and all of its data have been permanently deleted.
+          Your account is scheduled for permanent deletion after {formatDeletionDate(deletionRequested)}. To cancel before then,{' '}
+          <a
+            href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Cancel account deletion')}`}
+            className="font-medium text-primary hover:underline"
+          >
+            email {CONTACT_EMAIL}
+          </a>{' '}
+          with the subject &quot;Cancel account deletion&quot;.
         </div>
       )}
 

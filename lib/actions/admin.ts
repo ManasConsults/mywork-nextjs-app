@@ -1,24 +1,45 @@
 'use server';
 
-import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import type { Role, EmploymentType } from '@prisma/client';
 
-import { authOptions } from '@/lib/auth/auth';
+import { getLiveSession } from '@/lib/auth/live-session';
 import { prisma } from '@/lib/db/prisma';
-import { deleteUserAccount } from '@/lib/services/account-data.service';
+import {
+  ACCOUNT_DELETION_GRACE_MS,
+  computeDeletionDueAt,
+  formatDeletionDate,
+  toBrisbaneIsoDate,
+} from '@/lib/legal/deletion';
+import {
+  cancelAccountDeletion,
+  deleteUserAccount,
+  purgeScheduledAccount,
+} from '@/lib/services/account-data.service';
 import {
   sendAccountApprovedEmail,
   sendAccountRejectedEmail,
 } from '@/lib/email/notifications';
+import logger from '@/lib/utils/logger';
 
 type AdminActionResult = { success: true } | { success: false; error: string };
 
+// Role comes from the database, not the JWT, so a demoted or pending-deletion admin loses access immediately.
 async function requireAdmin(): Promise<string | null> {
-  const session = await getServerSession(authOptions);
-  const user = session?.user as { id?: string; role?: string } | undefined;
-  if (!user?.id || user.role !== 'ADMIN') return null;
-  return user.id;
+  const live = await getLiveSession();
+  if (!live || live.role !== 'ADMIN' || !live.isActive) return null;
+  return live.userId;
+}
+
+const CANCEL_FIRST_ERROR = 'Cancel the deletion first.';
+
+async function getDeletionRequestedAt(userId: string): Promise<Date | null> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { deletionRequestedAt: true } });
+  return user?.deletionRequestedAt ?? null;
+}
+
+async function isDeletionPending(userId: string): Promise<boolean> {
+  return (await getDeletionRequestedAt(userId)) !== null;
 }
 
 export async function setUserActiveAction(
@@ -28,6 +49,7 @@ export async function setUserActiveAction(
   const adminId = await requireAdmin();
   if (!adminId) return { success: false, error: 'Unauthorized.' };
   if (userId === adminId) return { success: false, error: 'Cannot change your own active status.' };
+  if (await isDeletionPending(userId)) return { success: false, error: CANCEL_FIRST_ERROR };
 
   if (isActive) {
     const user = await prisma.user.findUnique({
@@ -53,6 +75,7 @@ export async function rejectUserAction(userId: string): Promise<AdminActionResul
   const adminId = await requireAdmin();
   if (!adminId) return { success: false, error: 'Unauthorized.' };
   if (userId === adminId) return { success: false, error: 'Cannot reject your own account.' };
+  if (await isDeletionPending(userId)) return { success: false, error: CANCEL_FIRST_ERROR };
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -79,6 +102,7 @@ export async function setUserRoleAction(
   const adminId = await requireAdmin();
   if (!adminId) return { success: false, error: 'Unauthorized.' };
   if (userId === adminId) return { success: false, error: 'Cannot change your own role.' };
+  if (await isDeletionPending(userId)) return { success: false, error: CANCEL_FIRST_ERROR };
 
   await prisma.user.update({ where: { id: userId }, data: { role } });
   revalidatePath('/admin/users');
@@ -90,8 +114,16 @@ export async function deleteUserAction(userId: string): Promise<AdminActionResul
   if (!adminId) return { success: false, error: 'Unauthorized.' };
   if (userId === adminId) return { success: false, error: 'Cannot delete your own account.' };
 
-  const result = await deleteUserAccount(userId, adminId);
+  const requestedAt = await getDeletionRequestedAt(userId);
+  // A pending account may only be erased once its grace period has passed; the service re-checks under the row lock.
+  const result = requestedAt
+    ? await purgeScheduledAccount(userId, new Date(Date.now() - ACCOUNT_DELETION_GRACE_MS), adminId)
+    : await deleteUserAccount(userId, adminId);
   if (!result.ok) {
+    if (result.reason === 'NOT_DUE' && requestedAt) {
+      const dueDate = formatDeletionDate(toBrisbaneIsoDate(computeDeletionDueAt(requestedAt)));
+      return { success: false, error: `This account can be deleted from ${dueDate}.` };
+    }
     return {
       success: false,
       error: result.reason === 'LAST_ADMIN'
@@ -99,6 +131,18 @@ export async function deleteUserAction(userId: string): Promise<AdminActionResul
         : 'User not found.',
     };
   }
+  revalidatePath('/admin/users');
+  return { success: true };
+}
+
+export async function cancelUserDeletionAction(userId: string): Promise<AdminActionResult> {
+  const adminId = await requireAdmin();
+  if (!adminId) return { success: false, error: 'Unauthorized.' };
+  if (userId === adminId) return { success: false, error: 'Cannot cancel your own deletion.' };
+
+  if (!(await cancelAccountDeletion(userId))) return { success: false, error: 'Deletion is not scheduled.' };
+
+  logger.warn({ userId, actorId: adminId }, 'account deletion cancelled');
   revalidatePath('/admin/users');
   return { success: true };
 }
@@ -111,6 +155,7 @@ export async function setUserModulesAction(
   const adminId = await requireAdmin();
   if (!adminId) return { success: false, error: 'Unauthorized.' };
   if (userId === adminId) return { success: false, error: 'Cannot remove your own module access.' };
+  if (await isDeletionPending(userId)) return { success: false, error: CANCEL_FIRST_ERROR };
 
   await prisma.user.update({ where: { id: userId }, data: { moduleWork, moduleFinance } });
   revalidatePath('/admin/users');
@@ -123,6 +168,7 @@ export async function setUserEmploymentTypeAction(
 ): Promise<AdminActionResult> {
   const adminId = await requireAdmin();
   if (!adminId) return { success: false, error: 'Unauthorized.' };
+  if (await isDeletionPending(userId)) return { success: false, error: CANCEL_FIRST_ERROR };
 
   await prisma.user.update({ where: { id: userId }, data: { employmentType } });
   revalidatePath('/admin/users');

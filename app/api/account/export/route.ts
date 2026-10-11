@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/lib/auth/auth';
+import { getLiveSession } from '@/lib/auth/live-session';
 import { readExportUser } from '@/lib/services/account-data.registry';
 import { exportAccountChunks } from '@/lib/services/account-data.service';
 import logger from '@/lib/utils/logger';
@@ -10,9 +9,9 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(): Promise<Response> {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const live = await getLiveSession();
+  if (!live) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { userId } = live;
 
   // Read before opening the stream so failures still produce a proper JSON error response.
   let user: Record<string, unknown> | null;

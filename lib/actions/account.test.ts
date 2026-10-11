@@ -5,17 +5,21 @@ jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
 jest.mock('@/lib/db/prisma', () => ({ prisma: { user: { findUnique: jest.fn() } } }));
 jest.mock('@/lib/auth/passwords', () => ({ verifyPassword: jest.fn() }));
-jest.mock('@/lib/services/account-data.service', () => ({ deleteUserAccount: jest.fn() }));
+jest.mock('@/lib/services/account-data.service', () => ({ requestAccountDeletion: jest.fn() }));
+jest.mock('@/lib/email/notifications', () => ({ sendAccountDeletionRequestedEmail: jest.fn() }));
 
 import { getServerSession } from 'next-auth';
 import { verifyPassword } from '@/lib/auth/passwords';
 import { prisma } from '@/lib/db/prisma';
-import { deleteUserAccount } from '@/lib/services/account-data.service';
+import { requestAccountDeletion } from '@/lib/services/account-data.service';
+import { sendAccountDeletionRequestedEmail } from '@/lib/email/notifications';
 
 const mockSession = getServerSession as jest.Mock;
 const mockFindUnique = prisma.user.findUnique as jest.Mock;
 const mockVerify = verifyPassword as jest.Mock;
-const mockDelete = deleteUserAccount as jest.Mock;
+const mockDelete = requestAccountDeletion as jest.Mock;
+const mockEmail = sendAccountDeletionRequestedEmail as jest.Mock;
+const REQUESTED_AT = new Date('2026-10-11T03:00:00.000Z');
 
 const INPUT = { confirmation: 'Password1', acknowledged: true as const };
 
@@ -24,7 +28,7 @@ beforeEach(() => {
   mockSession.mockResolvedValue({ user: { id: 'u1' } });
   mockFindUnique.mockResolvedValue({ email: 'Jane@Example.com', passwordHash: 'hash' });
   mockVerify.mockResolvedValue(true);
-  mockDelete.mockResolvedValue({ ok: true });
+  mockDelete.mockResolvedValue({ ok: true, requestedAt: REQUESTED_AT, created: true });
 });
 
 describe('deleteAccountAction', () => {
@@ -51,9 +55,21 @@ describe('deleteAccountAction', () => {
     expect(mockDelete).not.toHaveBeenCalled();
   });
 
-  it('deletes the signed-in user after a correct password', async () => {
-    await expect(deleteAccountAction(INPUT)).resolves.toEqual({ success: true, data: undefined });
-    expect(mockDelete).toHaveBeenCalledWith('u1', 'u1');
+  it('requests deletion for the signed-in user after a correct password and returns the purge date', async () => {
+    await expect(deleteAccountAction(INPUT)).resolves.toEqual({ success: true, data: { purgeDate: '2026-10-25' } });
+    expect(mockDelete).toHaveBeenCalledWith('u1', expect.any(Date));
+  });
+
+  it('emails the operator once, with ids and dates only, when the request is created', async () => {
+    await deleteAccountAction(INPUT);
+    expect(mockEmail).toHaveBeenCalledTimes(1);
+    expect(mockEmail).toHaveBeenCalledWith({ userId: 'u1', requestedAt: REQUESTED_AT, purgeDate: '2026-10-25' });
+  });
+
+  it('is idempotent: an already-pending request returns the original date and sends no email', async () => {
+    mockDelete.mockResolvedValue({ ok: true, requestedAt: REQUESTED_AT, created: false });
+    await expect(deleteAccountAction(INPUT)).resolves.toEqual({ success: true, data: { purgeDate: '2026-10-25' } });
+    expect(mockEmail).not.toHaveBeenCalled();
   });
 
   it('confirms OAuth-only users by case-insensitive email', async () => {
@@ -79,7 +95,7 @@ describe('deleteAccountAction', () => {
     });
   });
 
-  it('returns a generic error if erasure throws', async () => {
+  it('returns a generic error if the request throws', async () => {
     mockDelete.mockRejectedValue(new Error('db down'));
     const result = await deleteAccountAction(INPUT);
     expect(result.success).toBe(false);
@@ -90,7 +106,7 @@ describe('deleteAccountAction (isolation and logging)', () => {
   it('never deletes a user other than the session user, whatever the input contains', async () => {
     await deleteAccountAction({ confirmation: 'Password1', acknowledged: true, userId: 'victim' } as never);
     expect(mockDelete).toHaveBeenCalledTimes(1);
-    expect(mockDelete).toHaveBeenCalledWith('u1', 'u1');
+    expect(mockDelete).toHaveBeenCalledWith('u1', expect.any(Date));
   });
 
   it('does not touch the service when the user row is missing', async () => {

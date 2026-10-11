@@ -61,4 +61,18 @@ describe('(app) AppLayout consent gate', () => {
     await AppLayout({ children: null });
     expect(mockFind).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'u1' } }));
   });
+
+  it('redirects a pending-deletion user to /login with the dated message, even with stale consent', async () => {
+    mockFind.mockResolvedValue({ ...current, termsAcceptedAt: null, termsVersion: null, deletionRequestedAt: new Date('2026-10-11T03:00:00.000Z') });
+    await expect(AppLayout({ children: null })).rejects.toThrow('/login?error=AccountDeletionPending&deletionDate=2026-10-25');
+  });
+});
+
+describe('(app) AppLayout pending approval badge', () => {
+  it('excludes pending-deletion users from the admin pending count', async () => {
+    mockSession.mockResolvedValue({ user: { id: 'a1', role: 'ADMIN' } });
+    (prisma.user.count as jest.Mock).mockResolvedValue(0);
+    await AppLayout({ children: null });
+    expect(prisma.user.count).toHaveBeenCalledWith({ where: { isActive: false, deletionRequestedAt: null } });
+  });
 });

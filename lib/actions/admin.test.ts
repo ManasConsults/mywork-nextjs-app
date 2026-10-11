@@ -1,35 +1,39 @@
-import { setUserActiveAction, setUserRoleAction, rejectUserAction, deleteUserAction, setUserModulesAction, setUserEmploymentTypeAction } from './admin';
+import { cancelUserDeletionAction, setUserActiveAction, setUserRoleAction, rejectUserAction, deleteUserAction, setUserModulesAction, setUserEmploymentTypeAction } from './admin';
 
-jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
-jest.mock('@/lib/auth/auth', () => ({ authOptions: {} }));
+jest.mock('@/lib/auth/live-session', () => ({ getLiveSession: jest.fn() }));
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('@/lib/db/prisma', () => ({
   prisma: { user: { update: jest.fn(), findUnique: jest.fn() } },
 }));
-jest.mock('@/lib/services/account-data.service', () => ({ deleteUserAccount: jest.fn() }));
+jest.mock('@/lib/services/account-data.service', () => ({
+  deleteUserAccount: jest.fn(),
+  cancelAccountDeletion: jest.fn(),
+  purgeScheduledAccount: jest.fn(),
+}));
 jest.mock('@/lib/email/notifications', () => ({
   sendAccountApprovedEmail: jest.fn(),
   sendAccountRejectedEmail: jest.fn(),
 }));
 
-import { getServerSession } from 'next-auth';
+import { getLiveSession } from '@/lib/auth/live-session';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/prisma';
-import { deleteUserAccount } from '@/lib/services/account-data.service';
+import { cancelAccountDeletion, deleteUserAccount, purgeScheduledAccount } from '@/lib/services/account-data.service';
 import { sendAccountApprovedEmail, sendAccountRejectedEmail } from '@/lib/email/notifications';
 
-const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
+const mockGetServerSession = getLiveSession as jest.MockedFunction<typeof getLiveSession>;
 const mockUserUpdate = (prisma.user as jest.Mocked<typeof prisma.user>).update;
 const mockUserFindUnique = (prisma.user as jest.Mocked<typeof prisma.user>).findUnique;
 const mockUserDelete = deleteUserAccount as jest.MockedFunction<typeof deleteUserAccount>;
+const mockPurge = purgeScheduledAccount as jest.MockedFunction<typeof purgeScheduledAccount>;
 const mockRevalidatePath = revalidatePath as jest.MockedFunction<typeof revalidatePath>;
 const mockSendApproved = sendAccountApprovedEmail as jest.MockedFunction<typeof sendAccountApprovedEmail>;
 const mockSendRejected = sendAccountRejectedEmail as jest.MockedFunction<typeof sendAccountRejectedEmail>;
 
 const adminId = 'admin-1';
 const targetId = 'user-2';
-const adminSession = { user: { id: adminId, role: 'ADMIN' }, expires: '' };
-const memberSession = { user: { id: 'member-1', role: 'MEMBER' }, expires: '' };
+const adminSession = { userId: adminId, role: 'ADMIN', isActive: true };
+const memberSession = { userId: 'member-1', role: 'MEMBER', isActive: true };
 const targetUser = { email: 'target@example.com', name: 'Target User' };
 
 beforeEach(() => {
@@ -297,4 +301,110 @@ describe('setUserRoleAction', () => {
       expect(result).toEqual({ success: true });
     },
   );
+});
+
+// ─── deletion pending (ADR-010) ───────────────────────────────────────────────
+
+describe('requireAdmin is database-backed', () => {
+  it('rejects when the live session is null (e.g. stale ADMIN JWT with a pending DB row)', async () => {
+    mockGetServerSession.mockResolvedValue(null);
+    await expect(setUserRoleAction(targetId, 'ADMIN')).resolves.toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+  });
+
+  it('rejects an inactive admin', async () => {
+    mockGetServerSession.mockResolvedValue({ ...adminSession, isActive: false });
+    await expect(setUserRoleAction(targetId, 'ADMIN')).resolves.toEqual({ success: false, error: 'Unauthorized.' });
+  });
+});
+
+describe('actions on a user pending deletion', () => {
+  const pending = { ...targetUser, deletionRequestedAt: new Date('2026-10-01T00:00:00.000Z') };
+  const CANCEL_FIRST = { success: false, error: 'Cancel the deletion first.' };
+
+  beforeEach(() => {
+    mockGetServerSession.mockResolvedValue(adminSession);
+    mockUserFindUnique.mockResolvedValue(pending as never);
+  });
+
+  it.each([
+    ['approve', () => setUserActiveAction(targetId, true)],
+    ['deactivate', () => setUserActiveAction(targetId, false)],
+    ['reject', () => rejectUserAction(targetId)],
+    ['role', () => setUserRoleAction(targetId, 'ADMIN')],
+    ['modules', () => setUserModulesAction(targetId, true, true)],
+    ['employment', () => setUserEmploymentTypeAction(targetId, 'EMPLOYED')],
+  ])('refuses %s with no write and no email', async (_name, run) => {
+    await expect(run()).resolves.toEqual(CANCEL_FIRST);
+    expect(mockUserUpdate).not.toHaveBeenCalled();
+    expect(mockSendApproved).not.toHaveBeenCalled();
+    expect(mockSendRejected).not.toHaveBeenCalled();
+  });
+
+  describe('Delete', () => {
+    beforeEach(() => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-10-11T00:00:00.000Z'));
+    });
+    afterEach(() => jest.useRealTimers());
+
+    it('purges through the guarded service with a now - 14 days cutoff, never the immediate delete', async () => {
+      mockPurge.mockResolvedValue({ ok: true });
+      await expect(deleteUserAction(targetId)).resolves.toEqual({ success: true });
+      expect(mockPurge).toHaveBeenCalledWith(targetId, new Date('2026-09-27T00:00:00.000Z'), adminId);
+      expect(mockUserDelete).not.toHaveBeenCalled();
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
+    });
+
+    it('explains when the grace period has not passed (Brisbane date of the due instant)', async () => {
+      mockPurge.mockResolvedValue({ ok: false, reason: 'NOT_DUE' });
+      // 2026-10-01T00:00Z + 14d = 2026-10-15T00:00Z = 15 Oct 10:00 in Brisbane
+      await expect(deleteUserAction(targetId)).resolves.toEqual({
+        success: false,
+        error: 'This account can be deleted from 15 October 2026.',
+      });
+      expect(mockRevalidatePath).not.toHaveBeenCalled();
+    });
+
+    it('keeps the LAST_ADMIN message', async () => {
+      mockPurge.mockResolvedValue({ ok: false, reason: 'LAST_ADMIN' });
+      await expect(deleteUserAction(targetId)).resolves.toEqual({
+        success: false,
+        error: 'You are the only administrator. Promote another user to Admin first.',
+      });
+    });
+  });
+});
+
+describe('cancelUserDeletionAction', () => {
+  const mockCancel = cancelAccountDeletion as jest.Mock;
+
+  it('requires an admin', async () => {
+    mockGetServerSession.mockResolvedValue(memberSession);
+    await expect(cancelUserDeletionAction(targetId)).resolves.toEqual({ success: false, error: 'Unauthorized.' });
+    expect(mockCancel).not.toHaveBeenCalled();
+  });
+
+  it('blocks self-targeting', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession);
+    const result = await cancelUserDeletionAction(adminId);
+    expect(result.success).toBe(false);
+    expect(mockCancel).not.toHaveBeenCalled();
+  });
+
+  it('reports when no deletion is scheduled', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession);
+    mockCancel.mockResolvedValue(false);
+    await expect(cancelUserDeletionAction(targetId)).resolves.toEqual({
+      success: false,
+      error: 'Deletion is not scheduled.',
+    });
+  });
+
+  it('cancels and revalidates', async () => {
+    mockGetServerSession.mockResolvedValue(adminSession);
+    mockCancel.mockResolvedValue(true);
+    await expect(cancelUserDeletionAction(targetId)).resolves.toEqual({ success: true });
+    expect(mockCancel).toHaveBeenCalledWith(targetId);
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
+  });
 });

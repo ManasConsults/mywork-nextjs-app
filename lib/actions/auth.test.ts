@@ -191,6 +191,14 @@ describe('requestPasswordReset', () => {
     expect(result).toEqual({ success: true });
   });
 
+  it('returns the same success without a token or email for a pending-deletion account', async () => {
+    mockFindUnique.mockResolvedValue({ ...ACTIVE_CREDENTIALS_USER, deletionRequestedAt: new Date() } as never);
+    const result = await requestPasswordReset({ email: ACTIVE_CREDENTIALS_USER.email });
+    expect(mockTokenCreate).not.toHaveBeenCalled();
+    expect(mockSendReset).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true });
+  });
+
   it('returns success even if the reset email fails to send', async () => {
     mockFindUnique.mockResolvedValue(ACTIVE_CREDENTIALS_USER as never);
     mockSendReset.mockRejectedValue(new Error('SMTP error'));
@@ -250,8 +258,20 @@ describe('resetPassword', () => {
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 
+  it('refuses an outstanding token for a pending-deletion user and writes nothing', async () => {
+    mockTokenFindUnique.mockResolvedValue(VALID_TOKEN_RECORD as never);
+    mockFindUnique.mockResolvedValue({ deletionRequestedAt: new Date() } as never);
+    const result = await resetPassword(VALID_RESET_INPUT);
+    expect(result).toEqual({
+      success: false,
+      error: { message: 'This password reset link is invalid or has expired.' },
+    });
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
   it('updates the password and marks the token used on valid input', async () => {
     mockTokenFindUnique.mockResolvedValue(VALID_TOKEN_RECORD as never);
+    mockFindUnique.mockResolvedValue({ deletionRequestedAt: null } as never);
     const result = await resetPassword(VALID_RESET_INPUT);
 
     expect(mockUserUpdate).toHaveBeenCalledWith({
