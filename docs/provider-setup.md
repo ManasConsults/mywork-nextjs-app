@@ -4,7 +4,7 @@ Base URL: `https://mywork.manasconsults.net` (set `NEXTAUTH_URL` to this value i
 
 > **Pre-launch notes**
 > - The legal text (Privacy Policy, Terms of Use, data deletion page) is a draft pending review by an Australian lawyer. Items to raise: retention on account deletion (everything is erased), the 30-day response commitment, the limitation of liability wording, and the APP 8 overseas disclosure wording.
-> - `OPERATOR_ABN` in `lib/legal/constants.ts` is the placeholder `ABN_PLACEHOLDER`. Replace it with the real ABN before submitting any provider app for review. It is the single source for every page.
+> - `OPERATOR_ABN` in `lib/legal/constants.ts` (54 184 973 007) is the single source for every page that shows the ABN.
 > - After any material change to the Terms or Privacy Policy, bump `LEGAL_VERSION` and `LEGAL_LAST_UPDATED` in `lib/legal/constants.ts` so every user is asked to accept again.
 
 ## Google (Google Cloud Console, OAuth consent screen)

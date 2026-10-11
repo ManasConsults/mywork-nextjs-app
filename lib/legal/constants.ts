@@ -5,8 +5,7 @@ export const LEGAL_LAST_UPDATED = '11 October 2026';
 
 export const OPERATOR_NAME = 'Manas Mallick';
 export const TRADING_NAME = 'ManasConsults';
-// Replace with the real ABN before launch; rendered verbatim on the legal pages.
-export const OPERATOR_ABN = 'ABN_PLACEHOLDER';
+export const OPERATOR_ABN = '54 184 973 007';
 export const CONTACT_EMAIL = 'manasm.dev@gmail.com';
 export const APP_URL = 'https://mywork.manasconsults.net';
 export const GOVERNING_LAW = 'Queensland, Australia';
