@@ -116,8 +116,9 @@ export async function getTransactionSummary(
   let totalExpenses = 0;
   for (const row of agg) {
     const sum = row._sum.amount ?? 0;
-    if (row.type === 'INCOME' || row.type === 'TRANSFER_IN') totalIncome += sum;
-    if (row.type === 'EXPENSE' || row.type === 'TRANSFER_OUT') totalExpenses += sum;
+    // Transfers move money between the user's own accounts, so they are neither income nor expense
+    if (row.type === 'INCOME') totalIncome += sum;
+    if (row.type === 'EXPENSE') totalExpenses += sum;
   }
 
   return { totalIncome, totalExpenses, net: totalIncome - totalExpenses };

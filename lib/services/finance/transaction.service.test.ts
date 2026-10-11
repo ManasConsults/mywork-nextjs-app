@@ -175,7 +175,7 @@ describe('deleteTransaction', () => {
 });
 
 describe('getTransactionSummary', () => {
-  it('sums INCOME and TRANSFER_IN as income, EXPENSE and TRANSFER_OUT as expenses', async () => {
+  it('sums INCOME as income and EXPENSE as expenses, excluding transfers', async () => {
     mockGroupBy.mockResolvedValue([
       { type: 'INCOME', _sum: { amount: 10000 } },
       { type: 'TRANSFER_IN', _sum: { amount: 2000 } },
@@ -183,9 +183,9 @@ describe('getTransactionSummary', () => {
       { type: 'TRANSFER_OUT', _sum: { amount: 1000 } },
     ] as never);
     const result = await getTransactionSummary(userId);
-    expect(result.totalIncome).toBe(12000);
-    expect(result.totalExpenses).toBe(4000);
-    expect(result.net).toBe(8000);
+    expect(result.totalIncome).toBe(10000);
+    expect(result.totalExpenses).toBe(3000);
+    expect(result.net).toBe(7000);
   });
 
   it('returns zeros when no transactions', async () => {
