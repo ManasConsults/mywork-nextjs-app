@@ -247,3 +247,25 @@ Addressed the single Tech Lead required change: Privacy §6 claimed administrato
 Pipeline complete; user to run /ship before merging.
 
 ---
+
+## Stage Completed: release-manager — 2026-10-11
+
+## Summary
+/ship against origin/develop: type-check, lint, build, 817/817 tests and all coverage gates pass; migration 20261011000000_add_terms_consent (2 nullable columns) reviewed, non-blocking, already applied to production. Only blocker was `npm audit --audit-level=high` (10 high), resolved by the exception below. Release manager missed that the e2e active user had no consent and would be redirected to /accept-terms; fixed in e2e/global-setup.ts.
+
+## Artifacts Produced
+- e2e/global-setup.ts — active e2e user seeded with termsAcceptedAt + current LEGAL_VERSION.
+
+## Decisions Made
+- AUDIT EXCEPTION (approved by Manas Mallick as Tech Lead/owner, 2026-10-11): the 10 high-severity `npm audit` findings are all transitive via `prisma` (hono, lodash, mysql2, deepmerge-ts, @prisma/config) and `eslint-config-next` (@next/eslint-plugin-next, braces, micromatch, fast-glob). npm's only remedy is a semver-major DOWNGRADE (prisma 6, eslint-config-next 14), which would break the app. All are build/dev tooling, not shipped in the runtime bundle. None were introduced by this branch (package.json/lockfile unchanged vs develop). Exception applies to these findings only; any NEW high/critical still blocks. Expires when the upgrade ticket below lands.
+- Breaking changes accepted as intended: registerSchema requires acceptTerms; one-time consent gate for all users; admin delete now erases users with data (last admin protected).
+
+## Known Issues / Deferred
+- [TECH DEBT] Upgrade prisma CLI + @prisma/client + @prisma/adapter-pg together (7.5 → latest 7.x) and eslint-config-next when upstream fixes land; re-run audit.
+- Deferred real-DB/e2e tests (see tester entry). Post-deploy smoke: register throwaway account → add data → export → delete.
+- CI e2e shares the production DB — move to a dedicated Neon branch.
+
+## Next Stage Instructions
+READY TO MERGE into develop under the audit exception. Push, open PR to develop, confirm CI green, then run the post-deploy smoke test.
+
+---
