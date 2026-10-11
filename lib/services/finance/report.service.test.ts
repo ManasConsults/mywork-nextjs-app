@@ -155,25 +155,60 @@ describe('getCashFlow', () => {
 // ─── getTaxSummary ────────────────────────────────────────────────────────────
 
 describe('getTaxSummary', () => {
-  const taxYearStart = new Date('2025-04-06');
+  const taxYearStart = new Date(2025, 6, 1);
+
+  let seq = 0;
+  function tx(
+    type: 'INCOME' | 'EXPENSE',
+    amount: number,
+    categoryName: string,
+    categoryType: 'BUSINESS' | 'WORK_RELATED' | 'PERSONAL',
+  ): Record<string, unknown> {
+    seq += 1;
+    return {
+      id: `tx-${seq}`,
+      date: new Date(2025, 7, seq),
+      type,
+      amount,
+      description: `Item ${seq}`,
+      reference: null,
+      category: { name: categoryName, type: categoryType },
+      account: { name: 'Everyday' },
+    };
+  }
 
   it('separates business income from business expenses', async () => {
     mockTxFindMany.mockResolvedValue([
-      { type: 'INCOME', amount: 50000, category: { name: 'Freelance', type: 'BUSINESS' } },
-      { type: 'EXPENSE', amount: 5000, category: { name: 'Software', type: 'BUSINESS' } },
+      tx('INCOME', 50000, 'Freelance', 'BUSINESS'),
+      tx('EXPENSE', 5000, 'Software', 'BUSINESS'),
     ] as never);
 
     const result = await getTaxSummary(userId, taxYearStart);
 
     expect(result.businessIncome).toBe(50000);
+    expect(result.businessIncomeByCategory).toEqual([{ categoryName: 'Freelance', amount: 50000 }]);
     expect(result.businessExpenses).toEqual([{ categoryName: 'Software', amount: 5000 }]);
     expect(result.netBusinessProfit).toBe(45000);
   });
 
-  it('separates work-related expenses', async () => {
+  it('groups business income by category', async () => {
     mockTxFindMany.mockResolvedValue([
-      { type: 'EXPENSE', amount: 1200, category: { name: 'Travel', type: 'WORK_RELATED' } },
+      tx('INCOME', 1000, 'Consulting', 'BUSINESS'),
+      tx('INCOME', 2000, 'Consulting', 'BUSINESS'),
+      tx('INCOME', 500, 'Sales', 'BUSINESS'),
     ] as never);
+
+    const result = await getTaxSummary(userId, taxYearStart);
+
+    expect(result.businessIncomeByCategory).toEqual([
+      { categoryName: 'Consulting', amount: 3000 },
+      { categoryName: 'Sales', amount: 500 },
+    ]);
+    expect(result.businessIncome).toBe(3500);
+  });
+
+  it('separates work-related expenses', async () => {
+    mockTxFindMany.mockResolvedValue([tx('EXPENSE', 1200, 'Travel', 'WORK_RELATED')] as never);
 
     const result = await getTaxSummary(userId, taxYearStart);
 
@@ -183,8 +218,8 @@ describe('getTaxSummary', () => {
 
   it('aggregates multiple expense rows under the same category name', async () => {
     mockTxFindMany.mockResolvedValue([
-      { type: 'EXPENSE', amount: 1000, category: { name: 'Software', type: 'BUSINESS' } },
-      { type: 'EXPENSE', amount: 2000, category: { name: 'Software', type: 'BUSINESS' } },
+      tx('EXPENSE', 1000, 'Software', 'BUSINESS'),
+      tx('EXPENSE', 2000, 'Software', 'BUSINESS'),
     ] as never);
 
     const result = await getTaxSummary(userId, taxYearStart);
@@ -192,11 +227,44 @@ describe('getTaxSummary', () => {
     expect(result.businessExpenses).toEqual([{ categoryName: 'Software', amount: 3000 }]);
   });
 
+  it('itemises exactly the transactions behind the totals', async () => {
+    const income = tx('INCOME', 50000, 'Freelance', 'BUSINESS');
+    const expense = tx('EXPENSE', 1200, 'Travel', 'WORK_RELATED');
+    mockTxFindMany.mockResolvedValue([
+      income,
+      tx('INCOME', 9999, 'Allowance', 'WORK_RELATED'),
+      expense,
+    ] as never);
+
+    const result = await getTaxSummary(userId, taxYearStart);
+
+    expect(result.transactions).toEqual([
+      expect.objectContaining({ id: income.id, type: 'INCOME', categoryType: 'BUSINESS', accountName: 'Everyday', amount: 50000 }),
+      expect.objectContaining({ id: expense.id, type: 'EXPENSE', categoryType: 'WORK_RELATED', amount: 1200 }),
+    ]);
+  });
+
+  it('queries the full tax year in date order', async () => {
+    mockTxFindMany.mockResolvedValue([] as never);
+
+    const result = await getTaxSummary(userId, taxYearStart);
+
+    expect(result.taxYearStart).toEqual(new Date(2025, 6, 1));
+    expect(result.taxYearEnd).toEqual(new Date(2026, 5, 30, 23, 59, 59, 999));
+    expect(mockTxFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId, date: { gte: result.taxYearStart, lte: result.taxYearEnd } }),
+        orderBy: { date: 'asc' },
+      }),
+    );
+  });
+
   it('returns zeros when no transactions', async () => {
     mockTxFindMany.mockResolvedValue([] as never);
     const result = await getTaxSummary(userId, taxYearStart);
     expect(result.businessIncome).toBe(0);
     expect(result.netBusinessProfit).toBe(0);
+    expect(result.transactions).toEqual([]);
   });
 });
 
