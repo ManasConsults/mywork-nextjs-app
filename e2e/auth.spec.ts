@@ -39,6 +39,7 @@ test.describe('Register page', () => {
     await page.fill('#email', 'jane@example.com');
     await page.fill('#password', 'Password123');
     await page.fill('#confirmPassword', 'DifferentPass1');
+    await page.getByRole('checkbox', { name: /terms of use/i }).check();
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -54,6 +55,7 @@ test.describe('Register page', () => {
     await page.fill('#email', unique);
     await page.fill('#password', 'Password123');
     await page.fill('#confirmPassword', 'Password123');
+    await page.getByRole('checkbox', { name: /terms of use/i }).check();
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -70,6 +72,7 @@ test.describe('Register page', () => {
     await page.fill('#email', unique);
     await page.fill('#password', 'Password123');
     await page.fill('#confirmPassword', 'Password123');
+    await page.getByRole('checkbox', { name: /terms of use/i }).check();
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -145,7 +148,9 @@ test.describe('Login page', () => {
 
     await expect(page).toHaveURL('/dashboard', { timeout: 15_000 });
     // Sidebar navigation should be present
-    await expect(page.getByRole('navigation')).toBeVisible();
+    await expect(
+      page.getByRole('complementary', { name: 'Sidebar navigation' }).getByRole('navigation'),
+    ).toBeVisible();
   });
 
   test('submit button shows loading state while signing in', async ({ page }) => {
