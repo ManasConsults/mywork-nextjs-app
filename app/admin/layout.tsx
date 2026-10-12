@@ -4,6 +4,9 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 
 import { authOptions } from '@/lib/auth/auth';
+import { prisma } from '@/lib/db/prisma';
+import { hasAcceptedCurrentTerms } from '@/lib/legal/consent';
+import { computeDeletionDueAt, toBrisbaneIsoDate } from '@/lib/legal/deletion';
 import { AdminPageTitle } from './_components/AdminPageTitle';
 
 const NAV_LINKS = [
@@ -19,6 +22,17 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (!session) redirect('/login');
   const user = session.user as { role?: string };
   if (user.role !== 'ADMIN') redirect('/dashboard');
+
+  const consent = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { termsAcceptedAt: true, termsVersion: true, deletionRequestedAt: true },
+  });
+  if (!consent) redirect('/login');
+  if (consent.deletionRequestedAt) {
+    const deletionDate = toBrisbaneIsoDate(computeDeletionDueAt(consent.deletionRequestedAt));
+    redirect(`/login?${new URLSearchParams({ error: 'AccountDeletionPending', deletionDate }).toString()}`);
+  }
+  if (!hasAcceptedCurrentTerms(consent)) redirect('/accept-terms');
 
   return (
     <div className="min-h-screen bg-background">

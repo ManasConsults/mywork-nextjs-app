@@ -1,3 +1,4 @@
+import { LEGAL_VERSION } from '@/lib/legal/constants';
 import { registerUser, requestPasswordReset, resetPassword } from './auth';
 
 jest.mock('@/lib/db/prisma', () => ({
@@ -55,6 +56,7 @@ const VALID_INPUT = {
   employmentType: 'SOLE_TRADER' as const,
   password: 'Password1',
   confirmPassword: 'Password1',
+  acceptTerms: true as const,
 };
 
 beforeEach(() => {
@@ -68,7 +70,7 @@ beforeEach(() => {
 
 describe('registerUser', () => {
   it('returns field errors when input fails schema validation', async () => {
-    const result = await registerUser({ name: '', email: 'bad', employmentType: 'EMPLOYED', password: 'x', confirmPassword: 'y' });
+    const result = await registerUser({ name: '', email: 'bad', employmentType: 'EMPLOYED', password: 'x', confirmPassword: 'y', acceptTerms: true });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.fields).toBeDefined();
@@ -98,9 +100,20 @@ describe('registerUser', () => {
         role: 'MEMBER',
         isActive: false,
         employmentType: 'SOLE_TRADER',
+        termsAcceptedAt: expect.any(Date),
+        termsVersion: LEGAL_VERSION,
       },
     });
     expect(result).toEqual({ success: true });
+  });
+
+  it('rejects registration when the terms are not accepted', async () => {
+    const result = await registerUser({ ...VALID_INPUT, acceptTerms: false as unknown as true });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.fields?.acceptTerms).toBeDefined();
+    }
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it('sends a pending email after successful registration', async () => {
@@ -178,6 +191,14 @@ describe('requestPasswordReset', () => {
     expect(result).toEqual({ success: true });
   });
 
+  it('returns the same success without a token or email for a pending-deletion account', async () => {
+    mockFindUnique.mockResolvedValue({ ...ACTIVE_CREDENTIALS_USER, deletionRequestedAt: new Date() } as never);
+    const result = await requestPasswordReset({ email: ACTIVE_CREDENTIALS_USER.email });
+    expect(mockTokenCreate).not.toHaveBeenCalled();
+    expect(mockSendReset).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true });
+  });
+
   it('returns success even if the reset email fails to send', async () => {
     mockFindUnique.mockResolvedValue(ACTIVE_CREDENTIALS_USER as never);
     mockSendReset.mockRejectedValue(new Error('SMTP error'));
@@ -237,8 +258,20 @@ describe('resetPassword', () => {
     expect(mockTransaction).not.toHaveBeenCalled();
   });
 
+  it('refuses an outstanding token for a pending-deletion user and writes nothing', async () => {
+    mockTokenFindUnique.mockResolvedValue(VALID_TOKEN_RECORD as never);
+    mockFindUnique.mockResolvedValue({ deletionRequestedAt: new Date() } as never);
+    const result = await resetPassword(VALID_RESET_INPUT);
+    expect(result).toEqual({
+      success: false,
+      error: { message: 'This password reset link is invalid or has expired.' },
+    });
+    expect(mockTransaction).not.toHaveBeenCalled();
+  });
+
   it('updates the password and marks the token used on valid input', async () => {
     mockTokenFindUnique.mockResolvedValue(VALID_TOKEN_RECORD as never);
+    mockFindUnique.mockResolvedValue({ deletionRequestedAt: null } as never);
     const result = await resetPassword(VALID_RESET_INPUT);
 
     expect(mockUserUpdate).toHaveBeenCalledWith({

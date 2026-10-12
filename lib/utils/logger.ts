@@ -4,6 +4,11 @@ const logger = {
       process.stderr.write(JSON.stringify({ level: 'warn', ...ctx, msg }) + '\n');
     }
   },
+  error: (ctx: Record<string, unknown>, msg: string) => {
+    if (process.env.NODE_ENV !== 'test') {
+      process.stderr.write(JSON.stringify({ level: 'error', ...ctx, msg }) + '\n');
+    }
+  },
   info: (ctx: Record<string, unknown>, msg: string) => {
     if (process.env.NODE_ENV !== 'test') {
       process.stderr.write(JSON.stringify({ level: 'info', ...ctx, msg }) + '\n');

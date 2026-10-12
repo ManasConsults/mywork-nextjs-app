@@ -5,6 +5,7 @@ import {
   sendPasswordResetEmail,
   sendInvoiceEmail,
   sendPaymentReminderEmail,
+  sendAccountDeletionRequestedEmail,
 } from './notifications';
 
 jest.mock('./resend', () => ({
@@ -249,5 +250,29 @@ describe('sendPaymentReminderEmail', () => {
   it('throws when send fails', async () => {
     mockSend.mockRejectedValue(new Error('SMTP error'));
     await expect(sendPaymentReminderEmail(TO, reminderParams)).rejects.toThrow('SMTP error');
+  });
+});
+
+describe('sendAccountDeletionRequestedEmail', () => {
+  const params = { userId: 'user-123', requestedAt: new Date('2026-10-11T03:30:00.000Z'), purgeDate: '2026-10-26' };
+
+  it('sends to the operator with the user id, dates and admin link only', async () => {
+    await sendAccountDeletionRequestedEmail(params);
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    const arg = mockSend.mock.calls[0][0] as { to: string; subject: string; html: string };
+    expect(arg.to).toBe('manasm.dev@gmail.com');
+    expect(arg.subject).toBe('MyWork: account deletion requested');
+    expect(arg.html).toContain('user-123');
+    expect(arg.html).toContain('Can be deleted from: 26 October 2026');
+    expect(arg.html).toContain('within 30 days of that date');
+    expect(arg.html).toContain('11 October 2026');
+    expect(arg.html).not.toMatch(/@example\.com|scheduled for permanent deletion/i);
+    expect(arg.html).toContain('/admin/users');
+  });
+
+  it('does not throw or console.error when sending fails', async () => {
+    mockSend.mockRejectedValue(new Error('boom to manasm.dev@gmail.com'));
+    await expect(sendAccountDeletionRequestedEmail(params)).resolves.toBeUndefined();
+    expect(console.error).not.toHaveBeenCalled();
   });
 });

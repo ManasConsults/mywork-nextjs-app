@@ -7,6 +7,7 @@ import { SettingsForm } from './SettingsForm';
 import { ChangePasswordForm } from './ChangePasswordForm';
 import { EmploymentTypeForm } from './EmploymentTypeForm';
 import { BusinessDetailsForm } from './BusinessDetailsForm';
+import { AccountDataSection } from './AccountDataSection';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -147,6 +148,7 @@ export function ProfileTabs({
               </dd>
             </div>
           </dl>
+          <AccountDataSection hasPassword={hasPassword} />
         </TabsContent>
       </Tabs>
     </div>

@@ -5,6 +5,7 @@ import { hashPassword } from '@/lib/auth/passwords';
 import { generateResetToken, hashResetToken } from '@/lib/auth/reset-token';
 import { registerSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/schemas/auth.schema';
 import type { RegisterInput, ForgotPasswordInput, ResetPasswordInput } from '@/lib/schemas/auth.schema';
+import { LEGAL_VERSION } from '@/lib/legal/constants';
 import { sendRegistrationPendingEmail, sendPasswordResetEmail } from '@/lib/email/notifications';
 
 export type RegisterResult =
@@ -33,7 +34,16 @@ export async function registerUser(input: RegisterInput): Promise<RegisterResult
   const passwordHash = await hashPassword(password);
 
   await prisma.user.create({
-    data: { name, email, passwordHash, role: 'MEMBER', isActive: false, employmentType },
+    data: {
+      name,
+      email,
+      passwordHash,
+      role: 'MEMBER',
+      isActive: false,
+      employmentType,
+      termsAcceptedAt: new Date(),
+      termsVersion: LEGAL_VERSION,
+    },
   });
 
   try { await sendRegistrationPendingEmail(email, name ?? null); } catch { /* email failure is non-fatal */ }
@@ -60,8 +70,8 @@ export async function requestPasswordReset(input: ForgotPasswordInput): Promise<
 
   const user = await prisma.user.findUnique({ where: { email } });
 
-  // Only credentials-based accounts have a password to reset.
-  if (user && user.isActive && user.passwordHash) {
+  // Only credentials-based accounts have a password to reset; pending-deletion accounts get the same silent success.
+  if (user && user.isActive && user.passwordHash && !user.deletionRequestedAt) {
     const { token, tokenHash, expiresAt } = generateResetToken();
 
     await prisma.passwordResetToken.create({
@@ -73,6 +83,8 @@ export async function requestPasswordReset(input: ForgotPasswordInput): Promise<
 
   return { success: true };
 }
+
+const INVALID_RESET_LINK = 'This password reset link is invalid or has expired.';
 
 export type ResetPasswordResult =
   | { success: true }
@@ -93,10 +105,16 @@ export async function resetPassword(input: ResetPasswordInput): Promise<ResetPas
   const resetToken = await prisma.passwordResetToken.findUnique({ where: { tokenHash } });
 
   if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
-    return {
-      success: false,
-      error: { message: 'This password reset link is invalid or has expired.' },
-    };
+    return { success: false, error: { message: INVALID_RESET_LINK } };
+  }
+
+  // A token issued before the deletion request must not revive a pending account's credentials.
+  const owner = await prisma.user.findUnique({
+    where: { id: resetToken.userId },
+    select: { deletionRequestedAt: true },
+  });
+  if (owner?.deletionRequestedAt) {
+    return { success: false, error: { message: INVALID_RESET_LINK } };
   }
 
   const passwordHash = await hashPassword(password);
