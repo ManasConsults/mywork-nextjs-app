@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useState, useTransition } from 'react';
 
+import { CONTACT_EMAIL } from '@/lib/legal/constants';
+import { formatDeletionDate, isValidIsoDate } from '@/lib/legal/deletion';
 import { loginSchema } from '@/lib/schemas/auth.schema';
 import type { LoginInput } from '@/lib/schemas/auth.schema';
 import { Button } from '@/components/ui/button';
@@ -53,6 +55,24 @@ const OAUTH_PROVIDERS = [
   },
 ];
 
+const GENERIC_ERROR = 'Invalid email or password. Please try again.';
+const DELETION_CODE = /^DELETION_PENDING:(\d{4}-\d{2}-\d{2})$/;
+
+function deletionMessage(isoDate: string): string {
+  return `Your account is scheduled for deletion after ${formatDeletionDate(isoDate)}. To cancel, email ${CONTACT_EMAIL}.`;
+}
+
+// Error text from the server is untrusted display input: only an exact, valid date pattern is acted on.
+function credentialsErrorMessage(error: string): string {
+  const match = DELETION_CODE.exec(error);
+  return match && isValidIsoDate(match[1]) ? deletionMessage(match[1]) : GENERIC_ERROR;
+}
+
+function urlErrorMessage(error: string | null, deletionDate: string | null): string | null {
+  if (error !== 'AccountDeletionPending') return null;
+  return deletionDate && isValidIsoDate(deletionDate) ? deletionMessage(deletionDate) : GENERIC_ERROR;
+}
+
 export function LoginForm(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -62,6 +82,7 @@ export function LoginForm(): React.JSX.Element {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [rootError, setRootError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const displayedError = rootError ?? urlErrorMessage(searchParams.get('error'), searchParams.get('deletionDate'));
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const { name, value } = e.target;
@@ -91,7 +112,7 @@ export function LoginForm(): React.JSX.Element {
       });
 
       if (result?.error) {
-        setRootError('Invalid email or password. Please try again.');
+        setRootError(credentialsErrorMessage(result.error));
         return;
       }
 
@@ -137,6 +158,18 @@ export function LoginForm(): React.JSX.Element {
         ))}
       </div>
 
+      <p className="-mt-3 mb-6 text-center text-xs text-muted-foreground">
+        When you sign in with a provider you will be asked to accept our{' '}
+        <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+          Terms of Use
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+          Privacy Policy
+        </Link>
+        .
+      </p>
+
       {/* Divider */}
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
@@ -148,13 +181,13 @@ export function LoginForm(): React.JSX.Element {
       </div>
 
       {/* Root error */}
-      {rootError && (
+      {displayedError && (
         <div
           role="alert"
           aria-live="assertive"
           className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
         >
-          {rootError}
+          {displayedError}
         </div>
       )}
 

@@ -117,6 +117,12 @@ model User {
   businessEmail   String?
   businessPhone   String?
   businessAddress String?
+  /// When the user accepted the Terms/Privacy Policy; null until first acceptance
+  termsAcceptedAt DateTime?
+  /// LEGAL_VERSION the user accepted
+  termsVersion    String?
+  /// When the user asked to delete their account; erased after the 14-day grace period. Null = not pending.
+  deletionRequestedAt DateTime?
   tasks                Task[]
   workLogs             WorkLog[]
   achievements         Achievement[]
@@ -130,6 +136,7 @@ model User {
   feedbackSubmissions  FeedbackSubmission[]
   passwordResetTokens  PasswordResetToken[]
 
+  @@index([deletionRequestedAt])
   @@map("users")
 }
 

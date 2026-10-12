@@ -3,6 +3,8 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcryptjs';
 import { config } from 'dotenv';
 
+import { LEGAL_VERSION } from '../lib/legal/constants';
+
 config({ path: '.env.local' });
 
 function createPrisma(): PrismaClient {
@@ -29,16 +31,19 @@ async function globalSetup(): Promise<void> {
   try {
     const activeHash = await bcrypt.hash(TEST_USERS.active.password, 10);
     const pendingHash = await bcrypt.hash(TEST_USERS.pending.password, 10);
+    const acceptedTerms = { termsAcceptedAt: new Date(), termsVersion: LEGAL_VERSION };
 
     await prisma.user.upsert({
       where: { email: TEST_USERS.active.email },
-      update: { passwordHash: activeHash, isActive: true, role: 'MEMBER' },
+      // Pre-accepted so specs land on the app instead of the /accept-terms consent gate
+      update: { passwordHash: activeHash, isActive: true, role: 'MEMBER', ...acceptedTerms },
       create: {
         email: TEST_USERS.active.email,
         name: TEST_USERS.active.name,
         passwordHash: activeHash,
         role: 'MEMBER',
         isActive: true,
+        ...acceptedTerms,
       },
     });
 

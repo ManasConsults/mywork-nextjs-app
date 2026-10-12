@@ -6,6 +6,7 @@ import type { NextAuthOptions, User } from 'next-auth';
 
 import { prisma } from '@/lib/db/prisma';
 import { verifyPassword } from '@/lib/auth/passwords';
+import { computeDeletionDueAt, toBrisbaneIsoDate } from '@/lib/legal/deletion';
 import { loginSchema } from '@/lib/schemas/auth.schema';
 import { sendRegistrationPendingEmail } from '@/lib/email/notifications';
 import { DEFAULT_CURRENCY } from '@/lib/utils/money';
@@ -37,6 +38,11 @@ export const authOptions: NextAuthOptions = {
 
         const valid = await verifyPassword(parsed.data.password, user.passwordHash);
         if (!valid) return null;
+
+        // Thrown only after a correct password so the dated message never confirms deletion state to a guesser.
+        if (user.deletionRequestedAt) {
+          throw new Error(`DELETION_PENDING:${toBrisbaneIsoDate(computeDeletionDueAt(user.deletionRequestedAt))}`);
+        }
 
         return {
           id: user.id,
@@ -142,6 +148,10 @@ export const authOptions: NextAuthOptions = {
             await sendRegistrationPendingEmail(user.email, user.name ?? null);
           } catch { /* email failure is non-fatal */ }
         } else {
+          if (dbUser.deletionRequestedAt) {
+            const deletionDate = toBrisbaneIsoDate(computeDeletionDueAt(dbUser.deletionRequestedAt));
+            return `/login?${new URLSearchParams({ error: 'AccountDeletionPending', deletionDate }).toString()}`;
+          }
           // Returning OAuth user — keep profile in sync
           await prisma.user.update({
             where: { email: user.email },

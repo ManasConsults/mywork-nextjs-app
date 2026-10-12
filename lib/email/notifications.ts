@@ -1,3 +1,6 @@
+import { CONTACT_EMAIL } from '@/lib/legal/constants';
+import { formatBrisbaneDateTime, formatDeletionDate } from '@/lib/legal/deletion';
+import logger from '@/lib/utils/logger';
 import { resend } from './resend';
 
 const FROM = process.env.RESEND_FROM ?? 'MyWork <noreply@mywork.app>';
@@ -94,6 +97,41 @@ export async function sendPasswordResetEmail(
     });
   } catch {
     console.error('[email] Failed to send password reset email to', to);
+  }
+}
+
+/**
+ * Alerts the operator to a deletion request. Carries the user id only (no email, name or content)
+ * and never throws: the request has already been committed.
+ */
+export async function sendAccountDeletionRequestedEmail(params: {
+  userId: string;
+  requestedAt: Date;
+  purgeDate: string;
+}): Promise<void> {
+  const { userId, requestedAt, purgeDate } = params;
+  if (!resend) {
+    logger.warn({ userId }, 'deletion request email skipped: email not configured');
+    return;
+  }
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: CONTACT_EMAIL,
+      subject: 'MyWork: account deletion requested',
+      html: `
+        <p>An account deletion was requested.</p>
+        <ul>
+          <li>User id: ${userId}</li>
+          <li>Requested: ${formatBrisbaneDateTime(requestedAt)}</li>
+          <li>Can be deleted from: ${formatDeletionDate(purgeDate)}</li>
+        </ul>
+        <p>Please delete the account within 30 days of that date (Privacy Policy commitment). Deletion is manual: nothing is erased automatically.</p>
+        <p><a href="${APP_URL}/admin/users">Open Admin &rarr; Users &rarr; Deletion pending</a> (${APP_URL}/admin/users)</p>
+      `,
+    });
+  } catch {
+    logger.error({ userId }, 'deletion request email failed');
   }
 }
 

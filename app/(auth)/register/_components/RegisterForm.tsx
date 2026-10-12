@@ -8,11 +8,13 @@ import { registerSchema } from '@/lib/schemas/auth.schema';
 import { registerUser } from '@/lib/actions/auth';
 import type { RegisterInput } from '@/lib/schemas/auth.schema';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
+type FormValues = Omit<RegisterInput, 'acceptTerms'>;
 
 const EMPLOYMENT_OPTIONS = [
   { value: 'EMPLOYED', label: 'Employee', description: 'I work as an employee (PAYE / salaried)' },
@@ -21,13 +23,14 @@ const EMPLOYMENT_OPTIONS = [
 ] as const;
 
 export function RegisterForm(): React.JSX.Element {
-  const [values, setValues] = useState<RegisterInput>({
+  const [values, setValues] = useState<FormValues>({
     name: '',
     email: '',
     employmentType: 'EMPLOYED',
     password: '',
     confirmPassword: '',
   });
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [rootError, setRootError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -45,7 +48,7 @@ export function RegisterForm(): React.JSX.Element {
     e.preventDefault();
     setRootError(null);
 
-    const parsed = registerSchema.safeParse(values);
+    const parsed = registerSchema.safeParse({ ...values, acceptTerms });
     if (!parsed.success) {
       const flat = parsed.error.flatten().fieldErrors;
       setFieldErrors({
@@ -54,6 +57,7 @@ export function RegisterForm(): React.JSX.Element {
         employmentType: flat.employmentType?.[0],
         password: flat.password?.[0],
         confirmPassword: flat.confirmPassword?.[0],
+        acceptTerms: flat.acceptTerms?.[0],
       });
       return;
     }
@@ -232,12 +236,49 @@ export function RegisterForm(): React.JSX.Element {
               </p>
             )}
           </div>
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex min-h-11 items-center gap-3">
+              <Checkbox
+                id="acceptTerms"
+                checked={acceptTerms}
+                onCheckedChange={(checked) => {
+                  setAcceptTerms(checked === true);
+                  setFieldErrors((prev) => ({ ...prev, acceptTerms: undefined }));
+                }}
+                disabled={isPending}
+                aria-invalid={!!fieldErrors.acceptTerms}
+                aria-describedby={fieldErrors.acceptTerms ? 'accept-terms-error' : undefined}
+                className="size-5"
+              />
+              <Label htmlFor="acceptTerms" className="block text-sm font-normal leading-snug">
+                I agree to the{' '}
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                  Terms of Use
+                </Link>{' '}
+                and{' '}
+                <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                  Privacy Policy
+                </Link>
+              </Label>
+            </div>
+            {fieldErrors.acceptTerms && (
+              <p id="accept-terms-error" role="alert" className="text-xs text-red-600 dark:text-red-400">
+                {fieldErrors.acceptTerms}
+              </p>
+            )}
+          </div>
         </div>
 
         <Button type="submit" disabled={isPending} aria-busy={isPending} className="mt-6 w-full" size="lg">
           {isPending ? 'Creating account…' : 'Create account'}
         </Button>
       </form>
+
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        Signing up with Google, GitHub or Facebook instead? You will be asked to accept the Terms of Use and
+        Privacy Policy the first time you sign in after approval.
+      </p>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{' '}

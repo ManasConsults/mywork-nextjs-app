@@ -30,6 +30,7 @@ function setup() {
     emailInput: () => screen.getByLabelText(/email address/i),
     passwordInput: () => screen.getByLabelText(/^password/i),
     confirmInput: () => screen.getByLabelText(/confirm password/i),
+    termsCheckbox: () => screen.getByRole('checkbox', { name: /terms of use/i }),
     submitButton: () => screen.getByRole('button', { name: /create account/i }),
   };
 }
@@ -37,6 +38,7 @@ function setup() {
 async function fillAndSubmit(
   helpers: ReturnType<typeof setup>,
   overrides: Partial<typeof VALID> = {},
+  { acceptTerms = true }: { acceptTerms?: boolean } = {},
 ) {
   const values = { ...VALID, ...overrides };
   const { user, nameInput, emailInput, passwordInput, confirmInput, submitButton } = helpers;
@@ -44,6 +46,7 @@ async function fillAndSubmit(
   if (values.email) await user.type(emailInput(), values.email);
   if (values.password) await user.type(passwordInput(), values.password);
   if (values.confirmPassword) await user.type(confirmInput(), values.confirmPassword);
+  if (acceptTerms) await user.click(helpers.termsCheckbox());
   await user.click(submitButton());
 }
 
@@ -129,6 +132,24 @@ describe('RegisterForm validation', () => {
     expect(helpers.confirmInput()).toHaveAttribute('aria-invalid', 'true');
   });
 
+  it('shows an alert and blocks submission when the terms are not accepted', async () => {
+    const helpers = setup();
+    await fillAndSubmit(helpers, {}, { acceptTerms: false });
+    expect(await screen.findByRole('alert')).toHaveTextContent(/must accept the terms/i);
+    expect(helpers.termsCheckbox()).toHaveAttribute('aria-invalid', 'true');
+    expect(mockRegisterUser).not.toHaveBeenCalled();
+  });
+
+  it('links the terms and privacy policy in a new tab', () => {
+    setup();
+    for (const [name, href] of [[/^terms of use$/i, '/terms'], [/^privacy policy$/i, '/privacy']] as const) {
+      const link = screen.getByRole('link', { name });
+      expect(link).toHaveAttribute('href', href);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    }
+  });
+
   it('does not call registerUser when validation fails', async () => {
     const helpers = setup();
     await helpers.user.click(helpers.submitButton());
@@ -159,6 +180,7 @@ describe('RegisterForm successful registration', () => {
         password: 'Password1',
         confirmPassword: 'Password1',
         employmentType: 'EMPLOYED',
+        acceptTerms: true,
       });
     });
   });

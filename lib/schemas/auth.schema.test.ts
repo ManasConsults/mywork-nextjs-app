@@ -32,10 +32,19 @@ describe('registerSchema', () => {
     email: 'jane@example.com',
     password: 'Password1',
     confirmPassword: 'Password1',
+    acceptTerms: true,
   };
 
   it('accepts valid registration data', () => {
     expect(registerSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it.each([false, undefined, 'true'])('rejects acceptTerms = %p', (acceptTerms) => {
+    const result = registerSchema.safeParse({ ...valid, acceptTerms });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.acceptTerms).toBeDefined();
+    }
   });
 
   it.each([
